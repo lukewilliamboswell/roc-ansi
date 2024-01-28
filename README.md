@@ -1,6 +1,6 @@
-# Roc ANSI Escapes
+# Roc ANSI
 
-Helpers for working with terminal escapes
+Helpers for working with the terminal
 
 ## Example - Colors
 
