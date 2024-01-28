@@ -1,4 +1,7 @@
 examples/colors
 examples/animals
+examples/tui-menu
 
 generated-docs/
+
+format.sh

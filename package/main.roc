@@ -1,5 +1,3 @@
 package "ansi-escape"
-    exposes [
-        Color,
-    ]
+    exposes [Core]
     packages {}

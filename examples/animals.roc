@@ -1,19 +1,19 @@
 app "example"
     packages {
-        cli: "https://github.com/roc-lang/basic-cli/releases/download/0.5.0/Cufzl36_SnJ4QbOoEmiJ5dIpUxBvdB3NEySvuH82Wio.tar.br",
-        pkg: "https://github.com/lukewilliamboswell/roc-ansi-escapes/releases/download/0.1.1/cPHdNPNh8bjOrlOgfSaGBJDz6VleQwsPdW0LJK6dbGQ.tar.br",
+        cli: "https://github.com/roc-lang/basic-cli/releases/download/0.8.1/x8URkvfyi9I0QhmVG98roKBUs_AZRkLFwFJVJ3942YA.tar.br",
+        ansi: "../package/main.roc",
     }
-    imports [cli.Stdout, pkg.Color.{ fg }]
+    imports [cli.Stdout, ansi.Core]
     provides [main] to cli
 
 main =
     [
         "The ",
-        "GREEN" |> Color.fg Green,
+        "GREEN" |> Core.withFg Green,
         " frog, the ",
-        "BLUE" |> Color.fg Blue,
+        "BLUE" |> Core.withFg Blue,
         " bird, and the ",
-        "RED" |> Color.fg Red,
+        "RED" |> Core.withFg Red,
         " ant shared a leaf.",
     ]
     |> Str.joinWith ""
