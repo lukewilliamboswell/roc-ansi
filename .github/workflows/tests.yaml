@@ -31,10 +31,4 @@ jobs:
 
       - run: ./roc_nightly/roc version
 
-      - run: sudo apt install -y expect
-      # expect for testing
-
-      - run: expect -v
-
-      # Run all tests 
       - run: ROC=./roc_nightly/roc ./ci/all_tests.sh
