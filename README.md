@@ -16,6 +16,6 @@ Run with `roc run examples/tui-menu.roc`
 
 ## Documentation
 
-See [https://lukewilliamboswell.github.io/roc-ansi-escapes/](https://lukewilliamboswell.github.io/roc-ansi-escapes/)
+See [https://lukewilliamboswell.github.io/roc-ansi/](https://lukewilliamboswell.github.io/roc-ansi/)
 
 To generate locally use `roc docs package/main.roc`
