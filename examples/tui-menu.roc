@@ -1,6 +1,6 @@
 app "tui-menu"
     packages {
-        pf: "https://github.com/roc-lang/basic-cli/releases/download/0.7.0/bkGby8jb0tmZYsy2hg1E_B2QrCgcSTxdUlHtETwm5m4.tar.br",
+        pf: "https://github.com/roc-lang/basic-cli/releases/download/0.8.1/x8URkvfyi9I0QhmVG98roKBUs_AZRkLFwFJVJ3942YA.tar.br",
         ansi: "../package/main.roc",
     }
     imports [
@@ -167,7 +167,7 @@ homeScreen = \model ->
             Core.drawText " Choose your Thing" { r: 1, c: 1, fg: Green },
             Core.drawText "RUN" { r: 2, c: 11, fg: Blue },
             Core.drawText "QUIT" { r: 2, c: 26, fg: Red },
-            Core.drawText " ENTER TO RUN, ESCAPE TO QUIT" { r: 2, c: 1, fg: Gray },
+            Core.drawText " ENTER TO RUN, ESCAPE TO QUIT" { r: 2, c: 1, fg: White },
             Core.drawBox { r: 0, c: 0, w: model.screen.width, h: model.screen.height },
         ],
         { selected, s, row } <- model |> mapSelected |> List.map
@@ -185,7 +185,7 @@ confirmScreen = \state -> [
     Core.drawText " Would you like to do something?" { r: 1, c: 1, fg: Yellow },
     Core.drawText "CONFIRM" { r: 2, c: 11, fg: Blue },
     Core.drawText "RETURN" { r: 2, c: 30, fg: Red },
-    Core.drawText " ENTER TO CONFIRM, ESCAPE TO RETURN" { r: 2, c: 1, fg: Gray },
+    Core.drawText " ENTER TO CONFIRM, ESCAPE TO RETURN" { r: 2, c: 1, fg: White },
     Core.drawText " count: TBC" { r: 3, c: 1 },
     Core.drawText " speed: TBC" { r: 4, c: 1 },
     Core.drawText " size: TBC" { r: 5, c: 1 },
@@ -196,7 +196,7 @@ debugScreen : Model -> List DrawFn
 debugScreen = \state ->
     cursorStr = "CURSOR R$(Num.toStr state.cursor.row), C$(Num.toStr state.cursor.col)"
     screenStr = "SCREEN H$(Num.toStr state.screen.height), W$(Num.toStr state.screen.width)"
-    inputDelatStr = "DELTA $(Num.toStr (Utc.deltaAsMillis state.prevDraw state.currDraw)) millis"
+    inputDeltaStr = "DELTA $(Num.toStr (Utc.deltaAsMillis state.prevDraw state.currDraw)) millis"
     lastInput =
         state.inputs
         |> List.last
@@ -206,9 +206,9 @@ debugScreen = \state ->
 
     [
         Core.drawText lastInput { r: state.screen.height - 5, c: 1, fg: Magenta },
-        Core.drawText inputDelatStr { r: state.screen.height - 4, c: 1, fg: Magenta },
+        Core.drawText inputDeltaStr { r: state.screen.height - 4, c: 1, fg: Magenta },
         Core.drawText cursorStr { r: state.screen.height - 3, c: 1, fg: Magenta },
         Core.drawText screenStr { r: state.screen.height - 2, c: 1, fg: Magenta },
-        Core.drawVLine { r: 1, c: state.screen.width // 2, len: state.screen.height, fg: Gray },
-        Core.drawHLine { c: 1, r: state.screen.height // 2, len: state.screen.width, fg: Gray },
+        Core.drawVLine { r: 1, c: state.screen.width // 2, len: state.screen.height, fg: White },
+        Core.drawHLine { c: 1, r: state.screen.height // 2, len: state.screen.width, fg: White },
     ]

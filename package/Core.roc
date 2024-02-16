@@ -55,7 +55,7 @@ Color : [
     Blue,
     Magenta,
     Cyan,
-    Gray,
+    White,
     BrightBlack, # for terminals which support axiterm specification
     BrightRed, # for terminals which support axiterm specification
     BrightGreen, # for terminals which support axiterm specification
@@ -103,7 +103,7 @@ fromFgColor = \color ->
         Blue -> "$(esc)[34m"
         Magenta -> "$(esc)[35m"
         Cyan -> "$(esc)[36m"
-        Gray -> "$(esc)[37m"
+        White -> "$(esc)[37m"
         Default -> "$(esc)[39m"
         BrightBlack -> "$(esc)[90m"
         BrightRed -> "$(esc)[91m"
@@ -124,7 +124,7 @@ fromBgColor = \color ->
         Blue -> "$(esc)[44m"
         Magenta -> "$(esc)[45m"
         Cyan -> "$(esc)[46m"
-        Gray -> "$(esc)[47m"
+        White -> "$(esc)[47m"
         Default -> "$(esc)[49m"
         BrightBlack -> "$(esc)[100m"
         BrightRed -> "$(esc)[101m"
@@ -614,7 +614,7 @@ joinPixels = \{ rowStrs, prev }, curr ->
     { rowStrs: List.append rowStrs pixelStr, prev: curr }
 
 drawBox : { r : I32, c : I32, w : I32, h : I32, fg ? Color, bg ? Color, char ? Str } -> DrawFn
-drawBox = \{ r, c, w, h, fg ? Gray, bg ? Default, char ? "#" } -> \_, { row, col } ->
+drawBox = \{ r, c, w, h, fg ? White, bg ? Default, char ? "#" } -> \_, { row, col } ->
 
         startRow = r
         endRow = (r + h)
@@ -647,10 +647,8 @@ drawHLine = \{ r, c, len, fg ? Default, bg ? Default, char ? "-" } -> \_, { row,
             Err {}
 
 drawCursor : { fg ? Color, bg ? Color, char ? Str } -> DrawFn
-drawCursor = \{ fg ? Default, bg ? Gray, char ? " " } -> \cursor, { row, col } ->
-        if
-            (row == cursor.row) && (col == cursor.col)
-        then
+drawCursor = \{ fg ? Default, bg ? White, char ? " " } -> \cursor, { row, col } ->
+        if (row == cursor.row) && (col == cursor.col) then
             Ok { char, fg, bg }
         else
             Err {}
