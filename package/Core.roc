@@ -1,7 +1,8 @@
 interface Core
     exposes [
         # ANSI
-        Code,
+        Escape,
+        Control,
         toStr,
 
         # Color
@@ -30,20 +31,26 @@ interface Core
     imports []
 
 ## [ANSI Escape Codes](https://en.wikipedia.org/wiki/ANSI_escape_code)
-Code : [
+
+Escape : [
     Reset,
+    Control Control,
+]
+
+Control : [
+    MoveCursor
+        [
+            Step [Up, Down, Left, Right] I32,
+            To { row : I32, col : I32 },
+            Home,
+            Line [Next, Prev] I32,
+        ],
+    Erase [Display [ToEnd, ToStart, All], Line [ToEnd, ToStart, All]],
     ClearScreen,
     GetCursor,
-    SetCursor { row : I32, col : I32 },
+    Scroll [Up, Down] I32,
     SetFgColor Color,
     SetBgColor Color,
-    EraseToEnd,
-    EraseFromStart,
-    EraseLine,
-    MoveCursorHome,
-    MoveCursor [Up, Down, Left, Right] I32,
-    MoveCursorNextLine,
-    MoveCursorPrevLine,
 ]
 
 ## 8-bit colors supported on *most* modern terminal emulators
@@ -57,41 +64,69 @@ Color : [
     Cyan,
     White,
     BrightBlack, # for terminals which support axiterm specification
-    BrightRed, # for terminals which support axiterm specification
-    BrightGreen, # for terminals which support axiterm specification
-    BrightYellow, # for terminals which support axiterm specification
-    BrightBlue, # for terminals which support axiterm specification
-    BrightMagenta, # for terminals which support axiterm specification
-    BrightCyan, # for terminals which support axiterm specification
-    BrightWhite, # for terminals which support axiterm specification
+    BrightRed,
+    BrightGreen,
+    BrightYellow,
+    BrightBlue,
+    BrightMagenta,
+    BrightCyan,
+    BrightWhite,
     Default,
 ]
 
-# ESC character
-esc : Str
 esc = "\u(001b)"
 
-toStr : Code -> Str
-toStr = \code ->
-    when code is
-        Reset -> "$(esc)c"
-        ClearScreen -> "$(esc)[3J"
-        GetCursor -> "$(esc)[6n"
-        SetCursor { row, col } -> "$(esc)[$(Num.toStr row);$(Num.toStr col)H"
+toStr = \x -> "\u(001b)$(escapeToStrHelp x)"
+
+escapeToStrHelp : Escape -> Str
+escapeToStrHelp = \escape ->
+    when escape is
+        Reset -> "c"
+        Control control -> "[$(controlToStrHelp control)"
+
+controlToStrHelp : Control -> Str
+controlToStrHelp = \control ->
+    when control is
+        GetCursor -> "6n"
+        MoveCursor x ->
+            when x is
+                Step direction steps ->
+                    when direction is
+                        Up -> "$(Num.toStr steps)A"
+                        Down -> "$(Num.toStr steps)B"
+                        Right -> "$(Num.toStr steps)C"
+                        Left -> "$(Num.toStr steps)D"
+
+                Line direction lines ->
+                    when direction is
+                        Next -> "$(Num.toStr lines)E"
+                        Prev -> "$(Num.toStr lines)F"
+
+                Home -> "H"
+                To { row, col } -> "$(Num.toStr row);$(Num.toStr col)H"
+
+        Erase x ->
+            when x is
+                Display d ->
+                    when d is
+                        ToEnd -> "0J"
+                        ToStart -> "1J"
+                        All -> "2J"
+
+                Line l ->
+                    when l is
+                        ToEnd -> "0K"
+                        ToStart -> "1K"
+                        All -> "2K"
+
+        ClearScreen -> "3J"
+        Scroll direction lines ->
+            when direction is
+                Up -> "$(Num.toStr lines)S"
+                Down -> "$(Num.toStr lines)T"
+
         SetFgColor color -> fromFgColor color
         SetBgColor color -> fromBgColor color
-        EraseToEnd -> "$(esc)[0K"
-        EraseFromStart -> "$(esc)[1K"
-        EraseLine -> "$(esc)[2K"
-        MoveCursorHome -> "$(esc)[H"
-        MoveCursorNextLine -> "$(esc)[1E"
-        MoveCursorPrevLine -> "$(esc)[1F"
-        MoveCursor direction steps ->
-            when direction is
-                Up -> "$(esc)[$(Num.toStr steps)A"
-                Down -> "$(esc)[$(Num.toStr steps)B"
-                Right -> "$(esc)[$(Num.toStr steps)C"
-                Left -> "$(esc)[$(Num.toStr steps)D"
 
 fromFgColor : Color -> Str
 fromFgColor = \color ->
@@ -137,15 +172,15 @@ fromBgColor = \color ->
 
 ## Adds foreground color formatting to a Str and then resets to Default
 withFg : Str, Color -> Str
-withFg = \str, color -> "$(toStr (SetFgColor color))$(str)$(esc)[0m"
+withFg = \str, color -> "$(toStr (Control (SetFgColor color)))$(str)$(esc)[0m"
 
 ## Adds background color formatting to a Str and then resets to Default
 withBg : Str, Color -> Str
-withBg = \str, color -> "$(toStr (SetBgColor color))$(str)$(esc)[0m"
+withBg = \str, color -> "$(toStr (Control (SetBgColor color)))$(str)$(esc)[0m"
 
 ## Adds color formatting to a Str and then resets to Default
 withColor : Str, { fg : Color, bg : Color } -> Str
-withColor = \str, colors -> "$(toStr (SetFgColor colors.fg))$(toStr (SetBgColor colors.bg))$(str)$(esc)[0m"
+withColor = \str, colors -> "$(toStr (Control (SetFgColor colors.fg)))$(toStr (Control (SetBgColor colors.bg)))$(str)$(esc)[0m"
 
 Key : [
     Up,
@@ -599,7 +634,7 @@ joinPixelRow = \{ char, fg, bg, lines }, pixelRow, row ->
     line =
         rowStrs
         |> Str.joinWith "" # Set cursor at the start of line we want to draw
-        |> Str.withPrefix (toStr (SetCursor { row: Num.toI32 (row + 1), col: 0 }))
+        |> Str.withPrefix (toStr (Control (MoveCursor (To { row: Num.toI32 (row + 1), col: 0 }))))
 
     { char: " ", fg: prev.fg, bg: prev.bg, lines: List.append lines line }
 
@@ -608,8 +643,8 @@ joinPixels = \{ rowStrs, prev }, curr ->
     pixelStr =
         # Prepend an ASCII escape ONLY if there is a change between pixels
         curr.char
-        |> \str -> if curr.fg != prev.fg then Str.concat (toStr (SetFgColor curr.fg)) str else str
-        |> \str -> if curr.bg != prev.bg then Str.concat (toStr (SetBgColor curr.bg)) str else str
+        |> \str -> if curr.fg != prev.fg then Str.concat (toStr (Control (SetFgColor curr.fg))) str else str
+        |> \str -> if curr.bg != prev.bg then Str.concat (toStr (Control (SetBgColor curr.bg))) str else str
 
     { rowStrs: List.append rowStrs pixelStr, prev: curr }
 
