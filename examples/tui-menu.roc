@@ -8,7 +8,7 @@ app "tui-menu"
         pf.Stdin,
         pf.Tty,
         pf.Task.{ Task },
-        ansi.Core.{ Color, Input, ScreenSize, Position, DrawFn },
+        ansi.Core.{ Control, Color, Input, ScreenSize, Position, DrawFn },
         pf.Utc.{ Utc },
     ]
     provides [main] to pf
@@ -151,7 +151,7 @@ getTerminalSize : Task ScreenSize []
 getTerminalSize =
 
     # Move the cursor to bottom right corner of terminal
-    cmd = [SetCursor { row: 999, col: 999 }, GetCursor] |> List.map Core.toStr |> Str.joinWith ""
+    cmd = [MoveCursor (To { row: 999, col: 999 }), GetCursor] |> List.map Control |> List.map Core.toStr |> Str.joinWith ""
     {} <- Stdout.write cmd |> Task.await
 
     # Read the cursor position
