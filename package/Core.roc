@@ -5,6 +5,10 @@ interface Core
         Control,
         toStr,
 
+        # Style
+        Style,
+        withStyle,
+
         # Color
         Color,
         withFg,
@@ -49,11 +53,25 @@ Control : [
     ClearScreen,
     GetCursor,
     Scroll [Up, Down] I32,
+    Style Style,
     SetFgColor Color,
     SetBgColor Color,
 ]
 
+Style : [
+    Default,
+    Bold [On, Off],
+    Italicized [On, Off],
+    Strikethrough [On, Off],
+    Underlined [On, Off],
+    Color (ColorName, ColorScheme, ColorIntensity),
+]
+
 ## 8-bit colors supported on *most* modern terminal emulators
+ColorName : [Black, Red, Green, Yellow, Blue, Magenta, Cyan, White, Default]
+ColorScheme : [Fg, Bg]
+ColorIntensity : [Regular, Bright] # for terminals which support axiterm specification
+
 Color : [
     Black,
     Red,
@@ -73,8 +91,6 @@ Color : [
     BrightWhite,
     Default,
 ]
-
-esc = "\u(001b)"
 
 toStr = \x -> "\u(001b)$(escapeToStrHelp x)"
 
@@ -127,60 +143,115 @@ controlToStrHelp = \control ->
 
         SetFgColor color -> fromFgColor color
         SetBgColor color -> fromBgColor color
+        Style style -> "$(Num.toStr (styleToStrHelp style))m"
+
+styleToStrHelp = \style ->
+    when style is
+        Default -> 0
+        Bold b ->
+            when b is
+                On -> 1
+                Off -> 22
+
+        Italicized i ->
+            when i is
+                On -> 3
+                Off -> 23
+
+        Strikethrough s ->
+            when s is
+                On -> 9
+                Off -> 29
+
+        Underlined u ->
+            when u is
+                On -> 4
+                Off -> 24
+
+        Color (name, scheme, intensity) ->
+            fromColorIntensityScheme intensity scheme
+            |> Num.add (fromColorName name)
+
+fromColorName : ColorName -> U8
+fromColorName = \name ->
+    when name is
+        Black -> 0
+        Red -> 1
+        Green -> 2
+        Yellow -> 3
+        Blue -> 4
+        Magenta -> 5
+        Cyan -> 6
+        White -> 7
+        Default -> 9
+
+fromColorIntensityScheme : ColorIntensity, ColorScheme -> U8
+fromColorIntensityScheme = \intensity, scheme ->
+    when (intensity, scheme) is
+        (Regular, Fg) -> 30
+        (Regular, Bg) -> 40
+        (Bright, Fg) -> 90
+        (Bright, Bg) -> 100
 
 fromFgColor : Color -> Str
 fromFgColor = \color ->
     when color is
-        Black -> "$(esc)[30m"
-        Red -> "$(esc)[31m"
-        Green -> "$(esc)[32m"
-        Yellow -> "$(esc)[33m"
-        Blue -> "$(esc)[34m"
-        Magenta -> "$(esc)[35m"
-        Cyan -> "$(esc)[36m"
-        White -> "$(esc)[37m"
-        Default -> "$(esc)[39m"
-        BrightBlack -> "$(esc)[90m"
-        BrightRed -> "$(esc)[91m"
-        BrightGreen -> "$(esc)[92m"
-        BrightYellow -> "$(esc)[93m"
-        BrightBlue -> "$(esc)[94m"
-        BrightMagenta -> "$(esc)[95m"
-        BrightCyan -> "$(esc)[96m"
-        BrightWhite -> "$(esc)[97m"
+        Black -> "30m"
+        Red -> "31m"
+        Green -> "32m"
+        Yellow -> "33m"
+        Blue -> "34m"
+        Magenta -> "35m"
+        Cyan -> "36m"
+        White -> "37m"
+        Default -> "39m"
+        BrightBlack -> "90m"
+        BrightRed -> "91m"
+        BrightGreen -> "92m"
+        BrightYellow -> "93m"
+        BrightBlue -> "94m"
+        BrightMagenta -> "95m"
+        BrightCyan -> "96m"
+        BrightWhite -> "97m"
 
 fromBgColor : Color -> Str
 fromBgColor = \color ->
     when color is
-        Black -> "$(esc)[40m"
-        Red -> "$(esc)[41m"
-        Green -> "$(esc)[42m"
-        Yellow -> "$(esc)[43m"
-        Blue -> "$(esc)[44m"
-        Magenta -> "$(esc)[45m"
-        Cyan -> "$(esc)[46m"
-        White -> "$(esc)[47m"
-        Default -> "$(esc)[49m"
-        BrightBlack -> "$(esc)[100m"
-        BrightRed -> "$(esc)[101m"
-        BrightGreen -> "$(esc)[102m"
-        BrightYellow -> "$(esc)[103m"
-        BrightBlue -> "$(esc)[104m"
-        BrightMagenta -> "$(esc)[105m"
-        BrightCyan -> "$(esc)[106m"
-        BrightWhite -> "$(esc)[107m"
+        Black -> "40m"
+        Red -> "41m"
+        Green -> "42m"
+        Yellow -> "43m"
+        Blue -> "44m"
+        Magenta -> "45m"
+        Cyan -> "46m"
+        White -> "47m"
+        Default -> "49m"
+        BrightBlack -> "100m"
+        BrightRed -> "101m"
+        BrightGreen -> "102m"
+        BrightYellow -> "103m"
+        BrightBlue -> "104m"
+        BrightMagenta -> "105m"
+        BrightCyan -> "106m"
+        BrightWhite -> "107m"
+
+## Adds style to a Str and then resets to Default
+withStyle : Str, List Style -> Str
+withStyle = \str, styles -> "$(styles |> List.map Style |> List.map Control |> List.map toStr |> Str.joinWith (""))$(str)"
+
+resetStyle = toStr (Control (Style (Default)))
 
 ## Adds foreground color formatting to a Str and then resets to Default
 withFg : Str, Color -> Str
-withFg = \str, color -> "$(toStr (Control (SetFgColor color)))$(str)$(esc)[0m"
+withFg = \str, color -> "$(toStr (Control (SetFgColor color)))$(str)$(resetStyle)"
 
 ## Adds background color formatting to a Str and then resets to Default
 withBg : Str, Color -> Str
-withBg = \str, color -> "$(toStr (Control (SetBgColor color)))$(str)$(esc)[0m"
+withBg = \str, color -> "$(toStr (Control (SetBgColor color)))$(str)$(resetStyle)"
 
 ## Adds color formatting to a Str and then resets to Default
 withColor : Str, { fg : Color, bg : Color } -> Str
-withColor = \str, colors -> "$(toStr (Control (SetFgColor colors.fg)))$(toStr (Control (SetBgColor colors.bg)))$(str)$(esc)[0m"
+withColor = \str, colors -> "$(toStr (Control (SetFgColor colors.fg)))$(toStr (Control (SetBgColor colors.bg)))$(str)$(resetStyle)"
 
 Key : [
     Up,
