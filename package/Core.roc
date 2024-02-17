@@ -45,17 +45,15 @@ Control : [
     MoveCursor
         [
             Step [Up, Down, Left, Right] I32,
+            Line [Next, Prev] I32,
             To { row : I32, col : I32 },
             Home,
-            Line [Next, Prev] I32,
         ],
     Erase [Display [ToEnd, ToStart, All], Line [ToEnd, ToStart, All]],
     ClearScreen,
     GetCursor,
     Scroll [Up, Down] I32,
     Style Style,
-    SetFgColor Color,
-    SetBgColor Color,
 ]
 
 Style : [
@@ -64,44 +62,29 @@ Style : [
     Italicized [On, Off],
     Strikethrough [On, Off],
     Underlined [On, Off],
-    Color (ColorName, ColorScheme, ColorIntensity),
+    Color [Fg Color, Bg Color],
 ]
 
-## 8-bit colors supported on *most* modern terminal emulators
-ColorName : [Black, Red, Green, Yellow, Blue, Magenta, Cyan, White, Default]
-ColorScheme : [Fg, Bg]
-ColorIntensity : [Regular, Bright] # for terminals which support axiterm specification
-
+## 4-bit, 8-bit and 24-bit colors supported on *most* modern terminal emulators
 Color : [
-    Black,
-    Red,
-    Green,
-    Yellow,
-    Blue,
-    Magenta,
-    Cyan,
-    White,
-    BrightBlack, # for terminals which support axiterm specification
-    BrightRed,
-    BrightGreen,
-    BrightYellow,
-    BrightBlue,
-    BrightMagenta,
-    BrightCyan,
-    BrightWhite,
     Default,
+    Standard [Black, Red, Green, Yellow, Blue, Magenta, Cyan, White],
+    # For terminals which support axiterm specification
+    Bright [Black, Red, Green, Yellow, Blue, Magenta, Cyan, White],
+    B8 U8,
+    B24 (U8, U8, U8),
 ]
 
-toStr = \x -> "\u(001b)$(escapeToStrHelp x)"
+toStr = \x -> "\u(001b)$(fromEscape x)"
 
-escapeToStrHelp : Escape -> Str
-escapeToStrHelp = \escape ->
+fromEscape : Escape -> Str
+fromEscape = \escape ->
     when escape is
         Reset -> "c"
-        Control control -> "[$(controlToStrHelp control)"
+        Control control -> "[$(fromControl control)"
 
-controlToStrHelp : Control -> Str
-controlToStrHelp = \control ->
+fromControl : Control -> Str
+fromControl = \control ->
     when control is
         GetCursor -> "6n"
         MoveCursor x ->
@@ -118,8 +101,8 @@ controlToStrHelp = \control ->
                         Next -> "$(Num.toStr lines)E"
                         Prev -> "$(Num.toStr lines)F"
 
-                Home -> "H"
                 To { row, col } -> "$(Num.toStr row);$(Num.toStr col)H"
+                Home -> "H"
 
         Erase x ->
             when x is
@@ -141,117 +124,117 @@ controlToStrHelp = \control ->
                 Up -> "$(Num.toStr lines)S"
                 Down -> "$(Num.toStr lines)T"
 
-        SetFgColor color -> fromFgColor color
-        SetBgColor color -> fromBgColor color
-        Style style -> "$(Num.toStr (styleToStrHelp style))m"
+        Style style -> "$(style |> fromStyle |> List.map Num.toStr |> Str.joinWith ";")m"
 
-styleToStrHelp = \style ->
+fromStyle : Style -> List U8
+fromStyle = \style ->
     when style is
-        Default -> 0
+        Default -> [0]
         Bold b ->
             when b is
-                On -> 1
-                Off -> 22
+                On -> [1]
+                Off -> [22]
 
         Italicized i ->
             when i is
-                On -> 3
-                Off -> 23
+                On -> [3]
+                Off -> [23]
 
         Strikethrough s ->
             when s is
-                On -> 9
-                Off -> 29
+                On -> [9]
+                Off -> [29]
 
         Underlined u ->
             when u is
-                On -> 4
-                Off -> 24
+                On -> [4]
+                Off -> [24]
 
-        Color (name, scheme, intensity) ->
-            fromColorIntensityScheme intensity scheme
-            |> Num.add (fromColorName name)
+        Color color ->
+            when color is
+                Fg fg -> fromFgColor fg
+                Bg bg -> fromBgColor bg
 
-fromColorName : ColorName -> U8
-fromColorName = \name ->
-    when name is
-        Black -> 0
-        Red -> 1
-        Green -> 2
-        Yellow -> 3
-        Blue -> 4
-        Magenta -> 5
-        Cyan -> 6
-        White -> 7
-        Default -> 9
+fromFgColor : Color -> List U8
+fromFgColor = \fg ->
+    when fg is
+        Default -> [39]
+        Standard standard ->
+            when standard is
+                Black -> [30]
+                Red -> [31]
+                Green -> [32]
+                Yellow -> [33]
+                Blue -> [34]
+                Magenta -> [35]
+                Cyan -> [36]
+                White -> [37]
 
-fromColorIntensityScheme : ColorIntensity, ColorScheme -> U8
-fromColorIntensityScheme = \intensity, scheme ->
-    when (intensity, scheme) is
-        (Regular, Fg) -> 30
-        (Regular, Bg) -> 40
-        (Bright, Fg) -> 90
-        (Bright, Bg) -> 100
+        Bright bright ->
+            when bright is
+                Black -> [90]
+                Red -> [91]
+                Green -> [92]
+                Yellow -> [93]
+                Blue -> [94]
+                Magenta -> [95]
+                Cyan -> [96]
+                White -> [97]
 
-fromFgColor : Color -> Str
-fromFgColor = \color ->
-    when color is
-        Black -> "30m"
-        Red -> "31m"
-        Green -> "32m"
-        Yellow -> "33m"
-        Blue -> "34m"
-        Magenta -> "35m"
-        Cyan -> "36m"
-        White -> "37m"
-        Default -> "39m"
-        BrightBlack -> "90m"
-        BrightRed -> "91m"
-        BrightGreen -> "92m"
-        BrightYellow -> "93m"
-        BrightBlue -> "94m"
-        BrightMagenta -> "95m"
-        BrightCyan -> "96m"
-        BrightWhite -> "97m"
+        B8 b8 -> [38, 5, b8]
+        B24 (r, g, b) -> [38, 2, r, g, b]
 
-fromBgColor : Color -> Str
-fromBgColor = \color ->
-    when color is
-        Black -> "40m"
-        Red -> "41m"
-        Green -> "42m"
-        Yellow -> "43m"
-        Blue -> "44m"
-        Magenta -> "45m"
-        Cyan -> "46m"
-        White -> "47m"
-        Default -> "49m"
-        BrightBlack -> "100m"
-        BrightRed -> "101m"
-        BrightGreen -> "102m"
-        BrightYellow -> "103m"
-        BrightBlue -> "104m"
-        BrightMagenta -> "105m"
-        BrightCyan -> "106m"
-        BrightWhite -> "107m"
+fromBgColor = \bg ->
+    when bg is
+        Default -> [49]
+        Standard standard ->
+            when standard is
+                Black -> [40]
+                Red -> [41]
+                Green -> [42]
+                Yellow -> [43]
+                Blue -> [44]
+                Magenta -> [45]
+                Cyan -> [46]
+                White -> [47]
 
-## Adds style to a Str and then resets to Default
+        Bright bright ->
+            when bright is
+                Black -> [100]
+                Red -> [101]
+                Green -> [102]
+                Yellow -> [103]
+                Blue -> [104]
+                Magenta -> [105]
+                Cyan -> [106]
+                White -> [107]
+
+        B8 b8 -> [48, 5, b8]
+        B24 (r, g, b) -> [48, 2, r, g, b]
+
+## Adds style to a Str
 withStyle : Str, List Style -> Str
-withStyle = \str, styles -> "$(styles |> List.map Style |> List.map Control |> List.map toStr |> Str.joinWith (""))$(str)"
+withStyle = \str, styles ->
+    styles
+    |> List.map Style
+    |> List.map Control
+    |> List.map toStr
+    |> List.append str
+    |> Str.joinWith ("")
 
 resetStyle = toStr (Control (Style (Default)))
 
 ## Adds foreground color formatting to a Str and then resets to Default
 withFg : Str, Color -> Str
-withFg = \str, color -> "$(toStr (Control (SetFgColor color)))$(str)$(resetStyle)"
+withFg = \str, color -> "$(toStr (Control (Style (Color (Fg color)))))$(str)$(resetStyle)"
 
 ## Adds background color formatting to a Str and then resets to Default
 withBg : Str, Color -> Str
-withBg = \str, color -> "$(toStr (Control (SetBgColor color)))$(str)$(resetStyle)"
+withBg = \str, color -> "$(toStr (Control (Style (Color (Bg color)))))$(str)$(resetStyle)"
 
 ## Adds color formatting to a Str and then resets to Default
 withColor : Str, { fg : Color, bg : Color } -> Str
-withColor = \str, colors -> "$(toStr (Control (SetFgColor colors.fg)))$(toStr (Control (SetBgColor colors.bg)))$(str)$(resetStyle)"
+withColor = \str, colors -> "$(toStr (Control (Style (Color (Fg colors.fg)))))$(toStr (Control (Style (Color (Bg colors.bg)))))$(str)$(resetStyle)"
 
 Key : [
     Up,
@@ -714,13 +697,13 @@ joinPixels = \{ rowStrs, prev }, curr ->
     pixelStr =
         # Prepend an ASCII escape ONLY if there is a change between pixels
         curr.char
-        |> \str -> if curr.fg != prev.fg then Str.concat (toStr (Control (SetFgColor curr.fg))) str else str
-        |> \str -> if curr.bg != prev.bg then Str.concat (toStr (Control (SetBgColor curr.bg))) str else str
+        |> \str -> if curr.fg != prev.fg then Str.concat (toStr (Control (Style (Color (Fg curr.fg))))) str else str
+        |> \str -> if curr.bg != prev.bg then Str.concat (toStr (Control (Style (Color (Bg curr.bg))))) str else str
 
     { rowStrs: List.append rowStrs pixelStr, prev: curr }
 
 drawBox : { r : I32, c : I32, w : I32, h : I32, fg ? Color, bg ? Color, char ? Str } -> DrawFn
-drawBox = \{ r, c, w, h, fg ? White, bg ? Default, char ? "#" } -> \_, { row, col } ->
+drawBox = \{ r, c, w, h, fg ? Default, bg ? Default, char ? "#" } -> \_, { row, col } ->
 
         startRow = r
         endRow = (r + h)
@@ -753,7 +736,7 @@ drawHLine = \{ r, c, len, fg ? Default, bg ? Default, char ? "-" } -> \_, { row,
             Err {}
 
 drawCursor : { fg ? Color, bg ? Color, char ? Str } -> DrawFn
-drawCursor = \{ fg ? Default, bg ? White, char ? " " } -> \cursor, { row, col } ->
+drawCursor = \{ fg ? Default, bg ? Default, char ? " " } -> \cursor, { row, col } ->
         if (row == cursor.row) && (col == cursor.col) then
             Ok { char, fg, bg }
         else
