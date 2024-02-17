@@ -8,11 +8,16 @@ app "styles"
 
 main =
     [
-        "Bold On" |> Core.withStyle [Bold On],
-        "Italicized On" |> Core.withStyle [Italicized On] |> Core.withStyle [Default], # TODO why is bold not kept after using Italicized?
+        "Bold On" |> Core.withStyle [Bold On] |> Core.withStyle [Default],
+        "Faint On" |> Core.withStyle [Faint On] |> Core.withStyle [Default],
+        "Italic On" |> Core.withStyle [Italic On] |> Core.withStyle [Default], # TODO why is bold not kept after using italic?
+        "Overline On" |> Core.withStyle [Overline On] |> Core.withStyle [Default],
         "Strikethrough On" |> Core.withStyle [Strikethrough On] |> Core.withStyle [Default],
-        "Underlined On" |> Core.withStyle [Underlined On] |> Core.withStyle [Default],
-        "Combination" |> Core.withStyle [Bold On, Italicized On, Strikethrough On, Underlined On],
+        "Underline On" |> Core.withStyle [Underline On] |> Core.withStyle [Default],
+        "Invert On" |> Core.withStyle [Invert On] |> Core.withStyle [Default],
+        "Blink Slow" |> Core.withStyle [Blink Slow] |> Core.withStyle [Default],
+        "Blink Rapid" |> Core.withStyle [Blink Rapid] |> Core.withStyle [Default],
+        "Combination" |> Core.withStyle [Bold On, Italic On, Strikethrough On, Underline On],
         "This should have the last style",
         "This shouldn't have any style" |> Core.withStyle [Default],
     ]
