@@ -8,12 +8,13 @@ app "styles"
 
 main =
     [
-        "Bold On" |> Core.withStyle [Bold On] |> Core.withStyle [Default],
-        "Italicized On" |> Core.withStyle [Italicized On] |> Core.withStyle [Default],
+        "Bold On" |> Core.withStyle [Bold On],
+        "Italicized On" |> Core.withStyle [Italicized On] |> Core.withStyle [Default], # TODO why is bold not kept after using Italicized?
         "Strikethrough On" |> Core.withStyle [Strikethrough On] |> Core.withStyle [Default],
         "Underlined On" |> Core.withStyle [Underlined On] |> Core.withStyle [Default],
         "Combination" |> Core.withStyle [Bold On, Italicized On, Strikethrough On, Underlined On],
         "This should have the last style",
+        "This shouldn't have any style" |> Core.withStyle [Default],
     ]
     |> Str.joinWith "\n"
     |> Stdout.line

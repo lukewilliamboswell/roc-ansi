@@ -9,11 +9,11 @@ app "example"
 main =
     [
         "The ",
-        "GREEN" |> Core.withFg Green,
+        "GREEN" |> Core.withFg (Standard Green),
         " frog, the ",
-        "BLUE" |> Core.withFg Blue,
+        "BLUE" |> Core.withFg (Standard Blue),
         " bird, and the ",
-        "RED" |> Core.withFg Red,
+        "RED" |> Core.withFg (Standard Red),
         " ant shared a leaf.",
     ]
     |> Str.joinWith ""
