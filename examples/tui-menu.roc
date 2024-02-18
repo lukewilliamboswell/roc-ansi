@@ -163,29 +163,29 @@ homeScreen : Model -> List DrawFn
 homeScreen = \model ->
     [
         [
-            Core.drawCursor { bg: Green },
-            Core.drawText " Choose your Thing" { r: 1, c: 1, fg: Green },
-            Core.drawText "RUN" { r: 2, c: 11, fg: Blue },
-            Core.drawText "QUIT" { r: 2, c: 26, fg: Red },
-            Core.drawText " ENTER TO RUN, ESCAPE TO QUIT" { r: 2, c: 1, fg: White },
+            Core.drawCursor { bg: Standard Green },
+            Core.drawText " Choose your Thing" { r: 1, c: 1, fg: Standard Green },
+            Core.drawText "RUN" { r: 2, c: 11, fg: Standard Blue },
+            Core.drawText "QUIT" { r: 2, c: 26, fg: Standard Red },
+            Core.drawText " ENTER TO RUN, ESCAPE TO QUIT" { r: 2, c: 1, fg: Standard White },
             Core.drawBox { r: 0, c: 0, w: model.screen.width, h: model.screen.height },
         ],
         { selected, s, row } <- model |> mapSelected |> List.map
 
         if selected then
-            Core.drawText " > $(s)" { r: row, c: 2, fg: Green }
+            Core.drawText " > $(s)" { r: row, c: 2, fg: Standard Green }
         else
-            Core.drawText " - $(s)" { r: row, c: 2, fg: Black },
+            Core.drawText " - $(s)" { r: row, c: 2, fg: Standard Black },
     ]
     |> List.join
 
 confirmScreen : Model -> List DrawFn
 confirmScreen = \state -> [
-    Core.drawCursor { bg: Green },
-    Core.drawText " Would you like to do something?" { r: 1, c: 1, fg: Yellow },
-    Core.drawText "CONFIRM" { r: 2, c: 11, fg: Blue },
-    Core.drawText "RETURN" { r: 2, c: 30, fg: Red },
-    Core.drawText " ENTER TO CONFIRM, ESCAPE TO RETURN" { r: 2, c: 1, fg: White },
+    Core.drawCursor { bg: Standard Green },
+    Core.drawText " Would you like to do something?" { r: 1, c: 1, fg: Standard Yellow },
+    Core.drawText "CONFIRM" { r: 2, c: 11, fg: Standard Blue },
+    Core.drawText "RETURN" { r: 2, c: 30, fg: Standard Red },
+    Core.drawText " ENTER TO CONFIRM, ESCAPE TO RETURN" { r: 2, c: 1, fg: Standard White },
     Core.drawText " count: TBC" { r: 3, c: 1 },
     Core.drawText " speed: TBC" { r: 4, c: 1 },
     Core.drawText " size: TBC" { r: 5, c: 1 },
@@ -205,10 +205,10 @@ debugScreen = \state ->
         |> Result.withDefault "NO INPUT YET"
 
     [
-        Core.drawText lastInput { r: state.screen.height - 5, c: 1, fg: Magenta },
-        Core.drawText inputDeltaStr { r: state.screen.height - 4, c: 1, fg: Magenta },
-        Core.drawText cursorStr { r: state.screen.height - 3, c: 1, fg: Magenta },
-        Core.drawText screenStr { r: state.screen.height - 2, c: 1, fg: Magenta },
-        Core.drawVLine { r: 1, c: state.screen.width // 2, len: state.screen.height, fg: White },
-        Core.drawHLine { c: 1, r: state.screen.height // 2, len: state.screen.width, fg: White },
+        Core.drawText lastInput { r: state.screen.height - 5, c: 1, fg: Standard Magenta },
+        Core.drawText inputDeltaStr { r: state.screen.height - 4, c: 1, fg: Standard Magenta },
+        Core.drawText cursorStr { r: state.screen.height - 3, c: 1, fg: Standard Magenta },
+        Core.drawText screenStr { r: state.screen.height - 2, c: 1, fg: Standard Magenta },
+        Core.drawVLine { r: 1, c: state.screen.width // 2, len: state.screen.height, fg: Standard White },
+        Core.drawHLine { c: 1, r: state.screen.height // 2, len: state.screen.width, fg: Standard White },
     ]

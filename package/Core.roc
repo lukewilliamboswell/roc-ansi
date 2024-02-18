@@ -45,63 +45,51 @@ Control : [
     MoveCursor
         [
             Step [Up, Down, Left, Right] I32,
+            Line [Next, Prev] I32,
             To { row : I32, col : I32 },
             Home,
-            Line [Next, Prev] I32,
         ],
     Erase [Display [ToEnd, ToStart, All], Line [ToEnd, ToStart, All]],
     ClearScreen,
     GetCursor,
     Scroll [Up, Down] I32,
     Style Style,
-    SetFgColor Color,
-    SetBgColor Color,
 ]
 
 Style : [
     Default,
     Bold [On, Off],
-    Italicized [On, Off],
+    Faint [On, Off],
+    Italic [On, Off],
+    Underline [On, Off],
+    Overline [On, Off], # TODO: Investigate which terminals support this
     Strikethrough [On, Off],
-    Underlined [On, Off],
-    Color (ColorName, ColorScheme, ColorIntensity),
+    Blink [Slow, Rapid, Off], # TODO: Investigate which terminals support rapid blink
+    Invert [On, Off],
+    Foreground Color,
+    Background Color,
 ]
 
-## 8-bit colors supported on *most* modern terminal emulators
-ColorName : [Black, Red, Green, Yellow, Blue, Magenta, Cyan, White, Default]
-ColorScheme : [Fg, Bg]
-ColorIntensity : [Regular, Bright] # for terminals which support axiterm specification
-
+## 4-bit, 8-bit and 24-bit colors supported on *most* modern terminal emulators
 Color : [
-    Black,
-    Red,
-    Green,
-    Yellow,
-    Blue,
-    Magenta,
-    Cyan,
-    White,
-    BrightBlack, # for terminals which support axiterm specification
-    BrightRed,
-    BrightGreen,
-    BrightYellow,
-    BrightBlue,
-    BrightMagenta,
-    BrightCyan,
-    BrightWhite,
     Default,
+    Standard [Black, Red, Green, Yellow, Blue, Magenta, Cyan, White],
+    # For terminals which support axiterm specification
+    Bright [Black, Red, Green, Yellow, Blue, Magenta, Cyan, White],
+    B8 U8,
+    B24 (U8, U8, U8),
 ]
 
-toStr = \x -> "\u(001b)$(escapeToStrHelp x)"
+toStr = \x -> "\u(001b)$(fromEscape x)"
 
-escapeToStrHelp : Escape -> Str
-escapeToStrHelp = \escape ->
+fromEscape : Escape -> Str
+fromEscape = \escape ->
     when escape is
         Reset -> "c"
-        Control control -> "[$(controlToStrHelp control)"
+        Control control -> "[$(fromControl control)"
 
-controlToStrHelp : Control -> Str
-controlToStrHelp = \control ->
+fromControl : Control -> Str
+fromControl = \control ->
     when control is
         GetCursor -> "6n"
         MoveCursor x ->
@@ -118,8 +106,8 @@ controlToStrHelp = \control ->
                         Next -> "$(Num.toStr lines)E"
                         Prev -> "$(Num.toStr lines)F"
 
-                Home -> "H"
                 To { row, col } -> "$(Num.toStr row);$(Num.toStr col)H"
+                Home -> "H"
 
         Erase x ->
             when x is
@@ -141,117 +129,136 @@ controlToStrHelp = \control ->
                 Up -> "$(Num.toStr lines)S"
                 Down -> "$(Num.toStr lines)T"
 
-        SetFgColor color -> fromFgColor color
-        SetBgColor color -> fromBgColor color
-        Style style -> "$(Num.toStr (styleToStrHelp style))m"
+        Style style -> "$(style |> fromStyle |> List.map Num.toStr |> Str.joinWith ";")m"
 
-styleToStrHelp = \style ->
+fromStyle : Style -> List U8
+fromStyle = \style ->
     when style is
-        Default -> 0
+        Default -> [0]
         Bold b ->
             when b is
-                On -> 1
-                Off -> 22
+                On -> [1]
+                Off -> [22]
 
-        Italicized i ->
+        Faint f ->
+            when f is
+                On -> [2]
+                Off -> [22]
+
+        Italic i ->
             when i is
-                On -> 3
-                Off -> 23
+                On -> [3]
+                Off -> [23]
+
+        Underline u ->
+            when u is
+                On -> [4]
+                Off -> [24]
+
+        Overline u ->
+            when u is
+                On -> [53]
+                Off -> [55]
 
         Strikethrough s ->
             when s is
-                On -> 9
-                Off -> 29
+                On -> [9]
+                Off -> [29]
 
-        Underlined u ->
-            when u is
-                On -> 4
-                Off -> 24
+        Blink b ->
+            when b is
+                Slow -> [5]
+                Rapid -> [6]
+                Off -> [25]
 
-        Color (name, scheme, intensity) ->
-            fromColorIntensityScheme intensity scheme
-            |> Num.add (fromColorName name)
+        Invert i ->
+            when i is
+                On -> [7]
+                Off -> [27]
 
-fromColorName : ColorName -> U8
-fromColorName = \name ->
-    when name is
-        Black -> 0
-        Red -> 1
-        Green -> 2
-        Yellow -> 3
-        Blue -> 4
-        Magenta -> 5
-        Cyan -> 6
-        White -> 7
-        Default -> 9
+        Foreground fg -> fromFgColor fg
+        Background bg -> fromBgColor bg
 
-fromColorIntensityScheme : ColorIntensity, ColorScheme -> U8
-fromColorIntensityScheme = \intensity, scheme ->
-    when (intensity, scheme) is
-        (Regular, Fg) -> 30
-        (Regular, Bg) -> 40
-        (Bright, Fg) -> 90
-        (Bright, Bg) -> 100
+fromFgColor : Color -> List U8
+fromFgColor = \fg ->
+    when fg is
+        Default -> [39]
+        Standard standard ->
+            when standard is
+                Black -> [30]
+                Red -> [31]
+                Green -> [32]
+                Yellow -> [33]
+                Blue -> [34]
+                Magenta -> [35]
+                Cyan -> [36]
+                White -> [37]
 
-fromFgColor : Color -> Str
-fromFgColor = \color ->
-    when color is
-        Black -> "30m"
-        Red -> "31m"
-        Green -> "32m"
-        Yellow -> "33m"
-        Blue -> "34m"
-        Magenta -> "35m"
-        Cyan -> "36m"
-        White -> "37m"
-        Default -> "39m"
-        BrightBlack -> "90m"
-        BrightRed -> "91m"
-        BrightGreen -> "92m"
-        BrightYellow -> "93m"
-        BrightBlue -> "94m"
-        BrightMagenta -> "95m"
-        BrightCyan -> "96m"
-        BrightWhite -> "97m"
+        Bright bright ->
+            when bright is
+                Black -> [90]
+                Red -> [91]
+                Green -> [92]
+                Yellow -> [93]
+                Blue -> [94]
+                Magenta -> [95]
+                Cyan -> [96]
+                White -> [97]
 
-fromBgColor : Color -> Str
-fromBgColor = \color ->
-    when color is
-        Black -> "40m"
-        Red -> "41m"
-        Green -> "42m"
-        Yellow -> "43m"
-        Blue -> "44m"
-        Magenta -> "45m"
-        Cyan -> "46m"
-        White -> "47m"
-        Default -> "49m"
-        BrightBlack -> "100m"
-        BrightRed -> "101m"
-        BrightGreen -> "102m"
-        BrightYellow -> "103m"
-        BrightBlue -> "104m"
-        BrightMagenta -> "105m"
-        BrightCyan -> "106m"
-        BrightWhite -> "107m"
+        B8 b8 -> [38, 5, b8]
+        B24 (r, g, b) -> [38, 2, r, g, b]
 
-## Adds style to a Str and then resets to Default
+fromBgColor = \bg ->
+    when bg is
+        Default -> [49]
+        Standard standard ->
+            when standard is
+                Black -> [40]
+                Red -> [41]
+                Green -> [42]
+                Yellow -> [43]
+                Blue -> [44]
+                Magenta -> [45]
+                Cyan -> [46]
+                White -> [47]
+
+        Bright bright ->
+            when bright is
+                Black -> [100]
+                Red -> [101]
+                Green -> [102]
+                Yellow -> [103]
+                Blue -> [104]
+                Magenta -> [105]
+                Cyan -> [106]
+                White -> [107]
+
+        B8 b8 -> [48, 5, b8]
+        B24 (r, g, b) -> [48, 2, r, g, b]
+
+## Adds style to a Str
 withStyle : Str, List Style -> Str
-withStyle = \str, styles -> "$(styles |> List.map Style |> List.map Control |> List.map toStr |> Str.joinWith (""))$(str)"
+withStyle = \str, styles ->
+    styles
+    |> List.map Style
+    |> List.map Control
+    |> List.map toStr
+    |> List.append str
+    |> Str.joinWith ("")
 
 resetStyle = toStr (Control (Style (Default)))
 
 ## Adds foreground color formatting to a Str and then resets to Default
 withFg : Str, Color -> Str
-withFg = \str, color -> "$(toStr (Control (SetFgColor color)))$(str)$(resetStyle)"
+withFg = \str, color -> "$(toStr (Control (Style (Foreground color))))$(str)$(resetStyle)"
 
 ## Adds background color formatting to a Str and then resets to Default
 withBg : Str, Color -> Str
-withBg = \str, color -> "$(toStr (Control (SetBgColor color)))$(str)$(resetStyle)"
+withBg = \str, color -> "$(toStr (Control (Style (Background color))))$(str)$(resetStyle)"
 
 ## Adds color formatting to a Str and then resets to Default
 withColor : Str, { fg : Color, bg : Color } -> Str
-withColor = \str, colors -> "$(toStr (Control (SetFgColor colors.fg)))$(toStr (Control (SetBgColor colors.bg)))$(str)$(resetStyle)"
+withColor = \str, colors -> "$(toStr (Control (Style (Foreground colors.fg))))$(toStr (Control (Style (Background colors.bg))))$(str)$(resetStyle)"
 
 Key : [
     Up,
@@ -590,7 +597,7 @@ keyToStr = \key ->
 ScreenSize : { width : I32, height : I32 }
 Position : { row : I32, col : I32 }
 DrawFn : Position, Position -> Result Pixel {}
-Pixel : { char : Str, fg : Color, bg : Color }
+Pixel : { char : Str, fg : Color, bg : Color, styles : List Style }
 
 parseCursor : List U8 -> Position
 parseCursor = \bytes ->
@@ -665,7 +672,7 @@ drawScreen = \{ cursor, screen }, drawFns ->
 
         List.walkUntil
             drawFns
-            { char: " ", fg: Default, bg: Default }
+            { char: " ", fg: Default, bg: Default, styles: [] }
             \defaultPixel, drawFn ->
                 when drawFn cursor { row, col } is
                     Ok pixel -> Break pixel
@@ -687,19 +694,20 @@ joinAllPixels = \rows ->
         fg: Default,
         bg: Default,
         lines: List.withCapacity (List.len rows),
+        styles: [],
     }
 
     walkWithIndex rows 0 init joinPixelRow
     |> .lines
     |> Str.joinWith ""
 
-joinPixelRow : { char : Str, fg : Color, bg : Color, lines : List Str }, List Pixel, U64 -> { char : Str, fg : Color, bg : Color, lines : List Str }
-joinPixelRow = \{ char, fg, bg, lines }, pixelRow, row ->
+joinPixelRow : { char : Str, fg : Color, bg : Color, lines : List Str, styles : List Style }, List Pixel, U64 -> { char : Str, fg : Color, bg : Color, lines : List Str, styles : List Style }
+joinPixelRow = \{ char, fg, bg, lines, styles }, pixelRow, row ->
 
     { rowStrs, prev } =
         List.walk
             pixelRow
-            { rowStrs: List.withCapacity (Num.intCast (List.len pixelRow)), prev: { char, fg, bg } }
+            { rowStrs: List.withCapacity (Num.intCast (List.len pixelRow)), prev: { char, fg, bg, styles } }
             joinPixels
 
     line =
@@ -707,20 +715,20 @@ joinPixelRow = \{ char, fg, bg, lines }, pixelRow, row ->
         |> Str.joinWith "" # Set cursor at the start of line we want to draw
         |> Str.withPrefix (toStr (Control (MoveCursor (To { row: Num.toI32 (row + 1), col: 0 }))))
 
-    { char: " ", fg: prev.fg, bg: prev.bg, lines: List.append lines line }
+    { char: " ", fg: prev.fg, bg: prev.bg, lines: List.append lines line, styles: prev.styles }
 
 joinPixels : { rowStrs : List Str, prev : Pixel }, Pixel -> { rowStrs : List Str, prev : Pixel }
 joinPixels = \{ rowStrs, prev }, curr ->
     pixelStr =
         # Prepend an ASCII escape ONLY if there is a change between pixels
         curr.char
-        |> \str -> if curr.fg != prev.fg then Str.concat (toStr (Control (SetFgColor curr.fg))) str else str
-        |> \str -> if curr.bg != prev.bg then Str.concat (toStr (Control (SetBgColor curr.bg))) str else str
+        |> \str -> if curr.fg != prev.fg then Str.concat (toStr (Control (Style (Foreground curr.fg)))) str else str
+        |> \str -> if curr.bg != prev.bg then Str.concat (toStr (Control (Style (Background curr.bg)))) str else str
 
     { rowStrs: List.append rowStrs pixelStr, prev: curr }
 
-drawBox : { r : I32, c : I32, w : I32, h : I32, fg ? Color, bg ? Color, char ? Str } -> DrawFn
-drawBox = \{ r, c, w, h, fg ? White, bg ? Default, char ? "#" } -> \_, { row, col } ->
+drawBox : { r : I32, c : I32, w : I32, h : I32, fg ? Color, bg ? Color, char ? Str, styles ? List Style } -> DrawFn
+drawBox = \{ r, c, w, h, fg ? Default, bg ? Default, char ? "#", styles ? [] } -> \_, { row, col } ->
 
         startRow = r
         endRow = (r + h)
@@ -728,46 +736,46 @@ drawBox = \{ r, c, w, h, fg ? White, bg ? Default, char ? "#" } -> \_, { row, co
         endCol = (c + w)
 
         if row == r && (col >= startCol && col < endCol) then
-            Ok { char, fg, bg } # TOP BORDER
+            Ok { char, fg, bg, styles } # TOP BORDER
         else if row == (r + h - 1) && (col >= startCol && col < endCol) then
-            Ok { char, fg, bg } # BOTTOM BORDER
+            Ok { char, fg, bg, styles } # BOTTOM BORDER
         else if col == c && (row >= startRow && row < endRow) then
-            Ok { char, fg, bg } # LEFT BORDER
+            Ok { char, fg, bg, styles } # LEFT BORDER
         else if col == (c + w - 1) && (row >= startRow && row < endRow) then
-            Ok { char, fg, bg } # RIGHT BORDER
+            Ok { char, fg, bg, styles } # RIGHT BORDER
         else
             Err {}
 
-drawVLine : { r : I32, c : I32, len : I32, fg ? Color, bg ? Color, char ? Str } -> DrawFn
-drawVLine = \{ r, c, len, fg ? Default, bg ? Default, char ? "|" } -> \_, { row, col } ->
+drawVLine : { r : I32, c : I32, len : I32, fg ? Color, bg ? Color, char ? Str, styles ? List Style } -> DrawFn
+drawVLine = \{ r, c, len, fg ? Default, bg ? Default, char ? "|", styles ? [] } -> \_, { row, col } ->
         if col == c && (row >= r && row < (r + len)) then
-            Ok { char, fg, bg }
+            Ok { char, fg, bg, styles }
         else
             Err {}
 
-drawHLine : { r : I32, c : I32, len : I32, fg ? Color, bg ? Color, char ? Str } -> DrawFn
-drawHLine = \{ r, c, len, fg ? Default, bg ? Default, char ? "-" } -> \_, { row, col } ->
+drawHLine : { r : I32, c : I32, len : I32, fg ? Color, bg ? Color, char ? Str, styles ? List Style } -> DrawFn
+drawHLine = \{ r, c, len, fg ? Default, bg ? Default, char ? "-", styles ? [] } -> \_, { row, col } ->
         if row == r && (col >= c && col < (c + len)) then
-            Ok { char, fg, bg }
+            Ok { char, fg, bg, styles }
         else
             Err {}
 
-drawCursor : { fg ? Color, bg ? Color, char ? Str } -> DrawFn
-drawCursor = \{ fg ? Default, bg ? White, char ? " " } -> \cursor, { row, col } ->
+drawCursor : { fg ? Color, bg ? Color, char ? Str, styles ? List Style } -> DrawFn
+drawCursor = \{ fg ? Default, bg ? Default, char ? " ", styles ? [] } -> \cursor, { row, col } ->
         if (row == cursor.row) && (col == cursor.col) then
-            Ok { char, fg, bg }
+            Ok { char, fg, bg, styles }
         else
             Err {}
 
-drawText : Str, { r : I32, c : I32, fg ? Color, bg ? Color } -> DrawFn
-drawText = \text, { r, c, fg ? Default, bg ? Default } -> \_, pixel ->
+drawText : Str, { r : I32, c : I32, fg ? Color, bg ? Color, styles ? List Style } -> DrawFn
+drawText = \text, { r, c, fg ? Default, bg ? Default, styles ? [] } -> \_, pixel ->
         bytes = Str.toUtf8 text
         len = text |> Str.toUtf8 |> List.len |> Num.toI32
         if pixel.row == r && pixel.col >= c && pixel.col < (c + len) then
             bytes
             |> List.get (Num.intCast (pixel.col - c))
             |> Result.try \b -> Str.fromUtf8 [b]
-            |> Result.map \char -> { char, fg, bg }
+            |> Result.map \char -> { char, fg, bg, styles }
             |> Result.mapErr \_ -> {}
         else
             Err {}
