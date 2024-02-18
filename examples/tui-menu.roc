@@ -32,7 +32,7 @@ init = {
     currDraw: Utc.fromMillisSinceEpoch 0,
     things: ["Foo", "Bar", "Baz"],
     inputs: List.withCapacity 1000,
-    debug: Bool.false,
+    debug: Bool.true,
     state: HomePage,
 }
 
@@ -164,7 +164,7 @@ homeScreen = \model ->
     [
         [
             Core.drawCursor { bg: Standard Green },
-            Core.drawText " Choose your Thing" { r: 1, c: 1, fg: Standard Green },
+            Core.drawText " Choose your Thing, Toggle debug overlay with 'd'" { r: 1, c: 1, fg: Standard Green },
             Core.drawText "RUN" { r: 2, c: 11, fg: Standard Blue },
             Core.drawText "QUIT" { r: 2, c: 26, fg: Standard Red },
             Core.drawText " ENTER TO RUN, ESCAPE TO QUIT" { r: 2, c: 1, fg: Standard White },
