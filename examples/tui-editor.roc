@@ -1,6 +1,7 @@
 app "tui-menu"
     packages {
         pf: "https://github.com/roc-lang/basic-cli/releases/download/0.8.1/x8URkvfyi9I0QhmVG98roKBUs_AZRkLFwFJVJ3942YA.tar.br",
+        unicode: "../../unicode/package/main.roc",
         ansi: "../package/main.roc",
     }
     imports [
@@ -12,6 +13,8 @@ app "tui-menu"
         pf.Arg,
         pf.Path.{Path},
         pf.Task.{ Task },
+        unicode.CodePoint, # temporarily required due to bug https://github.com/roc-lang/roc/issues/5477
+        unicode.Grapheme.{split},
         ansi.Core.{ Control, Color, Input, ScreenSize, Position, DrawFn },
         pf.Utc.{ Utc },
     ]
@@ -20,6 +23,8 @@ app "tui-menu"
 PieceBufferIndex : {start : U64, end : U64}
 PieceTableEntry : [Add PieceBufferIndex, Original PieceBufferIndex]
 PieceTable : List PieceTableEntry
+
+Grapheme : Str 
 
 Model : {
     screen : ScreenSize,
@@ -30,12 +35,16 @@ Model : {
     inputs : List Input,
     debug : Bool,
     state : [HomePage, ConfirmPage Str, DoSomething Str, UserExited],
-    original : List U8,
-    added : List U8,
+
+    # Buffers for the original file contents, and content appended while editing
+    original : List Grapheme,
+    added : List Grapheme,
+
+    # Each table records a undo/redo history of edits
     tables : List PieceTable,
 }
 
-init : List U8 -> Model
+init : List Grapheme -> Model
 init = \original -> 
 
     # initialise with the contents of the text file we want to edit
@@ -52,8 +61,8 @@ init = \original ->
         debug: Bool.true,
         state: HomePage,
         original,
-        added : [],
-        tables : [firstPieceTable],
+        added : List.withCapacity 1000,
+        tables :  List.withCapacity 1000 |> List.append firstPieceTable,
     }
 
 render : Model -> List DrawFn
@@ -94,10 +103,15 @@ runTask =
     # Read path of file to edit from argument
     path <- readArgFilePath |> Task.await
 
-    # Read the file  
+    # Read the file, split into extended grapheme clusters
     original <- 
-        File.readBytes path 
+        File.readUtf8 path 
         |> Task.mapErr UnableToOpenFile 
+        |> Task.await \bytes ->
+            bytes
+            |> split
+            |> Task.fromResult
+            |> Task.mapErr UnableToSplitIntoGraphemes
         |> Task.await
 
     # TUI Dashboard
