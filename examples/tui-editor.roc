@@ -8,6 +8,7 @@ app "tui-menu"
         pf.Stderr,
         pf.Stdin,
         pf.Tty,
+        pf.File,
         pf.Arg,
         pf.Path.{Path},
         pf.Task.{ Task },
@@ -15,6 +16,10 @@ app "tui-menu"
         pf.Utc.{ Utc },
     ]
     provides [main] to pf
+
+PieceBufferIndex : {start : U64, end : U64}
+PieceTableEntry : [Add PieceBufferIndex, Original PieceBufferIndex]
+PieceTable : List PieceTableEntry
 
 Model : {
     screen : ScreenSize,
@@ -25,19 +30,31 @@ Model : {
     inputs : List Input,
     debug : Bool,
     state : [HomePage, ConfirmPage Str, DoSomething Str, UserExited],
+    original : List U8,
+    added : List U8,
+    tables : List PieceTable,
 }
 
-init : Model
-init = {
-    cursor: { row: 3, col: 3 },
-    screen: { width: 0, height: 0 },
-    prevDraw: Utc.fromMillisSinceEpoch 0,
-    currDraw: Utc.fromMillisSinceEpoch 0,
-    things: ["Foo", "Bar", "Baz"],
-    inputs: List.withCapacity 1000,
-    debug: Bool.true,
-    state: HomePage,
-}
+init : List U8 -> Model
+init = \original -> 
+
+    # initialise with the contents of the text file we want to edit
+    firstPieceTable : PieceTable
+    firstPieceTable = [Original {start : 0, end : List.len original}]
+
+    {
+        cursor: { row: 3, col: 3 },
+        screen: { width: 0, height: 0 },
+        prevDraw: Utc.fromMillisSinceEpoch 0,
+        currDraw: Utc.fromMillisSinceEpoch 0,
+        things: ["Foo", "Bar", "Baz"],
+        inputs: List.withCapacity 1000,
+        debug: Bool.true,
+        state: HomePage,
+        original,
+        added : [],
+        tables : [firstPieceTable],
+    }
 
 render : Model -> List DrawFn
 render = \state ->
@@ -74,12 +91,18 @@ handleErr = \err ->
 runTask : Task {} _
 runTask =
 
-    # Read argument
-    _ <- readArgFilePath |> Task.await
+    # Read path of file to edit from argument
+    path <- readArgFilePath |> Task.await
+
+    # Read the file  
+    original <- 
+        File.readBytes path 
+        |> Task.mapErr UnableToOpenFile 
+        |> Task.await
 
     # TUI Dashboard
     {} <- Tty.enableRawMode |> Task.await
-    model <- Task.loop init runUILoop |> Task.await
+    model <- Task.loop (init original) runUILoop |> Task.await
 
     # Restore terminal
     {} <- Stdout.write (Core.toStr Reset) |> Task.await
