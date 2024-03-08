@@ -24,6 +24,19 @@ PieceBufferIndex : {start : U64, end : U64}
 PieceTableEntry : [Add PieceBufferIndex, Original PieceBufferIndex]
 PieceTable : List PieceTableEntry
 
+# Position : { row : I32, col : I32 }
+# DrawFn : Position, Position -> Result Pixel {}
+drawViewPort : {
+    original : List Grapheme,
+    added : List Grapheme,
+    table : PieceTable,
+    firstLineViewable : U64, 
+} -> DrawFn
+drawViewPort = \{original,added,table,firstLineViewable} -> 
+    \cursor, { row, col } ->
+        Ok { char : "*", fg: Standard Cyan, bg: Default, styles: [] }
+        # Err {}
+
 Grapheme : Str 
 
 Model : {
@@ -81,6 +94,12 @@ render = \state ->
             List.join [
                 homeScreen state,
                 debug,
+                [drawViewPort {
+                    original : state.original,
+                    added : state.added,
+                    table : List.first state.tables |> Result.withDefault [],
+                    firstLineViewable : 0, 
+                }],
             ]
 
 main : Task {} I32
@@ -107,8 +126,8 @@ runTask =
     original <- 
         File.readUtf8 path 
         |> Task.mapErr UnableToOpenFile 
-        |> Task.await \bytes ->
-            bytes
+        |> Task.await \fileContents ->
+            fileContents
             |> split
             |> Task.fromResult
             |> Task.mapErr UnableToSplitIntoGraphemes
