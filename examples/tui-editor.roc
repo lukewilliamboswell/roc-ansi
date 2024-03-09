@@ -17,25 +17,30 @@ app "tui-menu"
         unicode.Grapheme.{split},
         ansi.Core.{ Control, Color, Input, ScreenSize, Position, DrawFn },
         pf.Utc.{ Utc },
+        PieceTable.{PieceTable, PieceTableEntry},
     ]
     provides [main] to pf
 
-PieceBufferIndex : {start : U64, end : U64}
-PieceTableEntry : [Add PieceBufferIndex, Original PieceBufferIndex]
-PieceTable : List PieceTableEntry
+drawViewPort : PieceTable Grapheme, ScreenSize -> DrawFn
+drawViewPort = \pieceTable, { width } -> 
 
-# Position : { row : I32, col : I32 }
-# DrawFn : Position, Position -> Result Pixel {}
-drawViewPort : {
-    original : List Grapheme,
-    added : List Grapheme,
-    table : PieceTable,
-    firstLineViewable : U64, 
-} -> DrawFn
-drawViewPort = \{original,added,table,firstLineViewable} -> 
-    \cursor, { row, col } ->
-        Ok { char : "*", fg: Standard Cyan, bg: Default, styles: [] }
-        # Err {}
+    # fuse buffers into a single buffer of Graphemes
+    chars = PieceTable.toList pieceTable
+
+    # index into graphemes for draw function
+    \_, { row, col } ->
+
+        index = row * width + col |> Num.intCast
+
+        char = 
+            List.get chars index 
+            |> Result.map \c -> if c == "\r\n" || c == "\n" then "¶" else c
+            |> Result.withDefault " "
+        
+        if char == "¶" then
+            Ok { char, fg: Standard Cyan, bg: Default, styles: [Bold On] }
+        else 
+            Ok { char, fg: Default, bg: Default, styles: [Bold Off] }
 
 Grapheme : Str 
 
@@ -54,15 +59,15 @@ Model : {
     added : List Grapheme,
 
     # Each table records a undo/redo history of edits
-    tables : List PieceTable,
+    tables : List (List PieceTableEntry),
 }
 
 init : List Grapheme -> Model
 init = \original -> 
 
     # initialise with the contents of the text file we want to edit
-    firstPieceTable : PieceTable
-    firstPieceTable = [Original {start : 0, end : List.len original}]
+    firstPieceTable : List PieceTableEntry
+    firstPieceTable = [Original {start : 0, len : List.len original}]
 
     {
         cursor: { row: 3, col: 3 },
@@ -92,14 +97,16 @@ render = \state ->
 
         _ ->
             List.join [
-                homeScreen state,
-                debug,
-                [drawViewPort {
-                    original : state.original,
-                    added : state.added,
-                    table : List.first state.tables |> Result.withDefault [],
-                    firstLineViewable : 0, 
-                }],
+                # homeScreen state,
+                # debug,
+                [
+                    Core.drawCursor { bg: Standard Green },
+                    drawViewPort {
+                        original : state.original,
+                        added : state.added,
+                        table : List.first state.tables |> Result.withDefault [],
+                    } state.screen
+                ],
             ]
 
 main : Task {} I32
