@@ -20,32 +20,12 @@ app "tui-menu"
     ]
     provides [main] to pf
 
-drawViewPort : PieceTable Grapheme -> DrawFn
-drawViewPort = \pieceTable -> 
-
-    # fuse buffers into a single buffer of Graphemes
-    chars : List Grapheme
-    chars = PieceTable.toList pieceTable
-
-    lines : List (List Grapheme)
-    lines = splitIntoLines chars [] []
-
-    # index into graphemes for draw function
-    \_, { row, col } ->
-
-        line : List Grapheme
-        line = List.get lines (Num.intCast row) |> Result.withDefault []
-
-        char : Grapheme
-        char = List.get line (Num.intCast col) |> Result.withDefault " "
-
-        Ok { char, fg: Default, bg: Default, styles: [Bold Off] }
-
 Grapheme : Str 
 
 Model : {
     screen : ScreenSize,
     cursor : Position,
+    lineOffset : U32,
 
     # Path of the file we are editing
     filePath : Str,
@@ -68,6 +48,7 @@ init = \original, filePath ->
     {
         cursor: { row: 3, col: 3 },
         screen: { width: 0, height: 0 },
+        lineOffset: 0,
         filePath,
         original,
         added : List.withCapacity 1000,
@@ -76,15 +57,62 @@ init = \original, filePath ->
 
 render : Model -> List DrawFn
 render = \state ->
+
+    # Using the last piece table
+    pieceTable : PieceTable Grapheme
+    pieceTable = {
+        original : state.original,
+        added : state.added,
+        table : List.first state.tables |> Result.withDefault [],
+    }
+
+    # Fuse into a single buffer of Graphemes
+    chars : List Grapheme
+    chars = PieceTable.toList pieceTable
+
+    # Split into lines on line breaks
+    lines : List (List Grapheme)
+    lines = splitIntoLines chars [] []
+
+    # Draw functions 
     [
-        Core.drawText "EDITING $(state.filePath), ESC to EXIT" { r: state.screen.height - 1, c: 0, fg: Standard Magenta },
+        Core.drawText "ESC to EXIT, CTRL-S TO SAVE" { r: state.screen.height - 1, c: 0, fg: Standard Magenta },
         Core.drawCursor { bg: Standard Green },
         drawViewPort {
-            original : state.original,
-            added : state.added,
-            table : List.first state.tables |> Result.withDefault [],
+            lines,
+            lineOffset: state.lineOffset,
+            width: state.screen.width,
+            height: state.screen.height - 1,
+            position: { row: 0, col: 0 },
         },
     ]
+
+# Draw lines into a viewport on the screen
+drawViewPort : {
+    lines : List (List Grapheme),
+    lineOffset: U32,
+    width : I32,
+    height : I32,
+    position : Position,
+} -> DrawFn
+drawViewPort = \{lines, lineOffset, width, height, position} -> \_, { row, col } ->
+    if row < position.row || row >= (position.row + height) || col < position.col || col >= (position.col + width) then
+        Err {} # only draw pixels within this viewport
+    else
+
+        lineIndex : U64
+        lineIndex = Num.intCast (row - position.col + (Num.intCast lineOffset))
+
+        charIndex : U64
+        charIndex = Num.intCast (col - position.col)
+
+        line : List Grapheme
+        line = List.get lines lineIndex |> Result.withDefault []
+
+        char : Grapheme
+        char = List.get line charIndex |> Result.withDefault " "
+
+        Ok { char, fg: Default, bg: Default, styles: [] }
 
 main : Task {} I32
 main = runTask |> Task.onErr handleErr
@@ -155,7 +183,7 @@ runUILoop = \prevModel ->
     # Get user input
     input <- Stdin.bytes |> Task.map Core.parseRawStdin |> Task.await
 
-    # Parse user input into a command
+    # Parse input into a command
     command =
         when (input) is
             KeyPress Up -> MoveCursor Up
@@ -167,18 +195,39 @@ runUILoop = \prevModel ->
             Unsupported _ -> Nothing
             CtrlC -> Exit
 
-    # Action command
+    # Handle command
     when command is
         Nothing -> Task.ok (Step model)
         Exit -> Task.ok (Done model)
-        MoveCursor direction -> Task.ok (Step (Core.updateCursor model direction))
+        MoveCursor direction -> 
+
+            # We dont want the cursor to wrap around the screen, 
+            # instead move the lineOffset for the viewPort
+            updatedModel =
+                if model.cursor.row == 0 && direction == Up then
+                    {model & lineOffset: Num.subSaturated model.lineOffset 1}
+                else if model.cursor.row == (model.screen.height - 2) && direction == Down then 
+                    {model & lineOffset: Num.addSaturated model.lineOffset 1}
+                else if model.cursor.col == 0 && direction == Left then 
+                    model
+                else if model.cursor.col == model.screen.width - 1 && direction == Right then 
+                    model
+                else
+                    Core.updateCursor model direction
+
+            Task.ok (Step updatedModel)
 
 getTerminalSize : Task ScreenSize []_
 getTerminalSize =
 
     # Move the cursor to bottom right corner of terminal
-    cmd = [MoveCursor (To { row: 999, col: 999 }), GetCursor] |> List.map Control |> List.map Core.toStr |> Str.joinWith ""
-    {} <- Stdout.write cmd |> Task.await
+    {} <-  
+        [MoveCursor (To { row: 999, col: 999 }), GetCursor] 
+        |> List.map Control 
+        |> List.map Core.toStr 
+        |> Str.joinWith ""
+        |> Stdout.write 
+        |> Task.await
 
     # Read the cursor position
     Stdin.bytes
