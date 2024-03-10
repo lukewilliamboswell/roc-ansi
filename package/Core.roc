@@ -31,6 +31,7 @@ interface Core
         drawHLine,
         drawBox,
         drawCursor,
+        keyToStr,
     ]
     imports []
 

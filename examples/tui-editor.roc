@@ -84,7 +84,7 @@ render = \state ->
     pieceTable = {
         original : state.original,
         added : state.added,
-        table : List.first state.tables |> Result.withDefault [],
+        table : List.last state.tables |> Result.withDefault [],
     }
 
     # Fuse into a single buffer of Graphemes
@@ -94,7 +94,6 @@ render = \state ->
     # Split into lines on line breaks
     lines : List (List Grapheme)
     lines = splitIntoLines chars [] []
-
 
     changesCount = state.tables |> List.len |> Num.toStr
     savedMsg = 
@@ -219,7 +218,10 @@ runUILoop = \prevModel ->
             KeyPress Left -> MoveCursor Left
             KeyPress Right -> MoveCursor Right
             KeyPress Escape -> Exit
-            KeyPress _ -> Nothing
+            KeyPress key -> 
+                when key is 
+                    Space -> InsertCharacter " "
+                    _ -> InsertCharacter (Core.keyToStr key)
             Unsupported _ -> Nothing
             CtrlC -> Exit
             CtrlS -> SaveChanges
@@ -235,6 +237,18 @@ runUILoop = \prevModel ->
     when command is
         Nothing -> Task.ok (Step model2)
         Exit -> Task.ok (Done model2)
+        InsertCharacter str -> 
+
+            latestTable = {
+                original: model2.original,
+                added: model2.added,
+                table: List.last model2.tables |> Result.withDefault []
+            }
+
+            {added, table} = PieceTable.insert latestTable { values : [str], index : 0 }
+
+            Task.ok (Step {model2 & tables : List.append model2.tables table, added: added })
+
         SaveChanges -> 
 
             # TODO actually save the changes back to the path
