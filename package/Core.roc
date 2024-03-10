@@ -367,6 +367,7 @@ Key : [
 Input : [
     KeyPress Key,
     CtrlC,
+    CtrlS,
     Unsupported (List U8),
 ]
 
@@ -475,6 +476,7 @@ parseRawStdin = \bytes ->
         ['8', ..] -> KeyPress Number8
         ['9', ..] -> KeyPress Number9
         [3, ..] -> CtrlC
+        [19, ..] -> CtrlS
         _ -> Unsupported bytes
 
 expect parseRawStdin [27, 91, 65] == KeyPress Up
@@ -485,6 +487,7 @@ inputToStr = \input ->
     when input is
         KeyPress key -> "Key $(keyToStr key)"
         CtrlC -> "Ctrl-C"
+        CtrlS -> "Ctrl-S"
         Unsupported bytes ->
             bytesStr = bytes |> List.map Num.toStr |> Str.joinWith ","
             "Unsupported [$(bytesStr)]"

@@ -13,6 +13,7 @@ app "tui-menu"
         pf.Arg,
         pf.Path.{Path},
         pf.Task.{ Task },
+        pf.Utc.{Utc},
         unicode.CodePoint, # temporarily required due to https://github.com/roc-lang/roc/issues/5477
         unicode.Grapheme.{split},
         ansi.Core.{ Control, Color, Input, ScreenSize, Position, DrawFn },
@@ -27,8 +28,10 @@ Model : {
     cursor : Position,
     lineOffset : U32,
 
+    saveState : [NoChanges, NotSaved, Saved],
+
     # Path of the file we are editing
-    filePath : Str,
+    filePath : Path,
 
     # Buffers for the original file contents, and content appended while editing
     original : List Grapheme,
@@ -38,7 +41,7 @@ Model : {
     tables : List (List PieceTableEntry),
 }
 
-init : List Grapheme, Str -> Model
+init : List Grapheme, Path -> Model
 init = \original, filePath -> 
 
     # initialise with the contents of the text file we want to edit
@@ -49,6 +52,7 @@ init = \original, filePath ->
         cursor: { row: 3, col: 3 },
         screen: { width: 0, height: 0 },
         lineOffset: 0,
+        saveState: NoChanges,
         filePath,
         original,
         added : List.withCapacity 1000,
@@ -74,9 +78,17 @@ render = \state ->
     lines : List (List Grapheme)
     lines = splitIntoLines chars [] []
 
+
+    changesCount = state.tables |> List.len |> Num.toStr
+    savedMsg = 
+        when state.saveState is 
+            NoChanges -> "Nothing to save" 
+            NotSaved -> "CTRL-S to save $(changesCount) changes"
+            Saved -> "Changes saved to $(Path.display state.filePath)" 
+
     # Draw functions 
     [
-        Core.drawText "ESC to EXIT, CTRL-S TO SAVE" { r: state.screen.height - 1, c: 0, fg: Standard Magenta },
+        Core.drawText "ESC to EXIT: $(savedMsg)" { r: state.screen.height - 1, c: 0, fg: Standard Magenta },
         Core.drawCursor { bg: Standard Green },
         drawViewPort {
             lines,
@@ -145,17 +157,16 @@ runTask =
             |> Task.mapErr UnableToSplitIntoGraphemes
         |> Task.await
 
-    filePath = Path.display path
-
     # TUI Dashboard
     {} <- Tty.enableRawMode |> Task.await
-    model <- Task.loop (init original filePath) runUILoop |> Task.await
+    model <- Task.loop (init original path) runUILoop |> Task.await
 
     # Restore terminal
     {} <- Stdout.write (Core.toStr Reset) |> Task.await
     {} <- Tty.disableRawMode |> Task.await
+    {} <- Stdout.write (Core.toStr (Control (MoveCursor (To { row: 0, col: 0 })))) |> Task.await
 
-    Stdout.line "Saving any changes to $(model.filePath)"
+    Stdout.line "Finished editing $(Path.display model.filePath)"
 
 readArgFilePath : Task Path _ 
 readArgFilePath = 
@@ -185,7 +196,7 @@ runUILoop = \prevModel ->
 
     # Parse input into a command
     command =
-        when (input) is
+        when input is
             KeyPress Up -> MoveCursor Up
             KeyPress Down -> MoveCursor Down
             KeyPress Left -> MoveCursor Left
@@ -194,28 +205,43 @@ runUILoop = \prevModel ->
             KeyPress _ -> Nothing
             Unsupported _ -> Nothing
             CtrlC -> Exit
+            CtrlS -> SaveChanges
+
+    # TODO change to model when shadowing supported
+    model2 =
+        if model.saveState == Saved then 
+            {model & saveState : NoChanges}
+        else 
+            model
 
     # Handle command
     when command is
-        Nothing -> Task.ok (Step model)
-        Exit -> Task.ok (Done model)
+        Nothing -> Task.ok (Step model2)
+        Exit -> Task.ok (Done model2)
+        SaveChanges -> 
+
+            # TODO actually save the changes back to the path
+
+            # Update save state 
+            Task.ok (Step {model2 & saveState : Saved})
+
         MoveCursor direction -> 
 
             # We dont want the cursor to wrap around the screen, 
             # instead move the lineOffset for the viewPort
-            updatedModel =
-                if model.cursor.row == 0 && direction == Up then
-                    {model & lineOffset: Num.subSaturated model.lineOffset 1}
-                else if model.cursor.row == (model.screen.height - 2) && direction == Down then 
-                    {model & lineOffset: Num.addSaturated model.lineOffset 1}
-                else if model.cursor.col == 0 && direction == Left then 
-                    model
-                else if model.cursor.col == model.screen.width - 1 && direction == Right then 
-                    model
+            model3 =
+                if model2.cursor.row == 0 && direction == Up then
+                    {model2 & lineOffset: Num.subSaturated model2.lineOffset 1}
+                else if model2.cursor.row == (model2.screen.height - 2) && direction == Down then 
+                    {model2 & lineOffset: Num.addSaturated model2.lineOffset 1}
+                else if model2.cursor.col == 0 && direction == Left then 
+                    model2
+                else if model2.cursor.col == model2.screen.width - 1 && direction == Right then 
+                    model2
                 else
-                    Core.updateCursor model direction
+                    Core.updateCursor model2 direction
 
-            Task.ok (Step updatedModel)
+            Task.ok (Step model3)
 
 getTerminalSize : Task ScreenSize []_
 getTerminalSize =
