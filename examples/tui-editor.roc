@@ -21,26 +21,26 @@ app "tui-menu"
     ]
     provides [main] to pf
 
-drawViewPort : PieceTable Grapheme, ScreenSize -> DrawFn
-drawViewPort = \pieceTable, { width } -> 
+drawViewPort : PieceTable Grapheme -> DrawFn
+drawViewPort = \pieceTable -> 
 
     # fuse buffers into a single buffer of Graphemes
+    chars : List Grapheme
     chars = PieceTable.toList pieceTable
+
+    lines : List (List Grapheme)
+    lines = splitIntoLines chars [] []
 
     # index into graphemes for draw function
     \_, { row, col } ->
 
-        index = row * width + col |> Num.intCast
+        line : List Grapheme
+        line = List.get lines (Num.intCast row) |> Result.withDefault []
 
-        char = 
-            List.get chars index 
-            |> Result.map \c -> if c == "\r\n" || c == "\n" then "¶" else c
-            |> Result.withDefault " "
-        
-        if char == "¶" then
-            Ok { char, fg: Standard Cyan, bg: Default, styles: [Bold On] }
-        else 
-            Ok { char, fg: Default, bg: Default, styles: [Bold Off] }
+        char : Grapheme
+        char = List.get line (Num.intCast col) |> Result.withDefault " "
+
+        Ok { char, fg: Default, bg: Default, styles: [Bold Off] }
 
 Grapheme : Str 
 
@@ -105,7 +105,7 @@ render = \state ->
                         original : state.original,
                         added : state.added,
                         table : List.first state.tables |> Result.withDefault [],
-                    } state.screen
+                    },
                 ],
             ]
 
@@ -302,3 +302,16 @@ debugScreen = \state ->
         Core.drawVLine { r: 1, c: state.screen.width // 2, len: state.screen.height, fg: Standard White },
         Core.drawHLine { c: 1, r: state.screen.height // 2, len: state.screen.width, fg: Standard White },
     ]
+
+splitIntoLines : List Grapheme, List Grapheme, List (List Grapheme) -> List (List Grapheme)
+splitIntoLines = \chars, line, lines ->
+    when chars is 
+        [] if List.isEmpty line -> lines
+        [] -> List.append lines line
+        [a, .. as rest] if a == "\r\n" || a == "\n" -> splitIntoLines rest [] (List.append lines line)
+        [a, .. as rest] -> splitIntoLines rest (List.append line a) lines
+
+expect splitIntoLines [] [] [] == []
+expect splitIntoLines ["f","o","o"] [] [] == [["f","o","o"]]
+expect splitIntoLines ["f","o","o","\r\n","b","a","r"] [] [] == [["f","o","o"],["b","a","r"]]
+
