@@ -262,7 +262,9 @@ runUILoop = \prevModel ->
                 |> List.map Str.toUtf8 
                 |> List.join
 
-            {} <- File.writeBytes model.filePath fileBytes |> Task.await
+            {} <- File.writeBytes model.filePath fileBytes 
+                |> Task.mapErr UnableToSaveFile
+                |> Task.await
 
             # Update save state 
             Task.ok (Step {model2 & saveState : Saved})
