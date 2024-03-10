@@ -76,24 +76,8 @@ init = \original, filePath ->
         tables :  List.withCapacity 1000 |> List.append firstPieceTable,
     }
 
-render : Model -> List DrawFn
-render = \state ->
-
-    # Using the last piece table
-    pieceTable : PieceTable Grapheme
-    pieceTable = {
-        original : state.original,
-        added : state.added,
-        table : List.last state.tables |> Result.withDefault [],
-    }
-
-    # Fuse into a single buffer of Graphemes
-    chars : List Grapheme
-    chars = PieceTable.toList pieceTable
-
-    # Split into lines on line breaks
-    lines : List (List Grapheme)
-    lines = splitIntoLines chars [] []
+render : Model, List (List Grapheme) -> List DrawFn
+render = \state, lines ->
 
     changesCount = state.tables |> List.len |> Num.toStr
     savedMsg = 
@@ -203,8 +187,24 @@ runUILoop = \prevModel ->
     # Update the model with screen size and time of this draw
     model = { prevModel & screen: terminalSize }
 
+    # Using the last piece table
+    latestTable : PieceTable Grapheme
+    latestTable = {
+        original : model.original,
+        added : model.added,
+        table : List.last model.tables |> Result.withDefault [],
+    }
+ 
+    # Fuse into a single buffer of Graphemes
+    chars : List Grapheme
+    chars = PieceTable.toList latestTable
+
+    # Split into lines on line breaks
+    lines : List (List Grapheme)
+    lines = splitIntoLines chars [] []
+
     # Draw the screen
-    drawFns = render model
+    drawFns = render model lines
     {} <- Core.drawScreen model drawFns |> Stdout.write |> Task.await
 
     # Get user input
@@ -221,6 +221,7 @@ runUILoop = \prevModel ->
             KeyPress key -> 
                 when key is 
                     Space -> InsertCharacter " "
+                    Enter -> InsertCharacter "\n"
                     _ -> InsertCharacter (Core.keyToStr key)
             Unsupported _ -> Nothing
             CtrlC -> Exit
@@ -239,19 +240,29 @@ runUILoop = \prevModel ->
         Exit -> Task.ok (Done model2)
         InsertCharacter str -> 
 
-            latestTable = {
-                original: model2.original,
-                added: model2.added,
-                table: List.last model2.tables |> Result.withDefault []
-            }
+            index = calculateCursorIndex lines model.lineOffset model.cursor 0
 
-            {added, table} = PieceTable.insert latestTable { values : [str], index : 0 }
+            {added, table} = PieceTable.insert latestTable { values : [str], index }
 
-            Task.ok (Step {model2 & tables : List.append model2.tables table, added: added })
+            {model2 & tables : List.append model2.tables table, added: added }
+            |> \m -> 
+                if str == "\n" then 
+                    Core.updateCursor m Down
+                else 
+                    Core.updateCursor m Right
+            |> Step
+            |> Task.ok
 
         SaveChanges -> 
 
             # TODO actually save the changes back to the path
+            fileBytes = 
+                latestTable 
+                |> PieceTable.toList  
+                |> List.map Str.toUtf8 
+                |> List.join
+
+            {} <- File.writeBytes model.filePath fileBytes |> Task.await
 
             # Update save state 
             Task.ok (Step {model2 & saveState : Saved})
@@ -304,3 +315,16 @@ expect splitIntoLines [] [] [] == []
 expect splitIntoLines ["f","o","o"] [] [] == [["f","o","o"]]
 expect splitIntoLines ["f","o","o","\r\n","b","a","r"] [] [] == [["f","o","o"],["b","a","r"]]
 
+calculateCursorIndex : List (List Grapheme), U32, {row : I32, col : I32 }, U64 -> U64
+calculateCursorIndex = \lines, lineOffset, cursor, acc -> 
+    if lineOffset > 0 then 
+        # add the length of each line that isn't displayed (before viewport)
+        when lines is 
+            [] -> acc
+            [first, .. as rest] -> calculateCursorIndex rest (lineOffset - 1) cursor (acc + List.len first + 1)
+    else
+        when lines is
+            [] -> acc
+            [first, .. as rest] if cursor.row > 0 -> calculateCursorIndex rest 0 {cursor & row: cursor.row - 1} (acc + List.len first + 1)
+            [first, .. as rest] -> 
+                acc + (Num.min (List.len first) (Num.intCast cursor.col))
