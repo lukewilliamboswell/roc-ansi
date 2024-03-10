@@ -5,6 +5,8 @@ app "tui-menu"
         ansi: "../package/main.roc",
     }
     imports [
+        
+        # basic-cli platform
         pf.Stdout,
         pf.Stderr,
         pf.Stdin,
@@ -14,20 +16,35 @@ app "tui-menu"
         pf.Path.{Path},
         pf.Task.{ Task },
         pf.Utc.{Utc},
+
+        # Helpers for working with unicode 
         unicode.CodePoint, # temporarily required due to https://github.com/roc-lang/roc/issues/5477
         unicode.Grapheme.{split},
+
+        # Helpers for working with the terminal
         ansi.Core.{ Control, Color, Input, ScreenSize, Position, DrawFn },
+
+        # Used to represent contents while being edited
         PieceTable.{PieceTable, PieceTableEntry},
     ]
     provides [main] to pf
 
+# Alias Str so it is clear that we are working with a single visible "character"
 Grapheme : Str 
 
+# Keep track of application state between update->render loop
 Model : {
+
+    # Keep track of screen size to handle resizes
     screen : ScreenSize,
+
+    # Keep track of the cursor position
     cursor : Position,
+
+    # Offset the viewPort from the start of file
     lineOffset : U32,
 
+    # Keep track of file saves 
     saveState : [NoChanges, NotSaved, Saved],
 
     # Path of the file we are editing
@@ -129,7 +146,7 @@ drawViewPort = \{lines, lineOffset, width, height, position} -> \_, { row, col }
 main : Task {} I32
 main = runTask |> Task.onErr handleErr
 
-# Handle any unhandled errors by just reporting to stderr
+# Prints any unhandled errors to stderr
 handleErr : _ -> Task {} I32
 handleErr = \err ->
 
@@ -260,6 +277,7 @@ getTerminalSize =
     |> Task.map Core.parseCursor
     |> Task.map \{ row, col } -> { width: col, height: row }
 
+# Helper to split grepheme's on line breaks
 splitIntoLines : List Grapheme, List Grapheme, List (List Grapheme) -> List (List Grapheme)
 splitIntoLines = \chars, line, lines ->
     when chars is 
