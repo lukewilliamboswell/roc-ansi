@@ -1,7 +1,7 @@
 interface PieceTable
     exposes [
         PieceTable,
-        PieceTableEntry,
+        Entry,
         toList,
         length,
         insert,
@@ -15,14 +15,18 @@ interface PieceTable
 PieceTable a : {
     original : List a,
     added : List a,
-    table : List PieceTableEntry,
+    table : List Entry,
 }
 
-PieceBufferIndex : { start : U64, len : U64 }
+# Index into a buffer
+Span : { start : U64, len : U64 }
 
 ## Represents an index into the original or add buffer
-PieceTableEntry : [Add PieceBufferIndex, Original PieceBufferIndex]
+Entry : [Add Span, Original Span]
 
+## Insert `values` into the table at a given `index`.
+##
+## If index is larger than current buffer, appends to end of file.
 insert : PieceTable a, { values : List a, index : U64 } -> PieceTable a
 insert = \{ original, added, table }, { values, index } ->
 
@@ -37,10 +41,10 @@ insert = \{ original, added, table }, { values, index } ->
     {
         original,
         added: newAdded,
-        table: insertHelp table { index, span } (List.withCapacity (3 + List.len table)),
+        table: insertHelp table { index: Num.min index (length table), span } (List.withCapacity (3 + List.len table)),
     }
 
-insertHelp : List PieceTableEntry, { index : U64, span : PieceTableEntry }, List PieceTableEntry -> List PieceTableEntry
+insertHelp : List Entry, { index : U64, span : Entry }, List Entry -> List Entry
 insertHelp = \in, { index, span }, out ->
     when in is
         [] -> out
@@ -123,15 +127,22 @@ insertHelp = \in, { index, span }, out ->
                 |> List.concat rest
 
 ## Calculate the total length when buffer indexes will be converted to a list
-length : List PieceTableEntry -> U64
+length : List Entry -> U64
 length = \entries ->
-    entries
-    |> List.map \e ->
+
+    toLen : Entry -> U64
+    toLen = \e ->
         when e is
             Add { len } -> len
             Original { len } -> len
+
+    entries
+    |> List.map toLen
     |> List.sum
 
+## Delete the value at `index`
+##
+## If index is out of range this has no effect.
 delete : PieceTable a, { index : U64 } -> PieceTable a
 delete = \{ original, added, table }, { index } -> {
     original,
@@ -139,7 +150,7 @@ delete = \{ original, added, table }, { index } -> {
     table: deleteHelp table index (List.withCapacity (1 + List.len table)),
 }
 
-deleteHelp : List PieceTableEntry, U64, List PieceTableEntry -> List PieceTableEntry
+deleteHelp : List Entry, U64, List Entry -> List Entry
 deleteHelp = \in, index, out ->
     when in is
         [] -> out
@@ -191,17 +202,16 @@ deleteHelp = \in, index, out ->
 
 ## Fuse the original and added buffers into a single list
 toList : PieceTable a -> List a
-toList = \piece ->
-    takeSpans piece []
+toList = \piece -> toListHelp piece []
 
-takeSpans : PieceTable a, List a -> List a
-takeSpans = \{ original, added, table }, acc ->
+toListHelp : PieceTable a, List a -> List a
+toListHelp = \{ original, added, table }, acc ->
     when table is
         [] -> acc
         [Add span] -> List.concat acc (List.sublist added span)
         [Original span] -> List.concat acc (List.sublist original span)
-        [Add span, .. as rest] -> takeSpans { original, added, table: rest } (List.concat acc (List.sublist added span))
-        [Original span, .. as rest] -> takeSpans { original, added, table: rest } (List.concat acc (List.sublist original span))
+        [Add span, .. as rest] -> toListHelp { original, added, table: rest } (List.concat acc (List.sublist added span))
+        [Original span, .. as rest] -> toListHelp { original, added, table: rest } (List.concat acc (List.sublist original span))
 
 testOriginal : List U8
 testOriginal = Str.toUtf8 "ipsum sit amet"
@@ -259,6 +269,11 @@ expect
     actual = testTable |> insert { values: [], index: 0 } |> toList |> Str.fromUtf8
     actual == Ok "Lorem ipsum dolor sit amet"
 
+# insert at a range larger than current buffer
+expect
+    actual = testTable |> insert { values: ['X'], index: 999 } |> toList |> Str.fromUtf8
+    actual == Ok "Lorem ipsum dolor sit ametX"
+
 # delete at start of text
 expect
     actual = testTable |> delete { index: 0 } |> toList |> Str.fromUtf8
@@ -298,3 +313,8 @@ expect
 expect
     actual = testTable |> delete { index: 8 } |> toList |> Str.fromUtf8
     actual == Ok "Lorem ipum dolor sit amet"
+
+# delete out of range, does nothing
+expect
+    actual = testTable |> delete { index: 9999 } |> toList |> Str.fromUtf8
+    actual == Ok "Lorem ipsum dolor sit amet"
