@@ -5,6 +5,7 @@ interface PieceTable
         toList,
         length,
         insert,
+        delete,
     ]
     imports []
 
@@ -55,31 +56,35 @@ insertHelp = \in, { index, span }, out ->
 
             if lenBefore > 0 && lenAfter > 0 then
                 # three spans
-                out
-                |> List.concat [
+                newSpans = [
                     Add { start: current.start, len: lenBefore },
                     span,
                     Add { start: current.start + lenBefore, len: lenAfter },
                 ]
+
+                out
+                |> List.concat newSpans
                 |> List.concat rest
             else if lenBefore > 0 then
                 # two spans
-                out
-                |> List.concat [
+                newSpans = [
                     Add { start: current.start, len: lenBefore },
                     span,
                 ]
-                |> List.concat rest
-            else if lenAfter > 0 then
-                # two spans
+
                 out
-                |> List.concat [
+                |> List.concat newSpans
+                |> List.concat rest
+            else
+                # after, two spans
+                newSpans = [
                     span,
                     Add { start: current.start + lenBefore, len: lenAfter },
                 ]
+
+                out
+                |> List.concat newSpans
                 |> List.concat rest
-            else
-                crash "unreachable"
 
         [Original current, .. as rest] ->
             lenBefore = index
@@ -87,36 +92,35 @@ insertHelp = \in, { index, span }, out ->
 
             if lenBefore > 0 && lenAfter > 0 then
                 # three spans
-                out
-                |> List.concat [
+                newSpans = [
                     Original { start: current.start, len: lenBefore },
                     span,
                     Original { start: current.start + lenBefore, len: lenAfter },
                 ]
+
+                out
+                |> List.concat newSpans
                 |> List.concat rest
             else if lenBefore > 0 then
                 # two spans
-                out
-                |> List.concat [
+                newSpans = [
                     Original { start: current.start, len: lenBefore },
                     span,
                 ]
-                |> List.concat rest
-            else if lenAfter > 0 then
-                # two spans
+
                 out
-                |> List.concat [
+                |> List.concat newSpans
+                |> List.concat rest
+            else
+                # after, two spans
+                newSpans = [
                     span,
                     Original { start: current.start + lenBefore, len: lenAfter },
                 ]
-                |> List.concat rest
-            else
-                crash "unreachable"
 
-## Fuse the original and added buffers into a single list
-toList : PieceTable a -> List a
-toList = \piece ->
-    takeSpans piece []
+                out
+                |> List.concat newSpans
+                |> List.concat rest
 
 ## Calculate the total length when buffer indexes will be converted to a list
 length : List PieceTableEntry -> U64
@@ -127,6 +131,68 @@ length = \entries ->
             Add { len } -> len
             Original { len } -> len
     |> List.sum
+
+delete : PieceTable a, { index : U64 } -> PieceTable a
+delete = \{ original, added, table }, { index } -> {
+    original,
+    added,
+    table: deleteHelp table index (List.withCapacity (1 + List.len table)),
+}
+
+deleteHelp : List PieceTableEntry, U64, List PieceTableEntry -> List PieceTableEntry
+deleteHelp = \in, index, out ->
+    when in is
+        [] -> out
+        [Add span, .. as rest] if index >= span.len -> deleteHelp rest (index - span.len) (List.append out (Add span))
+        [Original span, .. as rest] if index >= span.len -> deleteHelp rest (index - span.len) (List.append out (Original span))
+        [Add span, .. as rest] ->
+            isStartOfSpan = index == 0
+            isEndOfSpan = index == span.len - 1
+
+            if isStartOfSpan then
+                out
+                |> List.concat [Add { start: span.start + 1, len: span.len - 1 }]
+                |> List.concat rest
+            else if isEndOfSpan then
+                out
+                |> List.concat [Add { start: span.start, len: span.len - 1 }]
+                |> List.concat rest
+            else
+                newSpans = [
+                    Add { start: span.start, len: index },
+                    Add { start: span.start + index + 1, len: span.len - index - 1 },
+                ]
+
+                out
+                |> List.concat newSpans
+                |> List.concat rest
+
+        [Original span, .. as rest] ->
+            isStartOfSpan = index == 0
+            isEndOfSpan = index == span.len - 1
+
+            if isStartOfSpan then
+                out
+                |> List.concat [Original { start: span.start + 1, len: span.len - 1 }]
+                |> List.concat rest
+            else if isEndOfSpan then
+                out
+                |> List.concat [Original { start: span.start, len: span.len - 1 }]
+                |> List.concat rest
+            else
+                newSpans = [
+                    Original { start: span.start, len: index },
+                    Original { start: span.start + index + 1, len: span.len - index - 1 },
+                ]
+
+                out
+                |> List.concat newSpans
+                |> List.concat rest
+
+## Fuse the original and added buffers into a single list
+toList : PieceTable a -> List a
+toList = \piece ->
+    takeSpans piece []
 
 takeSpans : PieceTable a, List a -> List a
 takeSpans = \{ original, added, table }, acc ->
@@ -192,3 +258,43 @@ expect
 expect
     actual = testTable |> insert { values: [], index: 0 } |> toList |> Str.fromUtf8
     actual == Ok "Lorem ipsum dolor sit amet"
+
+# delete at start of text
+expect
+    actual = testTable |> delete { index: 0 } |> toList |> Str.fromUtf8
+    actual == Ok "orem ipsum dolor sit amet"
+
+# delete at end of text, note the index starts from zero
+expect
+    actual = testTable |> delete { index: (length testTable.table) - 1 } |> toList |> Str.fromUtf8
+    actual == Ok "Lorem ipsum dolor sit ame"
+
+# delete at the end of an Add span
+expect
+    actual = testTable |> delete { index: 5 } |> toList |> Str.fromUtf8
+    actual == Ok "Loremipsum dolor sit amet"
+
+# delete at the start of a Add span
+expect
+    actual = testTable |> delete { index: 11 } |> toList |> Str.fromUtf8
+    actual == Ok "Lorem ipsumdolor sit amet"
+
+# delete in the middle of an Add span
+expect
+    actual = testTable |> delete { index: 13 } |> toList |> Str.fromUtf8
+    actual == Ok "Lorem ipsum dlor sit amet"
+
+# delete at the start of a Original span
+expect
+    actual = testTable |> delete { index: 6 } |> toList |> Str.fromUtf8
+    actual == Ok "Lorem psum dolor sit amet"
+
+# delete at the end of a Original span
+expect
+    actual = testTable |> delete { index: 10 } |> toList |> Str.fromUtf8
+    actual == Ok "Lorem ipsu dolor sit amet"
+
+# delete in the middle of a Original span
+expect
+    actual = testTable |> delete { index: 8 } |> toList |> Str.fromUtf8
+    actual == Ok "Lorem ipum dolor sit amet"
