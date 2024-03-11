@@ -81,10 +81,11 @@ render : Model, List (List Grapheme) -> List DrawFn
 render = \state, lines ->
 
     changesCount = List.len state.history - 1 |> Num.toStr
+    redoMsg = if List.len state.future > 0 then ", CTRL-Y to Redo changes" else ""
     savedMsg = 
         when state.saveState is 
-            NoChanges -> "Nothing to save" 
-            NotSaved -> "CTRL-S to save $(changesCount) changes"
+            NoChanges -> "Nothing to save$(redoMsg)" 
+            NotSaved -> "CTRL-S to save $(changesCount) changes, CTRL-Z to Undo changes$(redoMsg)"
             Saved -> "Changes saved to $(Path.display state.filePath)" 
 
     # Draw functions 
@@ -266,6 +267,7 @@ runUILoop = \prevModel ->
         RedoChanges -> 
             model2
             |> updateUndoRedo Redo
+            |> updateSaveState NotSaved
             |> Step
             |> Task.ok
 
@@ -304,23 +306,27 @@ runUILoop = \prevModel ->
 
         SaveChanges -> 
 
-            # Convert graphemes to bytes
-            fileBytes = 
-                currentTable 
-                |> PieceTable.toList  
-                |> List.map Str.toUtf8 
-                |> List.join
+            if model2.saveState == NoChanges then 
+                Task.ok (Step model2) # do nothing
+            else
 
-            # Write changes to file
-            {} <- File.writeBytes model.filePath fileBytes 
-                |> Task.mapErr UnableToSaveFile
-                |> Task.await
+                # Convert graphemes to bytes
+                fileBytes = 
+                    currentTable 
+                    |> PieceTable.toList  
+                    |> List.map Str.toUtf8 
+                    |> List.join
 
-            model2
-            |> updateSaveState Saved
-            |> \m -> {m & history : [currentTable.table]} # clear Undo/Redo tables
-            |> Step
-            |> Task.ok
+                # Write changes to file
+                {} <- File.writeBytes model.filePath fileBytes 
+                    |> Task.mapErr UnableToSaveFile
+                    |> Task.await
+
+                model2
+                |> updateSaveState Saved
+                |> \m -> {m & history : [currentTable.table]} # clear Undo/Redo tables
+                |> Step
+                |> Task.ok
 
         MoveCursor direction -> 
 
