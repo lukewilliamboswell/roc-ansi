@@ -25,7 +25,7 @@ app "tui-menu"
         ansi.Core.{ Control, Color, Input, ScreenSize, Position, DrawFn },
 
         # Used to represent contents while being edited
-        PieceTable.{PieceTable, PieceTableEntry},
+        PieceTable.{PieceTable, Entry},
     ]
     provides [main] to pf
 
@@ -55,7 +55,7 @@ Model : {
     added : List Grapheme,
 
     # Each table records a undo/redo history of edits
-    tables : List (List PieceTableEntry),
+    tables : List (List Entry),
 }
 
 # Initilise the application state
@@ -63,7 +63,7 @@ init : List Grapheme, Path -> Model
 init = \original, filePath -> 
 
     # initialise with the contents of the text file we want to edit
-    firstPieceTable : List PieceTableEntry
+    firstPieceTable : List Entry
     firstPieceTable = [Original {start : 0, len : List.len original}]
 
     {
