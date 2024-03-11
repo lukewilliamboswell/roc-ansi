@@ -54,8 +54,9 @@ Model : {
     original : List Grapheme,
     added : List Grapheme,
 
-    # Each table records a undo/redo history of edits
-    tables : List (List Entry),
+    # Two tables to record undo/redo history of edits
+    history : List (List Entry),
+    future : List (List Entry),
 }
 
 # Initilise the application state
@@ -74,14 +75,15 @@ init = \original, filePath ->
         filePath,
         original,
         added : List.withCapacity 1000,
-        tables :  List.withCapacity 1000 |> List.append firstPieceTable,
+        history :  List.withCapacity 1000 |> List.append firstPieceTable,
+        future :  [],
     }
 
 # Render the screen after each update
 render : Model, List (List Grapheme) -> List DrawFn
 render = \state, lines ->
 
-    changesCount = state.tables |> List.len |> Num.toStr
+    changesCount = List.len state.history - 1 |> Num.toStr
     savedMsg = 
         when state.saveState is 
             NoChanges -> "Nothing to save" 
@@ -120,16 +122,21 @@ drawViewPort = \{lines, lineOffset, width, height, position} -> \_, { row, col }
         charIndex : U64
         charIndex = Num.intCast (col - position.col)
 
-        line : List Grapheme
-        line = List.get lines lineIndex |> Result.withDefault []
+        when List.get lines lineIndex is
+            Err OutOfBounds -> 
+                
+                # if the viewport has lines that are outside the buffer, just render blank spaces
+                Ok { char: " ", fg: Default, bg: Default, styles: [] }
 
-        if charIndex == List.len line then 
-            Ok { char: "¶", fg: Standard Cyan, bg: Default, styles: [] }
-        else 
-            char : Grapheme
-            char = List.get line charIndex |> Result.withDefault " "
+            Ok line -> 
+                if charIndex == List.len line then 
+                    # render "¶" so users can see line breaks
+                    Ok { char: "¶", fg: Standard Cyan, bg: Default, styles: [] }
+                else
+                    char : Grapheme
+                    char = List.get line charIndex |> Result.withDefault " "
 
-            Ok { char, fg: Default, bg: Default, styles: [] }
+                    Ok { char, fg: Default, bg: Default, styles: [] }
 
 # The task provided to cli platform
 main : Task {} I32
@@ -196,17 +203,19 @@ runUILoop = \prevModel ->
     # Update the model with screen size and time of this draw
     model = { prevModel & screen: terminalSize }
 
-    # Using the last piece table
-    latestTable : PieceTable Grapheme
-    latestTable = {
-        original : model.original,
-        added : model.added,
-        table : List.last model.tables |> Result.withDefault [],
-    }
+    # Use the current selected piece table
+    currentTable : PieceTable Grapheme
+    currentTable = 
+        {
+            original : model.original,
+            added : model.added,
+            table: List.last model.history |> Result.withDefault [],
+        }
+                
  
     # Fuse into a single buffer of Graphemes
     chars : List Grapheme
-    chars = PieceTable.toList latestTable
+    chars = PieceTable.toList currentTable
 
     # Split into lines on line breaks
     lines : List (List Grapheme)
@@ -233,9 +242,11 @@ runUILoop = \prevModel ->
             KeyPress key -> InsertCharacter (Core.keyToStr key)
             CtrlC -> Exit
             CtrlS -> SaveChanges
-            Unsupported _ -> Nothing
+            CtrlY -> RedoChanges
+            CtrlZ -> UndoChanges
+            Unsupported key -> crash (Inspect.toStr key)
 
-    # TODO change to model when shadowing supported
+    # TODO change to `model` when shadowing is supported
     model2 =
         if model.saveState == Saved then 
             {model & saveState : NoChanges}
@@ -249,24 +260,48 @@ runUILoop = \prevModel ->
     when command is
         Nothing -> Task.ok (Step model2)
         Exit -> Task.ok (Done model2)
-        DeleteUnderCursor -> 
+        UndoChanges -> 
+            model2
+            |> updateUndoRedo Undo
+            |> Step
+            |> Task.ok
 
-            {added, table} = PieceTable.delete latestTable { index }
+        RedoChanges -> 
+            model2
+            |> updateUndoRedo Redo
+            |> Step
+            |> Task.ok
 
-            {model2 & tables : List.append model2.tables table, added: added }
+        DeleteUnderCursor ->
+
+            {added, table} = PieceTable.delete currentTable { index }
+
+            {
+                model2 & 
+                    history : List.append model2.history table,
+                    future: [], # remove future as it is now stale 
+                    added: added,
+            }
+            |> updateSaveState NotSaved
             |> Step
             |> Task.ok
 
         InsertCharacter str -> 
 
-            {added, table} = PieceTable.insert latestTable { values : [str], index }
+            {added, table} = PieceTable.insert currentTable { values : [str], index }
 
-            {model2 & tables : List.append model2.tables table, added: added }
+            {
+                model2 & 
+                history : List.append model2.history table,
+                future: [], # remove future as it is now stale 
+                added: added 
+            }
             |> \m -> 
                 if str == "\n" then 
                     Core.updateCursor m Down
                 else 
                     Core.updateCursor m Right
+            |> updateSaveState NotSaved
             |> Step
             |> Task.ok
 
@@ -274,7 +309,7 @@ runUILoop = \prevModel ->
 
             # Convert graphemes to bytes
             fileBytes = 
-                latestTable 
+                currentTable 
                 |> PieceTable.toList  
                 |> List.map Str.toUtf8 
                 |> List.join
@@ -284,8 +319,11 @@ runUILoop = \prevModel ->
                 |> Task.mapErr UnableToSaveFile
                 |> Task.await
 
-            # Update save state
-            Task.ok (Step {model2 & saveState : Saved})
+            model2
+            |> updateSaveState Saved
+            |> \m -> {m & history : [currentTable.table]} # clear Undo/Redo tables
+            |> Step
+            |> Task.ok
 
         MoveCursor direction -> 
 
@@ -305,6 +343,26 @@ runUILoop = \prevModel ->
 
             Task.ok (Step model3)
 
+updateSaveState : Model, [NoChanges, NotSaved, Saved] -> Model
+updateSaveState = \m, saveState -> {m & saveState }
+
+# undo moves table entries from history to future so they can be moved back if we redo
+updateUndoRedo : Model, [Undo, Redo] -> Model
+updateUndoRedo = \m, direction ->
+    when direction is
+        Undo ->
+            when m.history is
+                [] -> crash "unreachable, should always have some history"
+                [_] -> m
+                [.. as rest, latest] if List.len rest > 1 -> {m & history: rest, future: List.append m.future latest}
+                [.. as rest, latest] -> 
+                    {m & history: rest, future: List.append m.future latest}
+                    |> updateSaveState NoChanges
+        Redo ->
+            when m.future is
+                [] -> m
+                [.. as rest, latest] -> {m & history: List.append m.history latest, future: rest}
+    
 # Get the size of the terminal window
 getTerminalSize : Task ScreenSize []_
 getTerminalSize =

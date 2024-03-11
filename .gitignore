@@ -2,7 +2,7 @@ examples/colors
 examples/styles
 examples/animals
 examples/tui-menu
-examples/tui-editor
+examples/text-editor
 
 generated-docs/
 
