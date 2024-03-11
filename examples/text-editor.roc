@@ -15,7 +15,6 @@ app "tui-menu"
         pf.Arg,
         pf.Path.{Path},
         pf.Task.{ Task },
-        pf.Utc.{Utc},
 
         # Helpers for working with unicode 
         unicode.CodePoint, # temporarily required due to https://github.com/roc-lang/roc/issues/5477
@@ -23,9 +22,7 @@ app "tui-menu"
 
         # Helpers for working with the terminal
         ansi.Core.{ Control, Color, Input, ScreenSize, Position, DrawFn },
-
-        # Used to represent contents while being edited
-        PieceTable.{PieceTable, Entry},
+        ansi.PieceTable.{PieceTable, Entry},
     ]
     provides [main] to pf
 
