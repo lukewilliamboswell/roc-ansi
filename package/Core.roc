@@ -363,6 +363,7 @@ Key : [
     Number7,
     Number8,
     Number9,
+    Delete,
 ]
 
 Input : [
@@ -478,6 +479,7 @@ parseRawStdin = \bytes ->
         ['9', ..] -> KeyPress Number9
         [3, ..] -> CtrlC
         [19, ..] -> CtrlS
+        [127, ..] -> KeyPress Delete
         _ -> Unsupported bytes
 
 expect parseRawStdin [27, 91, 65] == KeyPress Up
@@ -597,6 +599,7 @@ keyToStr = \key ->
         Number7 -> "7"
         Number8 -> "8"
         Number9 -> "9"
+        Delete -> "Delete"
 
 ScreenSize : { width : I32, height : I32 }
 Position : { row : I32, col : I32 }
