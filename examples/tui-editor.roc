@@ -29,7 +29,7 @@ app "tui-menu"
     ]
     provides [main] to pf
 
-# Alias Str so it is clear that we are working with a single visible "character"
+# We are working with a single visible "character", let's use an alias to help with type checking
 Grapheme : Str 
 
 # Keep track of application state between update->render loop
@@ -58,6 +58,7 @@ Model : {
     tables : List (List PieceTableEntry),
 }
 
+# Initilise the application state
 init : List Grapheme, Path -> Model
 init = \original, filePath -> 
 
@@ -76,6 +77,7 @@ init = \original, filePath ->
         tables :  List.withCapacity 1000 |> List.append firstPieceTable,
     }
 
+# Render the screen after each update
 render : Model, List (List Grapheme) -> List DrawFn
 render = \state, lines ->
 
@@ -129,6 +131,7 @@ drawViewPort = \{lines, lineOffset, width, height, position} -> \_, { row, col }
 
             Ok { char, fg: Default, bg: Default, styles: [] }
 
+# The task provided to cli platform
 main : Task {} I32
 main = runTask |> Task.onErr handleErr
 
@@ -143,6 +146,7 @@ handleErr = \err ->
 
     Task.err 1
 
+# CLI run task, merge all errors into a single tag union
 runTask : Task {} _
 runTask =
 
@@ -160,7 +164,7 @@ runTask =
             |> Task.mapErr UnableToSplitIntoGraphemes
         |> Task.await
 
-    # TUI Dashboard
+    # Loop UI command->update->render 
     {} <- Tty.enableRawMode |> Task.await
     model <- Task.loop (init original path) runUILoop |> Task.await
 
@@ -171,6 +175,7 @@ runTask =
 
     Stdout.line "Finished editing $(Path.display model.filePath)"
 
+# Get the file path from the first argument
 readArgFilePath : Task Path _ 
 readArgFilePath = 
     args <- Arg.list |> Task.attempt
@@ -181,6 +186,7 @@ readArgFilePath =
         _ ->
             Task.err (FailedToReadArgs "expected file argument e.g. 'roc run tui-editor.roc -- file.txt'")
 
+# UI Loop command->update->render 
 runUILoop : Model -> Task [Step Model, Done Model] []_
 runUILoop = \prevModel ->
 
@@ -222,14 +228,12 @@ runUILoop = \prevModel ->
             KeyPress Right -> MoveCursor Right
             KeyPress Escape -> Exit
             KeyPress Delete -> DeleteUnderCursor
-            KeyPress key -> 
-                when key is 
-                    Space -> InsertCharacter " "
-                    Enter -> InsertCharacter "\n"
-                    _ -> InsertCharacter (Core.keyToStr key)
-            Unsupported _ -> Nothing
+            KeyPress Space -> InsertCharacter " "
+            KeyPress Enter -> InsertCharacter "\n"
+            KeyPress key -> InsertCharacter (Core.keyToStr key)
             CtrlC -> Exit
             CtrlS -> SaveChanges
+            Unsupported _ -> Nothing
 
     # TODO change to model when shadowing supported
     model2 =
@@ -268,18 +272,19 @@ runUILoop = \prevModel ->
 
         SaveChanges -> 
 
-            # TODO actually save the changes back to the path
+            # Convert graphemes to bytes
             fileBytes = 
                 latestTable 
                 |> PieceTable.toList  
                 |> List.map Str.toUtf8 
                 |> List.join
 
+            # Write changes to file
             {} <- File.writeBytes model.filePath fileBytes 
                 |> Task.mapErr UnableToSaveFile
                 |> Task.await
 
-            # Update save state 
+            # Update save state
             Task.ok (Step {model2 & saveState : Saved})
 
         MoveCursor direction -> 
@@ -300,6 +305,7 @@ runUILoop = \prevModel ->
 
             Task.ok (Step model3)
 
+# Get the size of the terminal window
 getTerminalSize : Task ScreenSize []_
 getTerminalSize =
 
@@ -330,6 +336,8 @@ expect splitIntoLines [] [] [] == []
 expect splitIntoLines ["f","o","o"] [] [] == [["f","o","o"]]
 expect splitIntoLines ["f","o","o","\r\n","b","a","r"] [] [] == [["f","o","o"],["b","a","r"]]
 
+# We need to know the index of the cursor relative to the text content, the 
+# content has been broken into lines as CLRF and LF which we need to account for. 
 calculateCursorIndex : List (List Grapheme), U32, {row : I32, col : I32 }, U64 -> U64
 calculateCursorIndex = \lines, lineOffset, cursor, acc -> 
     if lineOffset > 0 then 
