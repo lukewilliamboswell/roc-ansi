@@ -121,10 +121,13 @@ drawViewPort = \{lines, lineOffset, width, height, position} -> \_, { row, col }
         line : List Grapheme
         line = List.get lines lineIndex |> Result.withDefault []
 
-        char : Grapheme
-        char = List.get line charIndex |> Result.withDefault " "
+        if charIndex == List.len line then 
+            Ok { char: "¶", fg: Standard Cyan, bg: Default, styles: [] }
+        else 
+            char : Grapheme
+            char = List.get line charIndex |> Result.withDefault " "
 
-        Ok { char, fg: Default, bg: Default, styles: [] }
+            Ok { char, fg: Default, bg: Default, styles: [] }
 
 main : Task {} I32
 main = runTask |> Task.onErr handleErr
@@ -218,6 +221,7 @@ runUILoop = \prevModel ->
             KeyPress Left -> MoveCursor Left
             KeyPress Right -> MoveCursor Right
             KeyPress Escape -> Exit
+            KeyPress Delete -> DeleteUnderCursor
             KeyPress key -> 
                 when key is 
                     Space -> InsertCharacter " "
@@ -234,13 +238,22 @@ runUILoop = \prevModel ->
         else 
             model
 
+    # Index into text contents
+    index = calculateCursorIndex lines model.lineOffset model.cursor 0
+
     # Handle command
     when command is
         Nothing -> Task.ok (Step model2)
         Exit -> Task.ok (Done model2)
-        InsertCharacter str -> 
+        DeleteUnderCursor -> 
 
-            index = calculateCursorIndex lines model.lineOffset model.cursor 0
+            {added, table} = PieceTable.delete latestTable { index }
+
+            {model2 & tables : List.append model2.tables table, added: added }
+            |> Step
+            |> Task.ok
+
+        InsertCharacter str -> 
 
             {added, table} = PieceTable.insert latestTable { values : [str], index }
 
