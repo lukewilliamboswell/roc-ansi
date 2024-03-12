@@ -158,18 +158,20 @@ runTask =
     # Read path of file to edit from argument
     path <- readArgFilePath |> Task.await
 
-    # Read the file, split into extended grapheme clusters
-    original <- 
-        File.readUtf8 path 
-        |> Task.mapErr UnableToOpenFile 
-        |> Task.await \fileContents ->
-            fileContents
-            |> split
-            |> Task.fromResult
-            |> Task.mapErr UnableToSplitIntoGraphemes
+    # Check if the file exists
+    fileExists <- 
+        Path.isFile path 
+        |> Task.onErr \err -> 
+            if err == PathDoesNotExist then 
+                Task.ok Bool.false
+            else 
+                Task.err UnableToCheckFile
         |> Task.await
 
-    # Loop UI command->update->render 
+    # Read the file
+    original <- getFileContentsTask {fileExists, path} |> Task.await
+
+    # Loop UI command->update->render
     {} <- Tty.enableRawMode |> Task.await
     model <- Task.loop (init original path) runUILoop |> Task.await
 
@@ -179,6 +181,20 @@ runTask =
     {} <- Stdout.write (Core.toStr (Control (MoveCursor (To { row: 0, col: 0 })))) |> Task.await
 
     Stdout.line "Finished editing $(Path.display model.filePath)"
+
+# A task that will read the file contents, split into extended grapheme clusters
+getFileContentsTask : {fileExists : Bool, path : Path} -> Task (List Grapheme) _
+getFileContentsTask = \{fileExists, path} ->
+    if fileExists then
+        File.readUtf8 path 
+        |> Task.mapErr UnableToOpenFile 
+        |> Task.await \fileContents ->
+            fileContents
+            |> split
+            |> Task.fromResult
+            |> Task.mapErr UnableToSplitIntoGraphemes
+    else 
+        Task.ok [] # file doesn't exist, we will write to it when we save
 
 # Get the file path from the first argument
 readArgFilePath : Task Path _ 
@@ -311,9 +327,12 @@ runUILoop = \prevModel ->
             else
 
                 # Convert graphemes to bytes
-                fileBytes = 
+                graphemes = 
                     currentTable 
-                    |> PieceTable.toList  
+                    |> PieceTable.toList 
+                    
+                fileBytes = 
+                    graphemes     
                     |> List.map Str.toUtf8 
                     |> List.join
 
@@ -322,9 +341,14 @@ runUILoop = \prevModel ->
                     |> Task.mapErr UnableToSaveFile
                     |> Task.await
 
-                model2
-                |> updateSaveState Saved
-                |> \m -> {m & history : [currentTable.table]} # clear Undo/Redo tables
+                # Reset the editor state, cleanup history and rebuild buffers
+                {   model2 &
+                    original : graphemes,
+                    added : [],
+                    history : [[Original {start : 0, len : List.len fileBytes}]],
+                    future : [],
+                    saveState : Saved, 
+                }
                 |> Step
                 |> Task.ok
 
