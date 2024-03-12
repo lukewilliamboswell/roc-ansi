@@ -1,12 +1,14 @@
 app "tui-menu"
     packages {
         pf: "https://github.com/roc-lang/basic-cli/releases/download/0.8.1/x8URkvfyi9I0QhmVG98roKBUs_AZRkLFwFJVJ3942YA.tar.br",
-        unicode: "../../unicode/package/main.roc",
         ansi: "../package/main.roc",
+
+        # TODO use unicode when https://github.com/roc-lang/roc/issues/5477 resolved
+        # unicode: "../../unicode/package/main.roc",
     }
     imports [
         
-        # basic-cli platform
+        # Platform basic-cli provides the effects for working with files
         pf.Stdout,
         pf.Stderr,
         pf.Stdin,
@@ -15,16 +17,30 @@ app "tui-menu"
         pf.Arg,
         pf.Path.{Path},
         pf.Task.{ Task },
-
-        # Helpers for working with unicode 
-        unicode.CodePoint, # temporarily required due to https://github.com/roc-lang/roc/issues/5477
-        unicode.Grapheme.{split},
-
-        # Helpers for working with the terminal
+        
+        # Package with helpers for working with the terminal
         ansi.Core.{ Control, Color, Input, ScreenSize, Position, DrawFn },
         ansi.PieceTable.{PieceTable, Entry},
+
+        # Helpers for working with unicode 
+        # TODO use unicode when https://github.com/roc-lang/roc/issues/5477 resolved
+        # unicode.CodePoint,
+        # unicode.Grapheme.{split},
     ]
     provides [main] to pf
+
+# TODO replace with unicode package when https://github.com/roc-lang/roc/issues/5477 resolved
+# This is a temporary helper to split a file that only contains ASCII text.
+#
+# Due to this work around this editor DOES NOT support unicode.
+#
+# This is required as the above bug prevents CI from running.
+split : Str -> Result (List Str) []
+split = \in ->  
+    in
+    |> Str.toUtf8
+    |> List.keepOks \char -> Str.fromUtf8 [char] 
+    |> Ok
 
 # We are working with a single visible "character", let's use an alias to help with type checking
 Grapheme : Str 
@@ -224,8 +240,7 @@ runUILoop = \prevModel ->
             original : model.original,
             added : model.added,
             table: List.last model.history |> Result.withDefault [],
-        }
-                
+        }      
  
     # Fuse into a single buffer of Graphemes
     chars : List Grapheme

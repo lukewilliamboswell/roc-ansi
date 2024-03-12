@@ -110,6 +110,7 @@ runUILoop = \prevModel ->
             (KeyPress _, _) -> Nothing
             (Unsupported _, _) -> Nothing
             (CtrlC, _) -> Exit
+            (CtrlS,_) | (CtrlZ,_) | (CtrlY,_) -> Nothing
 
     # Update model so we can keep a history of user input
     modelWithInput = { model & inputs: List.append model.inputs input }
