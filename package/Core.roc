@@ -31,6 +31,7 @@ interface Core
         drawHLine,
         drawBox,
         drawCursor,
+        keyToStr,
     ]
     imports []
 
@@ -362,11 +363,15 @@ Key : [
     Number7,
     Number8,
     Number9,
+    Delete,
 ]
 
 Input : [
     KeyPress Key,
     CtrlC,
+    CtrlS,
+    CtrlZ,
+    CtrlY,
     Unsupported (List U8),
 ]
 
@@ -475,6 +480,10 @@ parseRawStdin = \bytes ->
         ['8', ..] -> KeyPress Number8
         ['9', ..] -> KeyPress Number9
         [3, ..] -> CtrlC
+        [19, ..] -> CtrlS
+        [26, ..] -> CtrlZ
+        [25, ..] -> CtrlY
+        [127, ..] -> KeyPress Delete
         _ -> Unsupported bytes
 
 expect parseRawStdin [27, 91, 65] == KeyPress Up
@@ -485,6 +494,9 @@ inputToStr = \input ->
     when input is
         KeyPress key -> "Key $(keyToStr key)"
         CtrlC -> "Ctrl-C"
+        CtrlS -> "Ctrl-S"
+        CtrlZ -> "Ctrl-Z"
+        CtrlY -> "Ctrl-Y"
         Unsupported bytes ->
             bytesStr = bytes |> List.map Num.toStr |> Str.joinWith ","
             "Unsupported [$(bytesStr)]"
@@ -593,6 +605,7 @@ keyToStr = \key ->
         Number7 -> "7"
         Number8 -> "8"
         Number9 -> "9"
+        Delete -> "Delete"
 
 ScreenSize : { width : I32, height : I32 }
 Position : { row : I32, col : I32 }
