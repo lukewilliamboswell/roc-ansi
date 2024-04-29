@@ -1,17 +1,17 @@
 app "tui-menu"
     packages {
-        pf: "https://github.com/roc-lang/basic-cli/releases/download/0.8.1/x8URkvfyi9I0QhmVG98roKBUs_AZRkLFwFJVJ3942YA.tar.br",
+        cli: "https://github.com/roc-lang/basic-cli/releases/download/0.10.0/vNe6s9hWzoTZtFmNkvEICPErI9ptji_ySjicO6CkucY.tar.br",
         ansi: "../package/main.roc",
     }
     imports [
-        pf.Stdout,
-        pf.Stdin,
-        pf.Tty,
-        pf.Task.{ Task },
+        cli.Stdout,
+        cli.Stdin,
+        cli.Tty,
+        cli.Task.{ Task },
         ansi.Core.{ Control, Color, Input, ScreenSize, Position, DrawFn },
-        pf.Utc.{ Utc },
+        cli.Utc.{ Utc },
     ]
-    provides [main] to pf
+    provides [main] to cli
 
 Model : {
     screen : ScreenSize,
@@ -54,19 +54,15 @@ render = \state ->
                 debug,
             ]
 
-main : Task {} *
-main = runTask |> Task.onErr \_ -> Stdout.line "ERROR Something went wrong"
-
-runTask : Task {} []
-runTask =
+main =
 
     # TUI Dashboard
-    {} <- Tty.enableRawMode |> Task.await
-    model <- Task.loop init runUILoop |> Task.await
+    Tty.enableRawMode!
+    model = Task.loop! init runUILoop
 
     # Restore terminal
-    {} <- Stdout.write (Core.toStr Reset) |> Task.await
-    {} <- Tty.disableRawMode |> Task.await
+    Stdout.write! (Core.toStr Reset)
+    Tty.disableRawMode!
 
     # EXIT or RUN selected solution
     when model.state is
@@ -76,24 +72,25 @@ runTask =
         _ ->
             Stdout.line "Exiting..."
 
-runUILoop : Model -> Task [Step Model, Done Model] []
+runUILoop : Model -> Task [Step Model, Done Model] _
 runUILoop = \prevModel ->
 
     # Get the time of this draw
-    now <- Utc.now |> Task.await
+    now = Utc.now!
 
     # Update screen size (in case it was resized since the last draw)
-    terminalSize <- getTerminalSize |> Task.await
+    terminalSize = getTerminalSize!
 
     # Update the model with screen size and time of this draw
     model = { prevModel & screen: terminalSize, prevDraw: prevModel.currDraw, currDraw: now }
 
     # Draw the screen
     drawFns = render model
-    {} <- Core.drawScreen model drawFns |> Stdout.write |> Task.await
+    Core.drawScreen model drawFns 
+    |> Stdout.write!
 
     # Get user input
-    input <- Stdin.bytes |> Task.map Core.parseRawStdin |> Task.await
+    input = Stdin.bytes |> Task.map! Core.parseRawStdin
 
     # Parse user input into a command
     command =
@@ -148,17 +145,17 @@ getSelected = \model ->
     |> List.first
     |> Result.mapErr \_ -> NothingSelected
 
-getTerminalSize : Task ScreenSize []
+getTerminalSize : Task ScreenSize _
 getTerminalSize =
 
     # Move the cursor to bottom right corner of terminal
     cmd = [MoveCursor (To { row: 999, col: 999 }), GetCursor] |> List.map Control |> List.map Core.toStr |> Str.joinWith ""
-    {} <- Stdout.write cmd |> Task.await
+    Stdout.write! cmd
 
     # Read the cursor position
     Stdin.bytes
     |> Task.map Core.parseCursor
-    |> Task.map \{ row, col } -> { width: col, height: row }
+    |> Task.map! \{ row, col } -> { width: col, height: row }
 
 homeScreen : Model -> List DrawFn
 homeScreen = \model ->

@@ -1,6 +1,6 @@
-app "tui-menu"
+app "text-editor"
     packages {
-        pf: "https://github.com/roc-lang/basic-cli/releases/download/0.8.1/x8URkvfyi9I0QhmVG98roKBUs_AZRkLFwFJVJ3942YA.tar.br",
+        cli: "https://github.com/roc-lang/basic-cli/releases/download/0.10.0/vNe6s9hWzoTZtFmNkvEICPErI9ptji_ySjicO6CkucY.tar.br",
         ansi: "../package/main.roc",
 
         # TODO use unicode when https://github.com/roc-lang/roc/issues/5477 resolved
@@ -9,14 +9,13 @@ app "tui-menu"
     imports [
         
         # Platform basic-cli provides the effects for working with files
-        pf.Stdout,
-        pf.Stderr,
-        pf.Stdin,
-        pf.Tty,
-        pf.File,
-        pf.Arg,
-        pf.Path.{Path},
-        pf.Task.{ Task },
+        cli.Stdout,
+        cli.Stdin,
+        cli.Tty,
+        cli.File,
+        cli.Arg,
+        cli.Path.{Path},
+        cli.Task.{ Task },
         
         # Package with helpers for working with the terminal
         ansi.Core.{ Control, Color, Input, ScreenSize, Position, DrawFn },
@@ -27,7 +26,7 @@ app "tui-menu"
         # unicode.CodePoint,
         # unicode.Grapheme.{split},
     ]
-    provides [main] to pf
+    provides [main] to cli
 
 # TODO replace with unicode package when https://github.com/roc-lang/roc/issues/5477 resolved
 # This is a temporary helper to split a file that only contains ASCII text.
@@ -152,24 +151,7 @@ drawViewPort = \{lines, lineOffset, width, height, position} -> \_, { row, col }
 
                     Ok { char, fg: Default, bg: Default, styles: [] }
 
-# The task provided to cli platform
-main : Task {} I32
-main = runTask |> Task.onErr handleErr
-
-# Prints any unhandled errors to stderr
-handleErr : _ -> Task {} I32
-handleErr = \err ->
-
-    errorLabel = Core.withFg "ERROR" (Standard Red)
-    errorMessage = Inspect.toStr err
-
-    {} <- Stderr.line "$(errorLabel) $(errorMessage)" |> Task.await
-
-    Task.err 1
-
-# CLI run task, merge all errors into a single tag union
-runTask : Task {} _
-runTask =
+main =
 
     # Read path of file to edit from argument
     path <- readArgFilePath |> Task.await
