@@ -1,13 +1,11 @@
-interface PieceTable
-    exposes [
-        PieceTable,
-        Entry,
-        toList,
-        length,
-        insert,
-        delete,
-    ]
-    imports []
+module [
+    PieceTable,
+    Entry,
+    toList,
+    length,
+    insert,
+    delete,
+]
 
 ## Represents a [Piece table](https://en.wikipedia.org/wiki/Piece_table) which
 ## is typically used to represent a text document while it is edited in a text
