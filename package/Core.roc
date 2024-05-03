@@ -1,39 +1,37 @@
-interface Core
-    exposes [
-        # ANSI
-        Escape,
-        Control,
-        toStr,
+module [
+    # ANSI
+    Escape,
+    Control,
+    toStr,
 
-        # Style
-        Style,
-        withStyle,
+    # Style
+    Style,
+    withStyle,
 
-        # Color
-        Color,
-        withFg,
-        withBg,
-        withColor,
+    # Color
+    Color,
+    withFg,
+    withBg,
+    withColor,
 
-        # TUI
-        DrawFn,
-        Pixel,
-        ScreenSize,
-        Position,
-        Input,
-        parseCursor,
-        updateCursor,
-        inputToStr,
-        parseRawStdin,
-        drawScreen,
-        drawText,
-        drawVLine,
-        drawHLine,
-        drawBox,
-        drawCursor,
-        keyToStr,
-    ]
-    imports []
+    # TUI
+    DrawFn,
+    Pixel,
+    ScreenSize,
+    Position,
+    Input,
+    parseCursor,
+    updateCursor,
+    inputToStr,
+    parseRawStdin,
+    drawScreen,
+    drawText,
+    drawVLine,
+    drawHLine,
+    drawBox,
+    drawCursor,
+    keyToStr,
+]
 
 ## [ANSI Escape Codes](https://en.wikipedia.org/wiki/ANSI_escape_code)
 

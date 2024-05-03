@@ -1,10 +1,11 @@
-app "example"
-    packages {
-        cli: "https://github.com/roc-lang/basic-cli/releases/download/0.10.0/vNe6s9hWzoTZtFmNkvEICPErI9ptji_ySjicO6CkucY.tar.br",
-        ansi: "../package/main.roc",
-    }
-    imports [cli.Task, cli.Stdout, ansi.Core]
-    provides [main] to cli
+app [main] {
+    cli: platform "https://github.com/roc-lang/basic-cli/releases/download/0.10.0/vNe6s9hWzoTZtFmNkvEICPErI9ptji_ySjicO6CkucY.tar.br",
+    ansi: "../package/main.roc",
+}
+
+import cli.Task
+import cli.Stdout
+import ansi.Core
 
 main =
     [

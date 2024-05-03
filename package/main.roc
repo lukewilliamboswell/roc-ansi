@@ -1,3 +1,1 @@
-package "ansi-escape"
-    exposes [Core, PieceTable]
-    packages {}
+package [Core, PieceTable] {}

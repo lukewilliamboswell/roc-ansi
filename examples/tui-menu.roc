@@ -1,25 +1,22 @@
-app "tui-menu"
-    packages {
-        cli: "https://github.com/roc-lang/basic-cli/releases/download/0.10.0/vNe6s9hWzoTZtFmNkvEICPErI9ptji_ySjicO6CkucY.tar.br",
-        ansi: "../package/main.roc",
-    }
-    imports [
-        cli.Stdout,
-        cli.Stdin,
-        cli.Tty,
-        cli.Task.{ Task },
-        ansi.Core.{ Control, Color, Input, ScreenSize, Position, DrawFn },
-        cli.Utc.{ Utc },
-    ]
-    provides [main] to cli
+app [main] {
+    cli: platform "https://github.com/roc-lang/basic-cli/releases/download/0.10.0/vNe6s9hWzoTZtFmNkvEICPErI9ptji_ySjicO6CkucY.tar.br",
+    ansi: "../package/main.roc",
+}
+
+import cli.Stdout
+import cli.Stdin
+import cli.Tty
+import cli.Task
+import ansi.Core
+import cli.Utc
 
 Model : {
-    screen : ScreenSize,
-    cursor : Position,
-    prevDraw : Utc,
-    currDraw : Utc,
+    screen : Core.ScreenSize,
+    cursor : Core.Position,
+    prevDraw : Utc.Utc,
+    currDraw : Utc.Utc,
     things : List Str,
-    inputs : List Input,
+    inputs : List Core.Input,
     debug : Bool,
     state : [HomePage, ConfirmPage Str, DoSomething Str, UserExited],
 }
@@ -36,7 +33,7 @@ init = {
     state: HomePage,
 }
 
-render : Model -> List DrawFn
+render : Model -> List Core.DrawFn
 render = \state ->
     # PRESS 'd' to toggle debug screen
     debug = if state.debug then debugScreen state else []
@@ -59,7 +56,6 @@ main =
     # TUI Dashboard
     Tty.enableRawMode!
     model = Task.loop! init runUILoop
-
     # Restore terminal
     Stdout.write! (Core.toStr Reset)
     Tty.disableRawMode!
@@ -72,7 +68,7 @@ main =
         _ ->
             Stdout.line "Exiting..."
 
-runUILoop : Model -> Task [Step Model, Done Model] _
+runUILoop : Model -> Task.Task [Step Model, Done Model] _
 runUILoop = \prevModel ->
 
     # Get the time of this draw
@@ -86,8 +82,8 @@ runUILoop = \prevModel ->
 
     # Draw the screen
     drawFns = render model
-    Core.drawScreen model drawFns 
-    |> Stdout.write!
+    Core.drawScreen model drawFns
+        |> Stdout.write!
 
     # Get user input
     input = Stdin.bytes |> Task.map! Core.parseRawStdin
@@ -107,7 +103,7 @@ runUILoop = \prevModel ->
             (KeyPress _, _) -> Nothing
             (Unsupported _, _) -> Nothing
             (CtrlC, _) -> Exit
-            (CtrlS,_) | (CtrlZ,_) | (CtrlY,_) -> Nothing
+            (CtrlS, _) | (CtrlZ, _) | (CtrlY, _) -> Nothing
 
     # Update model so we can keep a history of user input
     modelWithInput = { model & inputs: List.append model.inputs input }
@@ -145,7 +141,7 @@ getSelected = \model ->
     |> List.first
     |> Result.mapErr \_ -> NothingSelected
 
-getTerminalSize : Task ScreenSize _
+getTerminalSize : Task.Task Core.ScreenSize _
 getTerminalSize =
 
     # Move the cursor to bottom right corner of terminal
@@ -154,10 +150,10 @@ getTerminalSize =
 
     # Read the cursor position
     Stdin.bytes
-    |> Task.map Core.parseCursor
-    |> Task.map! \{ row, col } -> { width: col, height: row }
+        |> Task.map Core.parseCursor
+        |> Task.map! \{ row, col } -> { width: col, height: row }
 
-homeScreen : Model -> List DrawFn
+homeScreen : Model -> List Core.DrawFn
 homeScreen = \model ->
     [
         [
@@ -177,7 +173,7 @@ homeScreen = \model ->
     ]
     |> List.join
 
-confirmScreen : Model -> List DrawFn
+confirmScreen : Model -> List Core.DrawFn
 confirmScreen = \state -> [
     Core.drawCursor { bg: Standard Green },
     Core.drawText " Would you like to do something?" { r: 1, c: 1, fg: Standard Yellow },
@@ -190,7 +186,7 @@ confirmScreen = \state -> [
     Core.drawBox { r: 0, c: 0, w: state.screen.width, h: state.screen.height },
 ]
 
-debugScreen : Model -> List DrawFn
+debugScreen : Model -> List Core.DrawFn
 debugScreen = \state ->
     cursorStr = "CURSOR R$(Num.toStr state.cursor.row), C$(Num.toStr state.cursor.col)"
     screenStr = "SCREEN H$(Num.toStr state.screen.height), W$(Num.toStr state.screen.width)"
