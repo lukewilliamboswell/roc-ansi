@@ -1,18 +1,9 @@
 module [
     # ANSI
     Escape,
-    Control,
     toStr,
-
-    # Style
-    Style,
-    withStyle,
-
-    # Color
-    Color,
-    withFg,
-    withBg,
-    withColor,
+    style,
+    color,
 
     # TUI
     DrawFn,
@@ -33,6 +24,10 @@ module [
     keyToStr,
 ]
 
+import Color exposing [Color]
+import Style exposing [Style]
+import Control exposing [Control]
+
 ## [ANSI Escape Codes](https://en.wikipedia.org/wiki/ANSI_escape_code)
 
 Escape : [
@@ -40,224 +35,30 @@ Escape : [
     Control Control,
 ]
 
-Control : [
-    MoveCursor
-        [
-            Step [Up, Down, Left, Right] I32,
-            Line [Next, Prev] I32,
-            To { row : I32, col : I32 },
-            Home,
-        ],
-    Erase [Display [ToEnd, ToStart, All], Line [ToEnd, ToStart, All]],
-    ClearScreen,
-    GetCursor,
-    Scroll [Up, Down] I32,
-    Style Style,
-]
+toStr : Escape -> Str
+toStr = \escape -> "\u(001b)"
+    |> Str.concat
+        (
+            when escape is
+                Reset -> "c"
+                Control control -> "[" |> Str.concat (Control.toCode control)
+        )
 
-Style : [
-    Default,
-    Bold [On, Off],
-    Faint [On, Off],
-    Italic [On, Off],
-    Underline [On, Off],
-    Overline [On, Off], # TODO: Investigate which terminals support this
-    Strikethrough [On, Off],
-    Blink [Slow, Rapid, Off], # TODO: Investigate which terminals support rapid blink
-    Invert [On, Off],
-    Foreground Color,
-    Background Color,
-]
-
-## 4-bit, 8-bit and 24-bit colors supported on *most* modern terminal emulators
-Color : [
-    Default,
-    Standard [Black, Red, Green, Yellow, Blue, Magenta, Cyan, White],
-    # For terminals which support axiterm specification
-    Bright [Black, Red, Green, Yellow, Blue, Magenta, Cyan, White],
-    B8 U8,
-    B24 (U8, U8, U8),
-]
-
-toStr = \x -> "\u(001b)$(fromEscape x)"
-
-fromEscape : Escape -> Str
-fromEscape = \escape ->
-    when escape is
-        Reset -> "c"
-        Control control -> "[$(fromControl control)"
-
-fromControl : Control -> Str
-fromControl = \control ->
-    when control is
-        GetCursor -> "6n"
-        MoveCursor x ->
-            when x is
-                Step direction steps ->
-                    when direction is
-                        Up -> "$(Num.toStr steps)A"
-                        Down -> "$(Num.toStr steps)B"
-                        Right -> "$(Num.toStr steps)C"
-                        Left -> "$(Num.toStr steps)D"
-
-                Line direction lines ->
-                    when direction is
-                        Next -> "$(Num.toStr lines)E"
-                        Prev -> "$(Num.toStr lines)F"
-
-                To { row, col } -> "$(Num.toStr row);$(Num.toStr col)H"
-                Home -> "H"
-
-        Erase x ->
-            when x is
-                Display d ->
-                    when d is
-                        ToEnd -> "0J"
-                        ToStart -> "1J"
-                        All -> "2J"
-
-                Line l ->
-                    when l is
-                        ToEnd -> "0K"
-                        ToStart -> "1K"
-                        All -> "2K"
-
-        ClearScreen -> "3J"
-        Scroll direction lines ->
-            when direction is
-                Up -> "$(Num.toStr lines)S"
-                Down -> "$(Num.toStr lines)T"
-
-        Style style -> "$(style |> fromStyle |> List.map Num.toStr |> Str.joinWith ";")m"
-
-fromStyle : Style -> List U8
-fromStyle = \style ->
-    when style is
-        Default -> [0]
-        Bold b ->
-            when b is
-                On -> [1]
-                Off -> [22]
-
-        Faint f ->
-            when f is
-                On -> [2]
-                Off -> [22]
-
-        Italic i ->
-            when i is
-                On -> [3]
-                Off -> [23]
-
-        Underline u ->
-            when u is
-                On -> [4]
-                Off -> [24]
-
-        Overline u ->
-            when u is
-                On -> [53]
-                Off -> [55]
-
-        Strikethrough s ->
-            when s is
-                On -> [9]
-                Off -> [29]
-
-        Blink b ->
-            when b is
-                Slow -> [5]
-                Rapid -> [6]
-                Off -> [25]
-
-        Invert i ->
-            when i is
-                On -> [7]
-                Off -> [27]
-
-        Foreground fg -> fromFgColor fg
-        Background bg -> fromBgColor bg
-
-fromFgColor : Color -> List U8
-fromFgColor = \fg ->
-    when fg is
-        Default -> [39]
-        Standard standard ->
-            when standard is
-                Black -> [30]
-                Red -> [31]
-                Green -> [32]
-                Yellow -> [33]
-                Blue -> [34]
-                Magenta -> [35]
-                Cyan -> [36]
-                White -> [37]
-
-        Bright bright ->
-            when bright is
-                Black -> [90]
-                Red -> [91]
-                Green -> [92]
-                Yellow -> [93]
-                Blue -> [94]
-                Magenta -> [95]
-                Cyan -> [96]
-                White -> [97]
-
-        B8 b8 -> [38, 5, b8]
-        B24 (r, g, b) -> [38, 2, r, g, b]
-
-fromBgColor = \bg ->
-    when bg is
-        Default -> [49]
-        Standard standard ->
-            when standard is
-                Black -> [40]
-                Red -> [41]
-                Green -> [42]
-                Yellow -> [43]
-                Blue -> [44]
-                Magenta -> [45]
-                Cyan -> [46]
-                White -> [47]
-
-        Bright bright ->
-            when bright is
-                Black -> [100]
-                Red -> [101]
-                Green -> [102]
-                Yellow -> [103]
-                Blue -> [104]
-                Magenta -> [105]
-                Cyan -> [106]
-                White -> [107]
-
-        B8 b8 -> [48, 5, b8]
-        B24 (r, g, b) -> [48, 2, r, g, b]
-
-## Adds style to a Str
-withStyle : Str, List Style -> Str
-withStyle = \str, styles ->
+## Add styles to a string
+style : Str, List Style -> Str
+style = \str, styles ->
     styles
     |> List.map Style
     |> List.map Control
     |> List.map toStr
     |> List.append str
-    |> Str.joinWith ("")
+    |> Str.joinWith ""
 
-resetStyle = toStr (Control (Style (Default)))
+resetStyle = "" |> style [Default]
 
-## Adds foreground color formatting to a Str and then resets to Default
-withFg : Str, Color -> Str
-withFg = \str, color -> "$(toStr (Control (Style (Foreground color))))$(str)$(resetStyle)"
-
-## Adds background color formatting to a Str and then resets to Default
-withBg : Str, Color -> Str
-withBg = \str, color -> "$(toStr (Control (Style (Background color))))$(str)$(resetStyle)"
-
-## Adds color formatting to a Str and then resets to Default
-withColor : Str, { fg : Color, bg : Color } -> Str
-withColor = \str, colors -> "$(toStr (Control (Style (Foreground colors.fg))))$(toStr (Control (Style (Background colors.bg))))$(str)$(resetStyle)"
+## Add color styles to a string and then resets to default
+color : Str, { fg ? Color, bg ? Color } -> Str
+color = \str, { fg ? Default, bg ? Default } -> str |> style [Foreground (fg), Background (bg)] |> Str.concat resetStyle
 
 Key : [
     Up,
@@ -266,8 +67,8 @@ Key : [
     Right,
     Escape,
     Enter,
-    LowerA,
     UpperA,
+    LowerA,
     UpperB,
     LowerB,
     UpperC,
@@ -364,18 +165,21 @@ Key : [
     Delete,
 ]
 
+Letter : [A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z]
+
 Input : [
     KeyPress Key,
-    CtrlC,
-    CtrlS,
-    CtrlZ,
-    CtrlY,
+    Ctrl Letter,
     Unsupported (List U8),
 ]
 
 parseRawStdin : List U8 -> Input
 parseRawStdin = \bytes ->
     when bytes is
+        [3, ..] -> Ctrl C
+        [19, ..] -> Ctrl S
+        [25, ..] -> Ctrl Y
+        [26, ..] -> Ctrl Z
         [27, 91, 'A', ..] -> KeyPress Up
         [27, 91, 'B', ..] -> KeyPress Down
         [27, 91, 'C', ..] -> KeyPress Right
@@ -383,6 +187,7 @@ parseRawStdin = \bytes ->
         [27, ..] -> KeyPress Escape
         [13, ..] -> KeyPress Enter
         [32, ..] -> KeyPress Space
+        [127, ..] -> KeyPress Delete
         ['A', ..] -> KeyPress UpperA
         ['a', ..] -> KeyPress LowerA
         ['B', ..] -> KeyPress UpperB
@@ -477,24 +282,77 @@ parseRawStdin = \bytes ->
         ['7', ..] -> KeyPress Number7
         ['8', ..] -> KeyPress Number8
         ['9', ..] -> KeyPress Number9
-        [3, ..] -> CtrlC
-        [19, ..] -> CtrlS
-        [26, ..] -> CtrlZ
-        [25, ..] -> CtrlY
-        [127, ..] -> KeyPress Delete
         _ -> Unsupported bytes
 
 expect parseRawStdin [27, 91, 65] == KeyPress Up
 expect parseRawStdin [27] == KeyPress Escape
 
+letterToStr : [Upper Letter, Lower Letter] -> Str
+letterToStr = \case ->
+    when case is
+        Upper letter ->
+            when letter is
+                A -> "A"
+                B -> "B"
+                C -> "C"
+                D -> "D"
+                E -> "E"
+                F -> "F"
+                G -> "G"
+                H -> "H"
+                I -> "I"
+                J -> "J"
+                K -> "K"
+                L -> "L"
+                M -> "M"
+                N -> "N"
+                O -> "O"
+                P -> "P"
+                Q -> "Q"
+                R -> "R"
+                S -> "S"
+                T -> "T"
+                U -> "U"
+                V -> "V"
+                W -> "W"
+                X -> "X"
+                Y -> "Y"
+                Z -> "Z"
+
+        Lower letter ->
+            when letter is
+                A -> "a"
+                B -> "b"
+                C -> "c"
+                D -> "d"
+                E -> "e"
+                F -> "f"
+                G -> "g"
+                H -> "h"
+                I -> "i"
+                J -> "j"
+                K -> "k"
+                L -> "l"
+                M -> "m"
+                N -> "n"
+                O -> "o"
+                P -> "p"
+                Q -> "q"
+                R -> "r"
+                S -> "s"
+                T -> "t"
+                U -> "u"
+                V -> "v"
+                W -> "w"
+                X -> "x"
+                Y -> "y"
+                Z -> "z"
+
 inputToStr : Input -> Str
 inputToStr = \input ->
     when input is
         KeyPress key -> "Key $(keyToStr key)"
-        CtrlC -> "Ctrl-C"
-        CtrlS -> "Ctrl-S"
-        CtrlZ -> "Ctrl-Z"
-        CtrlY -> "Ctrl-Y"
+        Ctrl key -> "Ctrl-" |> Str.concat (letterToStr (Upper key))
         Unsupported bytes ->
             bytesStr = bytes |> List.map Num.toStr |> Str.joinWith ","
             "Unsupported [$(bytesStr)]"
@@ -567,7 +425,7 @@ keyToStr = \key ->
         DollarSign -> "\$"
         PercentSign -> "%"
         Ampersand -> "&"
-        Apostrophe -> "\\"
+        Apostrophe -> "'"
         RoundOpenBracket -> "("
         RoundCloseBracket -> ")"
         Asterisk -> "*"
@@ -724,7 +582,7 @@ joinPixelRow = \{ char, fg, bg, lines, styles }, pixelRow, row ->
     line =
         rowStrs
         |> Str.joinWith "" # Set cursor at the start of line we want to draw
-        |> Str.withPrefix (toStr (Control (MoveCursor (To { row: Num.toI32 (row + 1), col: 0 }))))
+        |> Str.withPrefix (toStr (Control (Cursor (Abs { row: Num.toU16 (row + 1), col: 0 }))))
 
     { char: " ", fg: prev.fg, bg: prev.bg, lines: List.append lines line, styles: prev.styles }
 
