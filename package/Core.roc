@@ -21,7 +21,7 @@ module [
     drawHLine,
     drawBox,
     drawCursor,
-    keyToStr,
+    symbolToStr,
 ]
 
 import Color exposing [Color]
@@ -60,66 +60,7 @@ resetStyle = "" |> style [Default]
 color : Str, { fg ? Color, bg ? Color } -> Str
 color = \str, { fg ? Default, bg ? Default } -> str |> style [Foreground (fg), Background (bg)] |> Str.concat resetStyle
 
-Key : [
-    Up,
-    Down,
-    Left,
-    Right,
-    Escape,
-    Enter,
-    UpperA,
-    LowerA,
-    UpperB,
-    LowerB,
-    UpperC,
-    LowerC,
-    UpperD,
-    LowerD,
-    UpperE,
-    LowerE,
-    UpperF,
-    LowerF,
-    UpperG,
-    LowerG,
-    UpperH,
-    LowerH,
-    UpperI,
-    LowerI,
-    UpperJ,
-    LowerJ,
-    UpperK,
-    LowerK,
-    UpperL,
-    LowerL,
-    UpperM,
-    LowerM,
-    UpperN,
-    LowerN,
-    UpperO,
-    LowerO,
-    UpperP,
-    LowerP,
-    UpperQ,
-    LowerQ,
-    UpperR,
-    LowerR,
-    UpperS,
-    LowerS,
-    UpperT,
-    LowerT,
-    UpperU,
-    LowerU,
-    UpperV,
-    LowerV,
-    UpperW,
-    LowerW,
-    UpperX,
-    LowerX,
-    UpperY,
-    LowerY,
-    UpperZ,
-    LowerZ,
-    Space,
+Symbol : [
     ExclamationMark,
     QuotationMark,
     NumberSign,
@@ -152,273 +93,236 @@ Key : [
     VerticalBar,
     CurlyCloseBrace,
     Tilde,
-    Number0,
-    Number1,
-    Number2,
-    Number3,
-    Number4,
-    Number5,
-    Number6,
-    Number7,
-    Number8,
-    Number9,
-    Delete,
 ]
 
+Ctrl : [Space, A, B, C, D, E, F, G, H, I, J, K, L, N, O, P, Q, R, S, T, U, V, W, X, Y, Z, BackSlash, SquareCloseBracket, Caret, Underscore]
+Action : [Escape, Enter, Space, Delete]
+Arrow : [Up, Down, Left, Right]
+Number : [N0, N1, N2, N3, N4, N5, N6, N7, N8, N9]
 Letter : [A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z]
 
 Input : [
-    KeyPress Key,
-    Ctrl Letter,
+    Ctrl Ctrl,
+    Action Action,
+    Arrow Arrow,
+    Symbol Symbol,
+    Number Number,
+    Upper Letter,
+    Lower Letter,
     Unsupported (List U8),
 ]
 
 parseRawStdin : List U8 -> Input
 parseRawStdin = \bytes ->
     when bytes is
+        [0, ..] -> Ctrl Space
+        [1, ..] -> Ctrl A
+        [2, ..] -> Ctrl B
         [3, ..] -> Ctrl C
+        [4, ..] -> Ctrl D
+        [5, ..] -> Ctrl E
+        [6, ..] -> Ctrl F
+        [7, ..] -> Ctrl G
+        [8, ..] -> Ctrl H
+        [9, ..] -> Ctrl I
+        [10, ..] -> Ctrl J
+        [11, ..] -> Ctrl K
+        [12, ..] -> Ctrl L
+        [13, ..] -> Action Enter
+        # [13, ..] -> Ctrl M # Same as Action Enter
+        [14, ..] -> Ctrl N
+        [15, ..] -> Ctrl O
+        [16, ..] -> Ctrl P
+        [17, ..] -> Ctrl Q
+        [18, ..] -> Ctrl R
         [19, ..] -> Ctrl S
+        [20, ..] -> Ctrl T
+        [21, ..] -> Ctrl U
+        [22, ..] -> Ctrl V
+        [23, ..] -> Ctrl W
+        [24, ..] -> Ctrl X
         [25, ..] -> Ctrl Y
         [26, ..] -> Ctrl Z
-        [27, 91, 'A', ..] -> KeyPress Up
-        [27, 91, 'B', ..] -> KeyPress Down
-        [27, 91, 'C', ..] -> KeyPress Right
-        [27, 91, 'D', ..] -> KeyPress Left
-        [27, ..] -> KeyPress Escape
-        [13, ..] -> KeyPress Enter
-        [32, ..] -> KeyPress Space
-        [127, ..] -> KeyPress Delete
-        ['A', ..] -> KeyPress UpperA
-        ['a', ..] -> KeyPress LowerA
-        ['B', ..] -> KeyPress UpperB
-        ['b', ..] -> KeyPress LowerB
-        ['C', ..] -> KeyPress UpperC
-        ['c', ..] -> KeyPress LowerC
-        ['D', ..] -> KeyPress UpperD
-        ['d', ..] -> KeyPress LowerD
-        ['E', ..] -> KeyPress UpperE
-        ['e', ..] -> KeyPress LowerE
-        ['F', ..] -> KeyPress UpperF
-        ['f', ..] -> KeyPress LowerF
-        ['G', ..] -> KeyPress UpperG
-        ['g', ..] -> KeyPress LowerG
-        ['H', ..] -> KeyPress UpperH
-        ['h', ..] -> KeyPress LowerH
-        ['I', ..] -> KeyPress UpperI
-        ['i', ..] -> KeyPress LowerI
-        ['J', ..] -> KeyPress UpperJ
-        ['j', ..] -> KeyPress LowerJ
-        ['K', ..] -> KeyPress UpperK
-        ['k', ..] -> KeyPress LowerK
-        ['L', ..] -> KeyPress UpperL
-        ['l', ..] -> KeyPress LowerL
-        ['M', ..] -> KeyPress UpperM
-        ['m', ..] -> KeyPress LowerM
-        ['N', ..] -> KeyPress UpperN
-        ['n', ..] -> KeyPress LowerN
-        ['O', ..] -> KeyPress UpperO
-        ['o', ..] -> KeyPress LowerO
-        ['P', ..] -> KeyPress UpperP
-        ['p', ..] -> KeyPress LowerP
-        ['Q', ..] -> KeyPress UpperQ
-        ['q', ..] -> KeyPress LowerQ
-        ['R', ..] -> KeyPress UpperR
-        ['r', ..] -> KeyPress LowerR
-        ['S', ..] -> KeyPress UpperS
-        ['s', ..] -> KeyPress LowerS
-        ['T', ..] -> KeyPress UpperT
-        ['t', ..] -> KeyPress LowerT
-        ['U', ..] -> KeyPress UpperU
-        ['u', ..] -> KeyPress LowerU
-        ['V', ..] -> KeyPress UpperV
-        ['v', ..] -> KeyPress LowerV
-        ['W', ..] -> KeyPress UpperW
-        ['w', ..] -> KeyPress LowerW
-        ['X', ..] -> KeyPress UpperX
-        ['x', ..] -> KeyPress LowerX
-        ['Y', ..] -> KeyPress UpperY
-        ['y', ..] -> KeyPress LowerY
-        ['Z', ..] -> KeyPress UpperZ
-        ['z', ..] -> KeyPress LowerZ
-        ['!', ..] -> KeyPress ExclamationMark
-        ['"', ..] -> KeyPress QuotationMark
-        ['#', ..] -> KeyPress NumberSign
-        ['$', ..] -> KeyPress DollarSign
-        ['%', ..] -> KeyPress PercentSign
-        ['&', ..] -> KeyPress Ampersand
-        ['\'', ..] -> KeyPress Apostrophe
-        ['(', ..] -> KeyPress RoundOpenBracket
-        [')', ..] -> KeyPress RoundCloseBracket
-        ['*', ..] -> KeyPress Asterisk
-        ['+', ..] -> KeyPress PlusSign
-        [',', ..] -> KeyPress Comma
-        ['-', ..] -> KeyPress Hyphen
-        ['.', ..] -> KeyPress FullStop
-        ['/', ..] -> KeyPress ForwardSlash
-        [':', ..] -> KeyPress Colon
-        [';', ..] -> KeyPress SemiColon
-        ['<', ..] -> KeyPress LessThanSign
-        ['=', ..] -> KeyPress EqualsSign
-        ['>', ..] -> KeyPress GreaterThanSign
-        ['?', ..] -> KeyPress QuestionMark
-        ['@', ..] -> KeyPress AtSign
-        ['[', ..] -> KeyPress SquareOpenBracket
-        ['\\', ..] -> KeyPress Backslash
-        [']', ..] -> KeyPress SquareCloseBracket
-        ['^', ..] -> KeyPress Caret
-        ['_', ..] -> KeyPress Underscore
-        ['`', ..] -> KeyPress GraveAccent
-        ['{', ..] -> KeyPress CurlyOpenBrace
-        ['|', ..] -> KeyPress VerticalBar
-        ['}', ..] -> KeyPress CurlyCloseBrace
-        ['~', ..] -> KeyPress Tilde
-        ['0', ..] -> KeyPress Number0
-        ['1', ..] -> KeyPress Number1
-        ['2', ..] -> KeyPress Number2
-        ['3', ..] -> KeyPress Number3
-        ['4', ..] -> KeyPress Number4
-        ['5', ..] -> KeyPress Number5
-        ['6', ..] -> KeyPress Number6
-        ['7', ..] -> KeyPress Number7
-        ['8', ..] -> KeyPress Number8
-        ['9', ..] -> KeyPress Number9
+        [27, 91, 'A', ..] -> Arrow Up
+        [27, 91, 'B', ..] -> Arrow Down
+        [27, 91, 'C', ..] -> Arrow Right
+        [27, 91, 'D', ..] -> Arrow Left
+        [27, ..] -> Action Escape
+        # [27, ..] -> Ctrl SquareOpenBracket # Same as Action Escape
+        [28, ..] -> Ctrl BackSlash
+        [29, ..] -> Ctrl SquareCloseBracket
+        [30, ..] -> Ctrl Caret
+        [31, ..] -> Ctrl Underscore
+        [32, ..] -> Action Space
+        ['!', ..] -> Symbol ExclamationMark
+        ['"', ..] -> Symbol QuotationMark
+        ['#', ..] -> Symbol NumberSign
+        ['$', ..] -> Symbol DollarSign
+        ['%', ..] -> Symbol PercentSign
+        ['&', ..] -> Symbol Ampersand
+        ['\'', ..] -> Symbol Apostrophe
+        ['(', ..] -> Symbol RoundOpenBracket
+        [')', ..] -> Symbol RoundCloseBracket
+        ['*', ..] -> Symbol Asterisk
+        ['+', ..] -> Symbol PlusSign
+        [',', ..] -> Symbol Comma
+        ['-', ..] -> Symbol Hyphen
+        ['.', ..] -> Symbol FullStop
+        ['/', ..] -> Symbol ForwardSlash
+        ['0', ..] -> Number N0
+        ['1', ..] -> Number N1
+        ['2', ..] -> Number N2
+        ['3', ..] -> Number N3
+        ['4', ..] -> Number N4
+        ['5', ..] -> Number N5
+        ['6', ..] -> Number N6
+        ['7', ..] -> Number N7
+        ['8', ..] -> Number N8
+        ['9', ..] -> Number N9
+        [':', ..] -> Symbol Colon
+        [';', ..] -> Symbol SemiColon
+        ['<', ..] -> Symbol LessThanSign
+        ['=', ..] -> Symbol EqualsSign
+        ['>', ..] -> Symbol GreaterThanSign
+        ['?', ..] -> Symbol QuestionMark
+        ['@', ..] -> Symbol AtSign
+        ['A', ..] -> Upper A
+        ['B', ..] -> Upper B
+        ['C', ..] -> Upper C
+        ['D', ..] -> Upper D
+        ['E', ..] -> Upper E
+        ['F', ..] -> Upper F
+        ['G', ..] -> Upper G
+        ['H', ..] -> Upper H
+        ['I', ..] -> Upper I
+        ['J', ..] -> Upper J
+        ['K', ..] -> Upper K
+        ['L', ..] -> Upper L
+        ['M', ..] -> Upper M
+        ['N', ..] -> Upper N
+        ['O', ..] -> Upper O
+        ['P', ..] -> Upper P
+        ['Q', ..] -> Upper Q
+        ['R', ..] -> Upper R
+        ['S', ..] -> Upper S
+        ['T', ..] -> Upper T
+        ['U', ..] -> Upper U
+        ['V', ..] -> Upper V
+        ['W', ..] -> Upper W
+        ['X', ..] -> Upper X
+        ['Y', ..] -> Upper Y
+        ['Z', ..] -> Upper Z
+        ['[', ..] -> Symbol SquareOpenBracket
+        ['\\', ..] -> Symbol Backslash
+        [']', ..] -> Symbol SquareCloseBracket
+        ['^', ..] -> Symbol Caret
+        ['_', ..] -> Symbol Underscore
+        ['`', ..] -> Symbol GraveAccent
+        ['a', ..] -> Lower A
+        ['b', ..] -> Lower B
+        ['c', ..] -> Lower C
+        ['d', ..] -> Lower D
+        ['e', ..] -> Lower E
+        ['f', ..] -> Lower F
+        ['g', ..] -> Lower G
+        ['h', ..] -> Lower H
+        ['i', ..] -> Lower I
+        ['j', ..] -> Lower J
+        ['k', ..] -> Lower K
+        ['l', ..] -> Lower L
+        ['m', ..] -> Lower M
+        ['n', ..] -> Lower N
+        ['o', ..] -> Lower O
+        ['p', ..] -> Lower P
+        ['q', ..] -> Lower Q
+        ['r', ..] -> Lower R
+        ['s', ..] -> Lower S
+        ['t', ..] -> Lower T
+        ['u', ..] -> Lower U
+        ['v', ..] -> Lower V
+        ['w', ..] -> Lower W
+        ['x', ..] -> Lower X
+        ['y', ..] -> Lower Y
+        ['z', ..] -> Lower Z
+        ['{', ..] -> Symbol CurlyOpenBrace
+        ['|', ..] -> Symbol VerticalBar
+        ['}', ..] -> Symbol CurlyCloseBrace
+        ['~', ..] -> Symbol Tilde
+        [127, ..] -> Action Delete
         _ -> Unsupported bytes
 
-expect parseRawStdin [27, 91, 65] == KeyPress Up
-expect parseRawStdin [27] == KeyPress Escape
-
-letterToStr : [Upper Letter, Lower Letter] -> Str
-letterToStr = \case ->
-    when case is
-        Upper letter ->
-            when letter is
-                A -> "A"
-                B -> "B"
-                C -> "C"
-                D -> "D"
-                E -> "E"
-                F -> "F"
-                G -> "G"
-                H -> "H"
-                I -> "I"
-                J -> "J"
-                K -> "K"
-                L -> "L"
-                M -> "M"
-                N -> "N"
-                O -> "O"
-                P -> "P"
-                Q -> "Q"
-                R -> "R"
-                S -> "S"
-                T -> "T"
-                U -> "U"
-                V -> "V"
-                W -> "W"
-                X -> "X"
-                Y -> "Y"
-                Z -> "Z"
-
-        Lower letter ->
-            when letter is
-                A -> "a"
-                B -> "b"
-                C -> "c"
-                D -> "d"
-                E -> "e"
-                F -> "f"
-                G -> "g"
-                H -> "h"
-                I -> "i"
-                J -> "j"
-                K -> "k"
-                L -> "l"
-                M -> "m"
-                N -> "n"
-                O -> "o"
-                P -> "p"
-                Q -> "q"
-                R -> "r"
-                S -> "s"
-                T -> "t"
-                U -> "u"
-                V -> "v"
-                W -> "w"
-                X -> "x"
-                Y -> "y"
-                Z -> "z"
+expect parseRawStdin [27, 91, 65] == Arrow Up
+expect parseRawStdin [27] == Action Escape
 
 inputToStr : Input -> Str
 inputToStr = \input ->
     when input is
-        KeyPress key -> "Key $(keyToStr key)"
-        Ctrl key -> "Ctrl-" |> Str.concat (letterToStr (Upper key))
+        Ctrl key -> "Ctrl - " |> Str.concat (ctrlToStr key)
+        Action key -> "Action " |> Str.concat (actionToStr key)
+        Arrow key -> "Arrow " |> Str.concat (arrowToStr key)
+        Symbol key -> "Symbol " |> Str.concat (symbolToStr key)
+        Number key -> "Number " |> Str.concat (numberToStr key)
+        Upper key -> "Letter " |> Str.concat (upperToStr key)
+        Lower key -> "Letter " |> Str.concat (lowerToStr key)
         Unsupported bytes ->
             bytesStr = bytes |> List.map Num.toStr |> Str.joinWith ","
             "Unsupported [$(bytesStr)]"
 
-keyToStr : Key -> Str
-keyToStr = \key ->
-    when key is
+ctrlToStr : Ctrl -> Str
+ctrlToStr = \ctrl ->
+    when ctrl is
+        A -> "A"
+        B -> "B"
+        C -> "C"
+        D -> "D"
+        E -> "E"
+        F -> "F"
+        G -> "G"
+        H -> "H"
+        I -> "I"
+        J -> "J"
+        K -> "K"
+        L -> "L"
+        # M -> "M"
+        N -> "N"
+        O -> "O"
+        P -> "P"
+        Q -> "Q"
+        R -> "R"
+        S -> "S"
+        T -> "T"
+        U -> "U"
+        V -> "V"
+        W -> "W"
+        X -> "X"
+        Y -> "Y"
+        Z -> "Z"
+        Space -> "[Space]"
+        # OpenSquareBracket -> "["
+        BackSlash -> "\\"
+        SquareCloseBracket -> "]"
+        Caret -> "^"
+        Underscore -> "_"
+
+actionToStr : Action -> Str
+actionToStr = \action ->
+    when action is
+        Escape -> "Escape"
+        Enter -> "Enter"
+        Space -> "Space"
+        Delete -> "Delete"
+
+arrowToStr : Arrow -> Str
+arrowToStr = \arrow ->
+    when arrow is
         Up -> "Up"
         Down -> "Down"
         Left -> "Left"
         Right -> "Right"
-        Escape -> "Escape"
-        Enter -> "Enter"
-        Space -> "Space"
-        UpperA -> "A"
-        LowerA -> "a"
-        UpperB -> "B"
-        LowerB -> "b"
-        UpperC -> "C"
-        LowerC -> "c"
-        UpperD -> "D"
-        LowerD -> "d"
-        UpperE -> "E"
-        LowerE -> "e"
-        UpperF -> "F"
-        LowerF -> "f"
-        UpperG -> "G"
-        LowerG -> "g"
-        UpperH -> "H"
-        LowerH -> "h"
-        UpperI -> "I"
-        LowerI -> "i"
-        UpperJ -> "J"
-        LowerJ -> "j"
-        UpperK -> "K"
-        LowerK -> "k"
-        UpperL -> "L"
-        LowerL -> "l"
-        UpperM -> "M"
-        LowerM -> "m"
-        UpperN -> "N"
-        LowerN -> "n"
-        UpperO -> "O"
-        LowerO -> "o"
-        UpperP -> "P"
-        LowerP -> "p"
-        UpperQ -> "Q"
-        LowerQ -> "q"
-        UpperR -> "R"
-        LowerR -> "r"
-        UpperS -> "S"
-        LowerS -> "s"
-        UpperT -> "T"
-        LowerT -> "t"
-        UpperU -> "U"
-        LowerU -> "u"
-        UpperV -> "V"
-        LowerV -> "v"
-        UpperW -> "W"
-        LowerW -> "w"
-        UpperX -> "X"
-        LowerX -> "x"
-        UpperY -> "Y"
-        LowerY -> "y"
-        UpperZ -> "Z"
-        LowerZ -> "z"
+
+symbolToStr : Symbol -> Str
+symbolToStr = \symbol ->
+    when symbol is
         ExclamationMark -> "!"
         QuotationMark -> "\""
         NumberSign -> "#"
@@ -451,17 +355,80 @@ keyToStr = \key ->
         VerticalBar -> "|"
         CurlyCloseBrace -> "}"
         Tilde -> "~"
-        Number0 -> "0"
-        Number1 -> "1"
-        Number2 -> "2"
-        Number3 -> "3"
-        Number4 -> "4"
-        Number5 -> "5"
-        Number6 -> "6"
-        Number7 -> "7"
-        Number8 -> "8"
-        Number9 -> "9"
-        Delete -> "Delete"
+
+numberToStr : Number -> Str
+numberToStr = \number ->
+    when number is
+        N0 -> "0"
+        N1 -> "1"
+        N2 -> "2"
+        N3 -> "3"
+        N4 -> "4"
+        N5 -> "5"
+        N6 -> "6"
+        N7 -> "7"
+        N8 -> "8"
+        N9 -> "9"
+
+upperToStr : Letter -> Str
+upperToStr = \letter ->
+    when letter is
+        A -> "A"
+        B -> "B"
+        C -> "C"
+        D -> "D"
+        E -> "E"
+        F -> "F"
+        G -> "G"
+        H -> "H"
+        I -> "I"
+        J -> "J"
+        K -> "K"
+        L -> "L"
+        M -> "M"
+        N -> "N"
+        O -> "O"
+        P -> "P"
+        Q -> "Q"
+        R -> "R"
+        S -> "S"
+        T -> "T"
+        U -> "U"
+        V -> "V"
+        W -> "W"
+        X -> "X"
+        Y -> "Y"
+        Z -> "Z"
+
+lowerToStr : Letter -> Str
+lowerToStr = \letter ->
+    when letter is
+        A -> "a"
+        B -> "b"
+        C -> "c"
+        D -> "d"
+        E -> "e"
+        F -> "f"
+        G -> "g"
+        H -> "h"
+        I -> "i"
+        J -> "j"
+        K -> "k"
+        L -> "l"
+        M -> "m"
+        N -> "n"
+        O -> "o"
+        P -> "p"
+        Q -> "q"
+        R -> "r"
+        S -> "s"
+        T -> "t"
+        U -> "u"
+        V -> "v"
+        W -> "w"
+        X -> "x"
+        Y -> "y"
+        Z -> "z"
 
 ScreenSize : { width : I32, height : I32 }
 Position : { row : I32, col : I32 }
