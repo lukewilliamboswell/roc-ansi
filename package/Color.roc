@@ -4,8 +4,8 @@ import C16 exposing [C16]
 import C256 exposing [C256]
 import Rgb exposing [Rgb]
 
-# 4-bit, 8-bit and 24-bit colors supported on *most* modern terminal emulators
-
+## [Color](https://en.wikipedia.org/wiki/ANSI_escape_code#Colors)
+## it includes the 4-bit, 8-bit and 24-bit colors supported on *most* modern terminal emulators.
 Color : [
     Default,
     C16 C16,

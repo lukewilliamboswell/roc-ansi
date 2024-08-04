@@ -2,8 +2,9 @@ module [Control, toCode]
 
 import Style exposing [Style]
 
-# Control (commonly known as Control Sequence Introducer or CSI) represents the control sequences for terminal commands.
-# The provided commands are common and well-supported, though not exhaustive.
+## [Control](https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_(Control_Sequence_Introducer)_sequences) (commonly known as Control Sequence Introducer or CSI)
+## represents the control sequences for terminal commands.
+## The provided commands are common and well-supported, though not exhaustive.
 
 Control : [
     Screen [Size],
@@ -11,7 +12,7 @@ Control : [
         [
             Position [Get, Save, Restore],
             Display [On, Off],
-            ## Move relatively by a specified number of rows up or down, or columns right or left.
+            ## Move relatively by a specified number of rows up or down, or columns left or right.
             Rel [Up, Down, Left, Right] U16,
             ## Move relatively by a specified number of rows next or previous (and to the first column of the corresponding row).
             Row [Next, Prev] U16,

@@ -28,8 +28,7 @@ import Color exposing [Color]
 import Style exposing [Style]
 import Control exposing [Control]
 
-## [ANSI Escape Codes](https://en.wikipedia.org/wiki/ANSI_escape_code)
-
+## [Ansi Escape Codes](https://en.wikipedia.org/wiki/ANSI_escape_code)
 Escape : [
     Reset,
     Control Control,

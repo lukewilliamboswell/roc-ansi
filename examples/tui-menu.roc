@@ -82,8 +82,7 @@ runUILoop = \prevModel ->
 
     # Draw the screen
     drawFns = render model
-    Core.drawScreen model drawFns
-        |> Stdout.write!
+    Core.drawScreen model drawFns |> Stdout.write!
 
     # Get user input
     input = Stdin.bytes |> Task.map! Core.parseRawStdin

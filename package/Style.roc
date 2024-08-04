@@ -2,10 +2,10 @@ module [Style, toCode]
 
 import Color exposing [Color]
 
-# Style (commonly known as Select Graphic Rendition or SGR) represents the control sequence for terminal display attributes.
-# It controls various attributes, which remain in effect until explicitly reset by a subsequent style sequence.
-# The provided attributes are common and well-supported, though not exhaustive.
-
+## [Style](https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters) (commonly known as Select Graphic Rendition or SGR)
+## represents the control sequence for terminal display attributes.
+## It controls various attributes, which remain in effect until explicitly reset by a subsequent style sequence.
+## The provided attributes are common and well-supported, though not exhaustive.
 Style : [
     Default,
     Bold [On, Off],

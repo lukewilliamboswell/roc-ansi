@@ -2,7 +2,10 @@ module [C256, toRgb]
 
 import Rgb exposing [Rgb]
 
-# https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit
+## [Ansi 16 colors](https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit)
+## System range (0-15)
+## Chromatic range 6x6x6 cube (16-231)
+## Grayscale range (232-255)
 C256 : U8
 
 toCode : C256 -> U8
@@ -32,9 +35,6 @@ systemRange = [
 chromaticRange = List.concat [0] (List.range { start: At 95, end: Length 5, step: 40 })
 grayscaleRange = List.range { start: At 8, end: Length 24, step: 10 }
 
-# System range (0-15)
-# Chromatic range 6x6x6 cube (16-231)
-# Grayscale range (232-255)
 # https://www.hackitu.de/termcolor256/
 toRgb : C256 -> Rgb
 toRgb = \color ->
