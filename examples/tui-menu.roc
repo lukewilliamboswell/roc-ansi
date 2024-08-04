@@ -161,12 +161,13 @@ homeScreen = \model ->
             Core.drawText " ENTER TO RUN, ESCAPE TO QUIT" { r: 2, c: 1, fg: Standard White },
             Core.drawBox { r: 0, c: 0, w: model.screen.width, h: model.screen.height },
         ],
-        # FIXME
-        # { selected, s, row } <- model |> mapSelected |> List.map
-        #     if selected then
-        #         Core.drawText " > $(s)" { r: row, c: 2, fg: Standard Green }
-        #     else
-        #         Core.drawText " - $(s)" { r: row, c: 2, fg: Standard Black },
+        model
+        |> mapSelected
+        |> List.map \{ selected, s, row } ->
+            if selected then
+                Core.drawText " > $(s)" { r: row, c: 2, fg: Standard Green }
+            else
+                Core.drawText " - $(s)" { r: row, c: 2, fg: Standard Black },
     ]
     |> List.join
 
