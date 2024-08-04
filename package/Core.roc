@@ -9,7 +9,7 @@ module [
     DrawFn,
     Pixel,
     ScreenSize,
-    Position,
+    CursorPosition,
     Input,
     parseCursor,
     updateCursor,
@@ -430,12 +430,12 @@ lowerToStr = \letter ->
         Y -> "y"
         Z -> "z"
 
-ScreenSize : { width : I32, height : I32 }
-Position : { row : I32, col : I32 }
-DrawFn : Position, Position -> Result Pixel {}
+ScreenSize : { width : U16, height : U16 }
+CursorPosition : { row : U16, col : U16 }
+DrawFn : CursorPosition, CursorPosition -> Result Pixel {}
 Pixel : { char : Str, fg : Color, bg : Color, styles : List Style }
 
-parseCursor : List U8 -> Position
+parseCursor : List U8 -> CursorPosition
 parseCursor = \bytes ->
     { val: row, rest: afterFirst } = takeNumber { val: 0, rest: List.dropFirst bytes 2 }
     { val: col } = takeNumber { val: 0, rest: List.dropFirst afterFirst 1 }
@@ -443,9 +443,9 @@ parseCursor = \bytes ->
     { row, col }
 
 # test "ESC[33;1R"
-expect parseCursor [27, 91, 51, 51, 59, 49, 82] == { col: 1, row: 33 }
+expect parseCursor [27, 91, 51, 51, 59, 49, 82] == { row: 33, col: 1 }
 
-takeNumber : { val : I32, rest : List U8 } -> { val : I32, rest : List U8 }
+takeNumber : { val : U16, rest : List U8 } -> { val : U16, rest : List U8 }
 takeNumber = \in ->
     when in.rest is
         [a, ..] if a == '0' -> takeNumber { val: in.val * 10 + 0, rest: List.dropFirst in.rest 1 }
@@ -464,7 +464,7 @@ expect takeNumber { val: 0, rest: [27, 91, 51, 51, 59, 49, 82] } == { val: 0, re
 expect takeNumber { val: 0, rest: [51, 51, 59, 49, 82] } == { val: 33, rest: [59, 49, 82] }
 expect takeNumber { val: 0, rest: [49, 82] } == { val: 1, rest: [82] }
 
-updateCursor : { cursor : Position, screen : ScreenSize }a, [Up, Down, Left, Right] -> { cursor : Position, screen : ScreenSize }a
+updateCursor : { cursor : CursorPosition, screen : ScreenSize }a, [Up, Down, Left, Right] -> { cursor : CursorPosition, screen : ScreenSize }a
 updateCursor = \state, direction ->
     when direction is
         Up ->
@@ -500,7 +500,7 @@ updateCursor = \state, direction ->
             }
 
 ## Loop through each pixel in screen and build up a single string to write to stdout
-drawScreen : { cursor : Position, screen : ScreenSize }*, List DrawFn -> Str
+drawScreen : { cursor : CursorPosition, screen : ScreenSize }*, List DrawFn -> Str
 drawScreen = \{ cursor, screen }, drawFns ->
     pixels =
         row <- List.range { start: At 0, end: Before screen.height } |> List.map
@@ -563,7 +563,7 @@ joinPixels = \{ rowStrs, prev }, curr ->
 
     { rowStrs: List.append rowStrs pixelStr, prev: curr }
 
-drawBox : { r : I32, c : I32, w : I32, h : I32, fg ? Color, bg ? Color, char ? Str, styles ? List Style } -> DrawFn
+drawBox : { r : U16, c : U16, w : U16, h : U16, fg ? Color, bg ? Color, char ? Str, styles ? List Style } -> DrawFn
 drawBox = \{ r, c, w, h, fg ? Default, bg ? Default, char ? "#", styles ? [] } -> \_, { row, col } ->
 
         startRow = r
@@ -582,14 +582,14 @@ drawBox = \{ r, c, w, h, fg ? Default, bg ? Default, char ? "#", styles ? [] } -
         else
             Err {}
 
-drawVLine : { r : I32, c : I32, len : I32, fg ? Color, bg ? Color, char ? Str, styles ? List Style } -> DrawFn
+drawVLine : { r : U16, c : U16, len : U16, fg ? Color, bg ? Color, char ? Str, styles ? List Style } -> DrawFn
 drawVLine = \{ r, c, len, fg ? Default, bg ? Default, char ? "|", styles ? [] } -> \_, { row, col } ->
         if col == c && (row >= r && row < (r + len)) then
             Ok { char, fg, bg, styles }
         else
             Err {}
 
-drawHLine : { r : I32, c : I32, len : I32, fg ? Color, bg ? Color, char ? Str, styles ? List Style } -> DrawFn
+drawHLine : { r : U16, c : U16, len : U16, fg ? Color, bg ? Color, char ? Str, styles ? List Style } -> DrawFn
 drawHLine = \{ r, c, len, fg ? Default, bg ? Default, char ? "-", styles ? [] } -> \_, { row, col } ->
         if row == r && (col >= c && col < (c + len)) then
             Ok { char, fg, bg, styles }
@@ -603,10 +603,10 @@ drawCursor = \{ fg ? Default, bg ? Default, char ? " ", styles ? [] } -> \cursor
         else
             Err {}
 
-drawText : Str, { r : I32, c : I32, fg ? Color, bg ? Color, styles ? List Style } -> DrawFn
+drawText : Str, { r : U16, c : U16, fg ? Color, bg ? Color, styles ? List Style } -> DrawFn
 drawText = \text, { r, c, fg ? Default, bg ? Default, styles ? [] } -> \_, pixel ->
         bytes = Str.toUtf8 text
-        len = text |> Str.toUtf8 |> List.len |> Num.toI32
+        len = text |> Str.toUtf8 |> List.len |> Num.toU16
         if pixel.row == r && pixel.col >= c && pixel.col < (c + len) then
             bytes
             |> List.get (Num.intCast (pixel.col - c))
