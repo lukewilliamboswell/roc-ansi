@@ -5,7 +5,6 @@ import Style exposing [Style]
 ## [Control](https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_(Control_Sequence_Introducer)_sequences) (commonly known as Control Sequence Introducer or CSI)
 ## represents the control sequences for terminal commands.
 ## The provided commands are common and well-supported, though not exhaustive.
-
 Control : [
     Screen [Size],
     Cursor
