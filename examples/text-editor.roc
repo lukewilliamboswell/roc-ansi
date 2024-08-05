@@ -189,10 +189,10 @@ getFileContentsTask = \{ fileExists, path } ->
 # Get the file path from the first argument
 readArgFilePath : Task.Task Path.Path _
 readArgFilePath =
-    args <- Arg.list {} |> Task.attempt
+    args = Arg.list! {}
     when args is
-        Ok [_, pathStr, ..] -> Task.ok (Path.fromStr pathStr)
-        Ok _ -> Task.err (FailedToReadArgs "expected file argument e.g. 'roc run tui-editor.roc -- file.txt'")
+        [_, pathStr, ..] -> Task.ok (Path.fromStr pathStr)
+        _ -> Task.err (FailedToReadArgs "expected file argument e.g. 'roc run tui-editor.roc -- file.txt'")
 
 # UI Loop command->update->render
 runUILoop : Model -> Task.Task [Step Model, Done Model] []_
