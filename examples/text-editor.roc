@@ -1,28 +1,26 @@
 app [main] {
-    cli: platform "https://github.com/roc-lang/basic-cli/releases/download/0.10.0/vNe6s9hWzoTZtFmNkvEICPErI9ptji_ySjicO6CkucY.tar.br",
+    cli: platform "https://github.com/roc-lang/basic-cli/releases/download/0.13.0/nW9yMRtZuCYf1Oa9vbE5XoirMwzLbtoSgv7NGhUlqYA.tar.br",
     ansi: "../package/main.roc",
 
     # TODO use unicode when https://github.com/roc-lang/roc/issues/5477 resolved
-    # unicode: "../../unicode/package/main.roc",
+    # unicode: "https://github.com/roc-lang/unicode/releases/download/0.1.1/-FQDoegpSfMS-a7B0noOnZQs3-A2aq9RSOR5VVLMePg.tar.br",
 }
-     
+
 # Platform basic-cli provides the effects for working with files
 import cli.Stdout
 import cli.Stdin
 import cli.Tty
-import cli.File
 import cli.Arg
 import cli.Path
-import cli.Task
-        
+import cli.Task exposing [Task]
 # Package with helpers for working with the terminal
 import ansi.Core
 import ansi.PieceTable
 
-# Helpers for working with unicode 
+# Helpers for working with unicode
 # TODO use unicode when https://github.com/roc-lang/roc/issues/5477 resolved
-# import unicode.CodePoint,
-# import unicode.Grapheme.{split},
+# import unicode.CodePoint
+# import unicode.Grapheme exposing [split]
 
 # TODO replace with unicode package when https://github.com/roc-lang/roc/issues/5477 resolved
 # This is a temporary helper to split a file that only contains ASCII text.
@@ -46,10 +44,10 @@ Model : {
     screen : Core.ScreenSize,
 
     # Keep track of the cursor position
-    cursor : Core.Position,
+    cursor : Core.CursorPosition,
 
     # Offset the viewPort from the start of file
-    lineOffset : U32,
+    lineOffset : U16,
 
     # Keep track of file saves
     saveState : [NoChanges, NotSaved, Saved],
@@ -115,10 +113,10 @@ render = \state, lines ->
 drawViewPort :
     {
         lines : List (List Grapheme),
-        lineOffset : U32,
-        width : I32,
-        height : I32,
-        position : Core.Position,
+        lineOffset : U16,
+        width : U16,
+        height : U16,
+        position : Core.CursorPosition,
     }
     -> Core.DrawFn
 drawViewPort = \{ lines, lineOffset, width, height, position } -> \_, { row, col } ->
@@ -143,7 +141,6 @@ drawViewPort = \{ lines, lineOffset, width, height, position } -> \_, { row, col
                     else
                         char : Grapheme
                         char = List.get line charIndex |> Result.withDefault " "
-
                         Ok { char, fg: Default, bg: Default, styles: [] }
 
 main =
@@ -171,7 +168,7 @@ main =
     # Restore terminal
     {} <- Stdout.write (Core.toStr Reset) |> Task.await
     {} <- Tty.disableRawMode |> Task.await
-    {} <- Stdout.write (Core.toStr (Control (MoveCursor (To { row: 0, col: 0 })))) |> Task.await
+    {} <- Stdout.write (Core.toStr (Control (Cursor (Abs { row: 0, col: 0 })))) |> Task.await
 
     Stdout.line "Finished editing $(Path.display model.filePath)"
 
@@ -179,7 +176,7 @@ main =
 getFileContentsTask : { fileExists : Bool, path : Path.Path } -> Task.Task (List Grapheme) _
 getFileContentsTask = \{ fileExists, path } ->
     if fileExists then
-        File.readUtf8 path
+        Path.readUtf8 path
         |> Task.mapErr UnableToOpenFile
         |> Task.await \fileContents ->
             fileContents
@@ -192,14 +189,10 @@ getFileContentsTask = \{ fileExists, path } ->
 # Get the file path from the first argument
 readArgFilePath : Task.Task Path.Path _
 readArgFilePath =
-    args <- Arg.list |> Task.attempt
-
+    args = Arg.list! {}
     when args is
-        Ok [_, pathStr, ..] ->
-            Task.ok (Path.fromStr pathStr)
-
-        _ ->
-            Task.err (FailedToReadArgs "expected file argument e.g. 'roc run tui-editor.roc -- file.txt'")
+        [_, pathStr, ..] -> Task.ok (Path.fromStr pathStr)
+        _ -> Task.err (FailedToReadArgs "expected file argument e.g. 'roc run tui-editor.roc -- file.txt'")
 
 # UI Loop command->update->render
 runUILoop : Model -> Task.Task [Step Model, Done Model] []_
@@ -237,20 +230,21 @@ runUILoop = \prevModel ->
     # Parse input into a command
     command =
         when input is
-            KeyPress Up -> MoveCursor Up
-            KeyPress Down -> MoveCursor Down
-            KeyPress Left -> MoveCursor Left
-            KeyPress Right -> MoveCursor Right
-            KeyPress Escape -> Exit
-            KeyPress Delete -> DeleteUnderCursor
-            KeyPress Space -> InsertCharacter " "
-            KeyPress Enter -> InsertCharacter "\n"
-            KeyPress key -> InsertCharacter (Core.keyToStr key)
-            CtrlC -> Exit
-            CtrlS -> SaveChanges
-            CtrlY -> RedoChanges
-            CtrlZ -> UndoChanges
+            Arrow Up -> MoveCursor Up
+            Arrow Down -> MoveCursor Down
+            Arrow Left -> MoveCursor Left
+            Arrow Right -> MoveCursor Right
+            Action Escape -> Exit
+            Action Delete -> DeleteUnderCursor
+            Action Space -> InsertCharacter " "
+            Action Enter -> InsertCharacter "\n"
+            Symbol symbol -> InsertCharacter (Core.symbolToStr symbol)
+            Ctrl C -> Exit
+            Ctrl S -> SaveChanges
+            Ctrl Y -> RedoChanges
+            Ctrl Z -> UndoChanges
             Unsupported key -> crash (Inspect.toStr key)
+            _ -> Nothing
 
     # TODO change to `model` when shadowing is supported
     model2 =
@@ -325,7 +319,7 @@ runUILoop = \prevModel ->
                     |> List.join
 
                 # Write changes to file
-                {} <- File.writeBytes model.filePath fileBytes
+                {} <- Path.writeBytes model.filePath fileBytes
                     |> Task.mapErr UnableToSaveFile
                     |> Task.await
 
@@ -384,7 +378,7 @@ getTerminalSize =
 
     # Move the cursor to bottom right corner of terminal
     {} <-
-        [MoveCursor (To { row: 999, col: 999 }), GetCursor]
+        [Cursor (Abs { row: 999, col: 999 }), Cursor (Position (Get))]
         |> List.map Control
         |> List.map Core.toStr
         |> Str.joinWith ""
@@ -411,7 +405,7 @@ expect splitIntoLines ["f", "o", "o", "\r\n", "b", "a", "r"] [] [] == [["f", "o"
 
 # We need to know the index of the cursor relative to the text content, the
 # content has been broken into lines as CLRF and LF which we need to account for.
-calculateCursorIndex : List (List Grapheme), U32, { row : I32, col : I32 }, U64 -> U64
+calculateCursorIndex : List (List Grapheme), U16, { row : U16, col : U16 }, U64 -> U64
 calculateCursorIndex = \lines, lineOffset, cursor, acc ->
     if lineOffset > 0 then
         # add the length of each line that isn't displayed (before viewport)
@@ -422,5 +416,4 @@ calculateCursorIndex = \lines, lineOffset, cursor, acc ->
         when lines is
             [] -> acc
             [first, .. as rest] if cursor.row > 0 -> calculateCursorIndex rest 0 { cursor & row: cursor.row - 1 } (acc + List.len first + 1)
-            [first, .. as rest] ->
-                acc + (Num.min (List.len first) (Num.intCast cursor.col))
+            [first, ..] -> acc + (Num.min (List.len first) (Num.intCast cursor.col))

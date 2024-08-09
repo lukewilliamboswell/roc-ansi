@@ -1,24 +1,15 @@
 module [
     # ANSI
     Escape,
-    Control,
     toStr,
-
-    # Style
-    Style,
-    withStyle,
-
-    # Color
-    Color,
-    withFg,
-    withBg,
-    withColor,
+    style,
+    color,
 
     # TUI
     DrawFn,
     Pixel,
     ScreenSize,
-    Position,
+    CursorPosition,
     Input,
     parseCursor,
     updateCursor,
@@ -30,295 +21,45 @@ module [
     drawHLine,
     drawBox,
     drawCursor,
-    keyToStr,
+    symbolToStr,
 ]
 
-## [ANSI Escape Codes](https://en.wikipedia.org/wiki/ANSI_escape_code)
+import Color exposing [Color]
+import Style exposing [Style]
+import Control exposing [Control]
 
+## [Ansi Escape Codes](https://en.wikipedia.org/wiki/ANSI_escape_code)
 Escape : [
     Reset,
     Control Control,
 ]
 
-Control : [
-    MoveCursor
-        [
-            Step [Up, Down, Left, Right] I32,
-            Line [Next, Prev] I32,
-            To { row : I32, col : I32 },
-            Home,
-        ],
-    Erase [Display [ToEnd, ToStart, All], Line [ToEnd, ToStart, All]],
-    ClearScreen,
-    GetCursor,
-    Scroll [Up, Down] I32,
-    Style Style,
-]
+toStr : Escape -> Str
+toStr = \escape -> "\u(001b)"
+    |> Str.concat
+        (
+            when escape is
+                Reset -> "c"
+                Control control -> "[" |> Str.concat (Control.toCode control)
+        )
 
-Style : [
-    Default,
-    Bold [On, Off],
-    Faint [On, Off],
-    Italic [On, Off],
-    Underline [On, Off],
-    Overline [On, Off], # TODO: Investigate which terminals support this
-    Strikethrough [On, Off],
-    Blink [Slow, Rapid, Off], # TODO: Investigate which terminals support rapid blink
-    Invert [On, Off],
-    Foreground Color,
-    Background Color,
-]
-
-## 4-bit, 8-bit and 24-bit colors supported on *most* modern terminal emulators
-Color : [
-    Default,
-    Standard [Black, Red, Green, Yellow, Blue, Magenta, Cyan, White],
-    # For terminals which support axiterm specification
-    Bright [Black, Red, Green, Yellow, Blue, Magenta, Cyan, White],
-    B8 U8,
-    B24 (U8, U8, U8),
-]
-
-toStr = \x -> "\u(001b)$(fromEscape x)"
-
-fromEscape : Escape -> Str
-fromEscape = \escape ->
-    when escape is
-        Reset -> "c"
-        Control control -> "[$(fromControl control)"
-
-fromControl : Control -> Str
-fromControl = \control ->
-    when control is
-        GetCursor -> "6n"
-        MoveCursor x ->
-            when x is
-                Step direction steps ->
-                    when direction is
-                        Up -> "$(Num.toStr steps)A"
-                        Down -> "$(Num.toStr steps)B"
-                        Right -> "$(Num.toStr steps)C"
-                        Left -> "$(Num.toStr steps)D"
-
-                Line direction lines ->
-                    when direction is
-                        Next -> "$(Num.toStr lines)E"
-                        Prev -> "$(Num.toStr lines)F"
-
-                To { row, col } -> "$(Num.toStr row);$(Num.toStr col)H"
-                Home -> "H"
-
-        Erase x ->
-            when x is
-                Display d ->
-                    when d is
-                        ToEnd -> "0J"
-                        ToStart -> "1J"
-                        All -> "2J"
-
-                Line l ->
-                    when l is
-                        ToEnd -> "0K"
-                        ToStart -> "1K"
-                        All -> "2K"
-
-        ClearScreen -> "3J"
-        Scroll direction lines ->
-            when direction is
-                Up -> "$(Num.toStr lines)S"
-                Down -> "$(Num.toStr lines)T"
-
-        Style style -> "$(style |> fromStyle |> List.map Num.toStr |> Str.joinWith ";")m"
-
-fromStyle : Style -> List U8
-fromStyle = \style ->
-    when style is
-        Default -> [0]
-        Bold b ->
-            when b is
-                On -> [1]
-                Off -> [22]
-
-        Faint f ->
-            when f is
-                On -> [2]
-                Off -> [22]
-
-        Italic i ->
-            when i is
-                On -> [3]
-                Off -> [23]
-
-        Underline u ->
-            when u is
-                On -> [4]
-                Off -> [24]
-
-        Overline u ->
-            when u is
-                On -> [53]
-                Off -> [55]
-
-        Strikethrough s ->
-            when s is
-                On -> [9]
-                Off -> [29]
-
-        Blink b ->
-            when b is
-                Slow -> [5]
-                Rapid -> [6]
-                Off -> [25]
-
-        Invert i ->
-            when i is
-                On -> [7]
-                Off -> [27]
-
-        Foreground fg -> fromFgColor fg
-        Background bg -> fromBgColor bg
-
-fromFgColor : Color -> List U8
-fromFgColor = \fg ->
-    when fg is
-        Default -> [39]
-        Standard standard ->
-            when standard is
-                Black -> [30]
-                Red -> [31]
-                Green -> [32]
-                Yellow -> [33]
-                Blue -> [34]
-                Magenta -> [35]
-                Cyan -> [36]
-                White -> [37]
-
-        Bright bright ->
-            when bright is
-                Black -> [90]
-                Red -> [91]
-                Green -> [92]
-                Yellow -> [93]
-                Blue -> [94]
-                Magenta -> [95]
-                Cyan -> [96]
-                White -> [97]
-
-        B8 b8 -> [38, 5, b8]
-        B24 (r, g, b) -> [38, 2, r, g, b]
-
-fromBgColor = \bg ->
-    when bg is
-        Default -> [49]
-        Standard standard ->
-            when standard is
-                Black -> [40]
-                Red -> [41]
-                Green -> [42]
-                Yellow -> [43]
-                Blue -> [44]
-                Magenta -> [45]
-                Cyan -> [46]
-                White -> [47]
-
-        Bright bright ->
-            when bright is
-                Black -> [100]
-                Red -> [101]
-                Green -> [102]
-                Yellow -> [103]
-                Blue -> [104]
-                Magenta -> [105]
-                Cyan -> [106]
-                White -> [107]
-
-        B8 b8 -> [48, 5, b8]
-        B24 (r, g, b) -> [48, 2, r, g, b]
-
-## Adds style to a Str
-withStyle : Str, List Style -> Str
-withStyle = \str, styles ->
+## Add styles to a string
+style : Str, List Style -> Str
+style = \str, styles ->
     styles
     |> List.map Style
     |> List.map Control
     |> List.map toStr
     |> List.append str
-    |> Str.joinWith ("")
+    |> Str.joinWith ""
 
-resetStyle = toStr (Control (Style (Default)))
+resetStyle = "" |> style [Default]
 
-## Adds foreground color formatting to a Str and then resets to Default
-withFg : Str, Color -> Str
-withFg = \str, color -> "$(toStr (Control (Style (Foreground color))))$(str)$(resetStyle)"
+## Add color styles to a string and then resets to default
+color : Str, { fg ? Color, bg ? Color } -> Str
+color = \str, { fg ? Default, bg ? Default } -> str |> style [Foreground (fg), Background (bg)] |> Str.concat resetStyle
 
-## Adds background color formatting to a Str and then resets to Default
-withBg : Str, Color -> Str
-withBg = \str, color -> "$(toStr (Control (Style (Background color))))$(str)$(resetStyle)"
-
-## Adds color formatting to a Str and then resets to Default
-withColor : Str, { fg : Color, bg : Color } -> Str
-withColor = \str, colors -> "$(toStr (Control (Style (Foreground colors.fg))))$(toStr (Control (Style (Background colors.bg))))$(str)$(resetStyle)"
-
-Key : [
-    Up,
-    Down,
-    Left,
-    Right,
-    Escape,
-    Enter,
-    LowerA,
-    UpperA,
-    UpperB,
-    LowerB,
-    UpperC,
-    LowerC,
-    UpperD,
-    LowerD,
-    UpperE,
-    LowerE,
-    UpperF,
-    LowerF,
-    UpperG,
-    LowerG,
-    UpperH,
-    LowerH,
-    UpperI,
-    LowerI,
-    UpperJ,
-    LowerJ,
-    UpperK,
-    LowerK,
-    UpperL,
-    LowerL,
-    UpperM,
-    LowerM,
-    UpperN,
-    LowerN,
-    UpperO,
-    LowerO,
-    UpperP,
-    LowerP,
-    UpperQ,
-    LowerQ,
-    UpperR,
-    LowerR,
-    UpperS,
-    LowerS,
-    UpperT,
-    LowerT,
-    UpperU,
-    LowerU,
-    UpperV,
-    LowerV,
-    UpperW,
-    LowerW,
-    UpperX,
-    LowerX,
-    UpperY,
-    LowerY,
-    UpperZ,
-    LowerZ,
-    Space,
+Symbol : [
     ExclamationMark,
     QuotationMark,
     NumberSign,
@@ -351,223 +92,243 @@ Key : [
     VerticalBar,
     CurlyCloseBrace,
     Tilde,
-    Number0,
-    Number1,
-    Number2,
-    Number3,
-    Number4,
-    Number5,
-    Number6,
-    Number7,
-    Number8,
-    Number9,
-    Delete,
 ]
 
+Ctrl : [Space, A, B, C, D, E, F, G, H, I, J, K, L, N, O, P, Q, R, S, T, U, V, W, X, Y, Z, BackSlash, SquareCloseBracket, Caret, Underscore]
+Action : [Escape, Enter, Space, Delete]
+Arrow : [Up, Down, Left, Right]
+Number : [N0, N1, N2, N3, N4, N5, N6, N7, N8, N9]
+Letter : [A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z]
+
 Input : [
-    KeyPress Key,
-    CtrlC,
-    CtrlS,
-    CtrlZ,
-    CtrlY,
+    Ctrl Ctrl,
+    Action Action,
+    Arrow Arrow,
+    Symbol Symbol,
+    Number Number,
+    Upper Letter,
+    Lower Letter,
     Unsupported (List U8),
 ]
 
 parseRawStdin : List U8 -> Input
 parseRawStdin = \bytes ->
     when bytes is
-        [27, 91, 'A', ..] -> KeyPress Up
-        [27, 91, 'B', ..] -> KeyPress Down
-        [27, 91, 'C', ..] -> KeyPress Right
-        [27, 91, 'D', ..] -> KeyPress Left
-        [27, ..] -> KeyPress Escape
-        [13, ..] -> KeyPress Enter
-        [32, ..] -> KeyPress Space
-        ['A', ..] -> KeyPress UpperA
-        ['a', ..] -> KeyPress LowerA
-        ['B', ..] -> KeyPress UpperB
-        ['b', ..] -> KeyPress LowerB
-        ['C', ..] -> KeyPress UpperC
-        ['c', ..] -> KeyPress LowerC
-        ['D', ..] -> KeyPress UpperD
-        ['d', ..] -> KeyPress LowerD
-        ['E', ..] -> KeyPress UpperE
-        ['e', ..] -> KeyPress LowerE
-        ['F', ..] -> KeyPress UpperF
-        ['f', ..] -> KeyPress LowerF
-        ['G', ..] -> KeyPress UpperG
-        ['g', ..] -> KeyPress LowerG
-        ['H', ..] -> KeyPress UpperH
-        ['h', ..] -> KeyPress LowerH
-        ['I', ..] -> KeyPress UpperI
-        ['i', ..] -> KeyPress LowerI
-        ['J', ..] -> KeyPress UpperJ
-        ['j', ..] -> KeyPress LowerJ
-        ['K', ..] -> KeyPress UpperK
-        ['k', ..] -> KeyPress LowerK
-        ['L', ..] -> KeyPress UpperL
-        ['l', ..] -> KeyPress LowerL
-        ['M', ..] -> KeyPress UpperM
-        ['m', ..] -> KeyPress LowerM
-        ['N', ..] -> KeyPress UpperN
-        ['n', ..] -> KeyPress LowerN
-        ['O', ..] -> KeyPress UpperO
-        ['o', ..] -> KeyPress LowerO
-        ['P', ..] -> KeyPress UpperP
-        ['p', ..] -> KeyPress LowerP
-        ['Q', ..] -> KeyPress UpperQ
-        ['q', ..] -> KeyPress LowerQ
-        ['R', ..] -> KeyPress UpperR
-        ['r', ..] -> KeyPress LowerR
-        ['S', ..] -> KeyPress UpperS
-        ['s', ..] -> KeyPress LowerS
-        ['T', ..] -> KeyPress UpperT
-        ['t', ..] -> KeyPress LowerT
-        ['U', ..] -> KeyPress UpperU
-        ['u', ..] -> KeyPress LowerU
-        ['V', ..] -> KeyPress UpperV
-        ['v', ..] -> KeyPress LowerV
-        ['W', ..] -> KeyPress UpperW
-        ['w', ..] -> KeyPress LowerW
-        ['X', ..] -> KeyPress UpperX
-        ['x', ..] -> KeyPress LowerX
-        ['Y', ..] -> KeyPress UpperY
-        ['y', ..] -> KeyPress LowerY
-        ['Z', ..] -> KeyPress UpperZ
-        ['z', ..] -> KeyPress LowerZ
-        ['!', ..] -> KeyPress ExclamationMark
-        ['"', ..] -> KeyPress QuotationMark
-        ['#', ..] -> KeyPress NumberSign
-        ['$', ..] -> KeyPress DollarSign
-        ['%', ..] -> KeyPress PercentSign
-        ['&', ..] -> KeyPress Ampersand
-        ['\'', ..] -> KeyPress Apostrophe
-        ['(', ..] -> KeyPress RoundOpenBracket
-        [')', ..] -> KeyPress RoundCloseBracket
-        ['*', ..] -> KeyPress Asterisk
-        ['+', ..] -> KeyPress PlusSign
-        [',', ..] -> KeyPress Comma
-        ['-', ..] -> KeyPress Hyphen
-        ['.', ..] -> KeyPress FullStop
-        ['/', ..] -> KeyPress ForwardSlash
-        [':', ..] -> KeyPress Colon
-        [';', ..] -> KeyPress SemiColon
-        ['<', ..] -> KeyPress LessThanSign
-        ['=', ..] -> KeyPress EqualsSign
-        ['>', ..] -> KeyPress GreaterThanSign
-        ['?', ..] -> KeyPress QuestionMark
-        ['@', ..] -> KeyPress AtSign
-        ['[', ..] -> KeyPress SquareOpenBracket
-        ['\\', ..] -> KeyPress Backslash
-        [']', ..] -> KeyPress SquareCloseBracket
-        ['^', ..] -> KeyPress Caret
-        ['_', ..] -> KeyPress Underscore
-        ['`', ..] -> KeyPress GraveAccent
-        ['{', ..] -> KeyPress CurlyOpenBrace
-        ['|', ..] -> KeyPress VerticalBar
-        ['}', ..] -> KeyPress CurlyCloseBrace
-        ['~', ..] -> KeyPress Tilde
-        ['0', ..] -> KeyPress Number0
-        ['1', ..] -> KeyPress Number1
-        ['2', ..] -> KeyPress Number2
-        ['3', ..] -> KeyPress Number3
-        ['4', ..] -> KeyPress Number4
-        ['5', ..] -> KeyPress Number5
-        ['6', ..] -> KeyPress Number6
-        ['7', ..] -> KeyPress Number7
-        ['8', ..] -> KeyPress Number8
-        ['9', ..] -> KeyPress Number9
-        [3, ..] -> CtrlC
-        [19, ..] -> CtrlS
-        [26, ..] -> CtrlZ
-        [25, ..] -> CtrlY
-        [127, ..] -> KeyPress Delete
+        [0, ..] -> Ctrl Space
+        [1, ..] -> Ctrl A
+        [2, ..] -> Ctrl B
+        [3, ..] -> Ctrl C
+        [4, ..] -> Ctrl D
+        [5, ..] -> Ctrl E
+        [6, ..] -> Ctrl F
+        [7, ..] -> Ctrl G
+        [8, ..] -> Ctrl H
+        [9, ..] -> Ctrl I
+        [10, ..] -> Ctrl J
+        [11, ..] -> Ctrl K
+        [12, ..] -> Ctrl L
+        [13, ..] -> Action Enter
+        # [13, ..] -> Ctrl M # Same as Action Enter
+        [14, ..] -> Ctrl N
+        [15, ..] -> Ctrl O
+        [16, ..] -> Ctrl P
+        [17, ..] -> Ctrl Q
+        [18, ..] -> Ctrl R
+        [19, ..] -> Ctrl S
+        [20, ..] -> Ctrl T
+        [21, ..] -> Ctrl U
+        [22, ..] -> Ctrl V
+        [23, ..] -> Ctrl W
+        [24, ..] -> Ctrl X
+        [25, ..] -> Ctrl Y
+        [26, ..] -> Ctrl Z
+        [27, 91, 'A', ..] -> Arrow Up
+        [27, 91, 'B', ..] -> Arrow Down
+        [27, 91, 'C', ..] -> Arrow Right
+        [27, 91, 'D', ..] -> Arrow Left
+        [27, ..] -> Action Escape
+        # [27, ..] -> Ctrl SquareOpenBracket # Same as Action Escape
+        [28, ..] -> Ctrl BackSlash
+        [29, ..] -> Ctrl SquareCloseBracket
+        [30, ..] -> Ctrl Caret
+        [31, ..] -> Ctrl Underscore
+        [32, ..] -> Action Space
+        ['!', ..] -> Symbol ExclamationMark
+        ['"', ..] -> Symbol QuotationMark
+        ['#', ..] -> Symbol NumberSign
+        ['$', ..] -> Symbol DollarSign
+        ['%', ..] -> Symbol PercentSign
+        ['&', ..] -> Symbol Ampersand
+        ['\'', ..] -> Symbol Apostrophe
+        ['(', ..] -> Symbol RoundOpenBracket
+        [')', ..] -> Symbol RoundCloseBracket
+        ['*', ..] -> Symbol Asterisk
+        ['+', ..] -> Symbol PlusSign
+        [',', ..] -> Symbol Comma
+        ['-', ..] -> Symbol Hyphen
+        ['.', ..] -> Symbol FullStop
+        ['/', ..] -> Symbol ForwardSlash
+        ['0', ..] -> Number N0
+        ['1', ..] -> Number N1
+        ['2', ..] -> Number N2
+        ['3', ..] -> Number N3
+        ['4', ..] -> Number N4
+        ['5', ..] -> Number N5
+        ['6', ..] -> Number N6
+        ['7', ..] -> Number N7
+        ['8', ..] -> Number N8
+        ['9', ..] -> Number N9
+        [':', ..] -> Symbol Colon
+        [';', ..] -> Symbol SemiColon
+        ['<', ..] -> Symbol LessThanSign
+        ['=', ..] -> Symbol EqualsSign
+        ['>', ..] -> Symbol GreaterThanSign
+        ['?', ..] -> Symbol QuestionMark
+        ['@', ..] -> Symbol AtSign
+        ['A', ..] -> Upper A
+        ['B', ..] -> Upper B
+        ['C', ..] -> Upper C
+        ['D', ..] -> Upper D
+        ['E', ..] -> Upper E
+        ['F', ..] -> Upper F
+        ['G', ..] -> Upper G
+        ['H', ..] -> Upper H
+        ['I', ..] -> Upper I
+        ['J', ..] -> Upper J
+        ['K', ..] -> Upper K
+        ['L', ..] -> Upper L
+        ['M', ..] -> Upper M
+        ['N', ..] -> Upper N
+        ['O', ..] -> Upper O
+        ['P', ..] -> Upper P
+        ['Q', ..] -> Upper Q
+        ['R', ..] -> Upper R
+        ['S', ..] -> Upper S
+        ['T', ..] -> Upper T
+        ['U', ..] -> Upper U
+        ['V', ..] -> Upper V
+        ['W', ..] -> Upper W
+        ['X', ..] -> Upper X
+        ['Y', ..] -> Upper Y
+        ['Z', ..] -> Upper Z
+        ['[', ..] -> Symbol SquareOpenBracket
+        ['\\', ..] -> Symbol Backslash
+        [']', ..] -> Symbol SquareCloseBracket
+        ['^', ..] -> Symbol Caret
+        ['_', ..] -> Symbol Underscore
+        ['`', ..] -> Symbol GraveAccent
+        ['a', ..] -> Lower A
+        ['b', ..] -> Lower B
+        ['c', ..] -> Lower C
+        ['d', ..] -> Lower D
+        ['e', ..] -> Lower E
+        ['f', ..] -> Lower F
+        ['g', ..] -> Lower G
+        ['h', ..] -> Lower H
+        ['i', ..] -> Lower I
+        ['j', ..] -> Lower J
+        ['k', ..] -> Lower K
+        ['l', ..] -> Lower L
+        ['m', ..] -> Lower M
+        ['n', ..] -> Lower N
+        ['o', ..] -> Lower O
+        ['p', ..] -> Lower P
+        ['q', ..] -> Lower Q
+        ['r', ..] -> Lower R
+        ['s', ..] -> Lower S
+        ['t', ..] -> Lower T
+        ['u', ..] -> Lower U
+        ['v', ..] -> Lower V
+        ['w', ..] -> Lower W
+        ['x', ..] -> Lower X
+        ['y', ..] -> Lower Y
+        ['z', ..] -> Lower Z
+        ['{', ..] -> Symbol CurlyOpenBrace
+        ['|', ..] -> Symbol VerticalBar
+        ['}', ..] -> Symbol CurlyCloseBrace
+        ['~', ..] -> Symbol Tilde
+        [127, ..] -> Action Delete
         _ -> Unsupported bytes
 
-expect parseRawStdin [27, 91, 65] == KeyPress Up
-expect parseRawStdin [27] == KeyPress Escape
+expect parseRawStdin [27, 91, 65] == Arrow Up
+expect parseRawStdin [27] == Action Escape
 
 inputToStr : Input -> Str
 inputToStr = \input ->
     when input is
-        KeyPress key -> "Key $(keyToStr key)"
-        CtrlC -> "Ctrl-C"
-        CtrlS -> "Ctrl-S"
-        CtrlZ -> "Ctrl-Z"
-        CtrlY -> "Ctrl-Y"
+        Ctrl key -> "Ctrl - " |> Str.concat (ctrlToStr key)
+        Action key -> "Action " |> Str.concat (actionToStr key)
+        Arrow key -> "Arrow " |> Str.concat (arrowToStr key)
+        Symbol key -> "Symbol " |> Str.concat (symbolToStr key)
+        Number key -> "Number " |> Str.concat (numberToStr key)
+        Upper key -> "Letter " |> Str.concat (upperToStr key)
+        Lower key -> "Letter " |> Str.concat (lowerToStr key)
         Unsupported bytes ->
             bytesStr = bytes |> List.map Num.toStr |> Str.joinWith ","
             "Unsupported [$(bytesStr)]"
 
-keyToStr : Key -> Str
-keyToStr = \key ->
-    when key is
+ctrlToStr : Ctrl -> Str
+ctrlToStr = \ctrl ->
+    when ctrl is
+        A -> "A"
+        B -> "B"
+        C -> "C"
+        D -> "D"
+        E -> "E"
+        F -> "F"
+        G -> "G"
+        H -> "H"
+        I -> "I"
+        J -> "J"
+        K -> "K"
+        L -> "L"
+        # M -> "M"
+        N -> "N"
+        O -> "O"
+        P -> "P"
+        Q -> "Q"
+        R -> "R"
+        S -> "S"
+        T -> "T"
+        U -> "U"
+        V -> "V"
+        W -> "W"
+        X -> "X"
+        Y -> "Y"
+        Z -> "Z"
+        Space -> "[Space]"
+        # OpenSquareBracket -> "["
+        BackSlash -> "\\"
+        SquareCloseBracket -> "]"
+        Caret -> "^"
+        Underscore -> "_"
+
+actionToStr : Action -> Str
+actionToStr = \action ->
+    when action is
+        Escape -> "Escape"
+        Enter -> "Enter"
+        Space -> "Space"
+        Delete -> "Delete"
+
+arrowToStr : Arrow -> Str
+arrowToStr = \arrow ->
+    when arrow is
         Up -> "Up"
         Down -> "Down"
         Left -> "Left"
         Right -> "Right"
-        Escape -> "Escape"
-        Enter -> "Enter"
-        Space -> "Space"
-        UpperA -> "A"
-        LowerA -> "a"
-        UpperB -> "B"
-        LowerB -> "b"
-        UpperC -> "C"
-        LowerC -> "c"
-        UpperD -> "D"
-        LowerD -> "d"
-        UpperE -> "E"
-        LowerE -> "e"
-        UpperF -> "F"
-        LowerF -> "f"
-        UpperG -> "G"
-        LowerG -> "g"
-        UpperH -> "H"
-        LowerH -> "h"
-        UpperI -> "I"
-        LowerI -> "i"
-        UpperJ -> "J"
-        LowerJ -> "j"
-        UpperK -> "K"
-        LowerK -> "k"
-        UpperL -> "L"
-        LowerL -> "l"
-        UpperM -> "M"
-        LowerM -> "m"
-        UpperN -> "N"
-        LowerN -> "n"
-        UpperO -> "O"
-        LowerO -> "o"
-        UpperP -> "P"
-        LowerP -> "p"
-        UpperQ -> "Q"
-        LowerQ -> "q"
-        UpperR -> "R"
-        LowerR -> "r"
-        UpperS -> "S"
-        LowerS -> "s"
-        UpperT -> "T"
-        LowerT -> "t"
-        UpperU -> "U"
-        LowerU -> "u"
-        UpperV -> "V"
-        LowerV -> "v"
-        UpperW -> "W"
-        LowerW -> "w"
-        UpperX -> "X"
-        LowerX -> "x"
-        UpperY -> "Y"
-        LowerY -> "y"
-        UpperZ -> "Z"
-        LowerZ -> "z"
+
+symbolToStr : Symbol -> Str
+symbolToStr = \symbol ->
+    when symbol is
         ExclamationMark -> "!"
         QuotationMark -> "\""
         NumberSign -> "#"
         DollarSign -> "\$"
         PercentSign -> "%"
         Ampersand -> "&"
-        Apostrophe -> "\\"
+        Apostrophe -> "'"
         RoundOpenBracket -> "("
         RoundCloseBracket -> ")"
         Asterisk -> "*"
@@ -593,24 +354,87 @@ keyToStr = \key ->
         VerticalBar -> "|"
         CurlyCloseBrace -> "}"
         Tilde -> "~"
-        Number0 -> "0"
-        Number1 -> "1"
-        Number2 -> "2"
-        Number3 -> "3"
-        Number4 -> "4"
-        Number5 -> "5"
-        Number6 -> "6"
-        Number7 -> "7"
-        Number8 -> "8"
-        Number9 -> "9"
-        Delete -> "Delete"
 
-ScreenSize : { width : I32, height : I32 }
-Position : { row : I32, col : I32 }
-DrawFn : Position, Position -> Result Pixel {}
+numberToStr : Number -> Str
+numberToStr = \number ->
+    when number is
+        N0 -> "0"
+        N1 -> "1"
+        N2 -> "2"
+        N3 -> "3"
+        N4 -> "4"
+        N5 -> "5"
+        N6 -> "6"
+        N7 -> "7"
+        N8 -> "8"
+        N9 -> "9"
+
+upperToStr : Letter -> Str
+upperToStr = \letter ->
+    when letter is
+        A -> "A"
+        B -> "B"
+        C -> "C"
+        D -> "D"
+        E -> "E"
+        F -> "F"
+        G -> "G"
+        H -> "H"
+        I -> "I"
+        J -> "J"
+        K -> "K"
+        L -> "L"
+        M -> "M"
+        N -> "N"
+        O -> "O"
+        P -> "P"
+        Q -> "Q"
+        R -> "R"
+        S -> "S"
+        T -> "T"
+        U -> "U"
+        V -> "V"
+        W -> "W"
+        X -> "X"
+        Y -> "Y"
+        Z -> "Z"
+
+lowerToStr : Letter -> Str
+lowerToStr = \letter ->
+    when letter is
+        A -> "a"
+        B -> "b"
+        C -> "c"
+        D -> "d"
+        E -> "e"
+        F -> "f"
+        G -> "g"
+        H -> "h"
+        I -> "i"
+        J -> "j"
+        K -> "k"
+        L -> "l"
+        M -> "m"
+        N -> "n"
+        O -> "o"
+        P -> "p"
+        Q -> "q"
+        R -> "r"
+        S -> "s"
+        T -> "t"
+        U -> "u"
+        V -> "v"
+        W -> "w"
+        X -> "x"
+        Y -> "y"
+        Z -> "z"
+
+ScreenSize : { width : U16, height : U16 }
+CursorPosition : { row : U16, col : U16 }
+DrawFn : CursorPosition, CursorPosition -> Result Pixel {}
 Pixel : { char : Str, fg : Color, bg : Color, styles : List Style }
 
-parseCursor : List U8 -> Position
+parseCursor : List U8 -> CursorPosition
 parseCursor = \bytes ->
     { val: row, rest: afterFirst } = takeNumber { val: 0, rest: List.dropFirst bytes 2 }
     { val: col } = takeNumber { val: 0, rest: List.dropFirst afterFirst 1 }
@@ -618,9 +442,9 @@ parseCursor = \bytes ->
     { row, col }
 
 # test "ESC[33;1R"
-expect parseCursor [27, 91, 51, 51, 59, 49, 82] == { col: 1, row: 33 }
+expect parseCursor [27, 91, 51, 51, 59, 49, 82] == { row: 33, col: 1 }
 
-takeNumber : { val : I32, rest : List U8 } -> { val : I32, rest : List U8 }
+takeNumber : { val : U16, rest : List U8 } -> { val : U16, rest : List U8 }
 takeNumber = \in ->
     when in.rest is
         [a, ..] if a == '0' -> takeNumber { val: in.val * 10 + 0, rest: List.dropFirst in.rest 1 }
@@ -639,7 +463,7 @@ expect takeNumber { val: 0, rest: [27, 91, 51, 51, 59, 49, 82] } == { val: 0, re
 expect takeNumber { val: 0, rest: [51, 51, 59, 49, 82] } == { val: 33, rest: [59, 49, 82] }
 expect takeNumber { val: 0, rest: [49, 82] } == { val: 1, rest: [82] }
 
-updateCursor : { cursor : Position, screen : ScreenSize }a, [Up, Down, Left, Right] -> { cursor : Position, screen : ScreenSize }a
+updateCursor : { cursor : CursorPosition, screen : ScreenSize }a, [Up, Down, Left, Right] -> { cursor : CursorPosition, screen : ScreenSize }a
 updateCursor = \state, direction ->
     when direction is
         Up ->
@@ -675,7 +499,7 @@ updateCursor = \state, direction ->
             }
 
 ## Loop through each pixel in screen and build up a single string to write to stdout
-drawScreen : { cursor : Position, screen : ScreenSize }*, List DrawFn -> Str
+drawScreen : { cursor : CursorPosition, screen : ScreenSize }*, List DrawFn -> Str
 drawScreen = \{ cursor, screen }, drawFns ->
     pixels =
         row <- List.range { start: At 0, end: Before screen.height } |> List.map
@@ -724,7 +548,7 @@ joinPixelRow = \{ char, fg, bg, lines, styles }, pixelRow, row ->
     line =
         rowStrs
         |> Str.joinWith "" # Set cursor at the start of line we want to draw
-        |> Str.withPrefix (toStr (Control (MoveCursor (To { row: Num.toI32 (row + 1), col: 0 }))))
+        |> Str.withPrefix (toStr (Control (Cursor (Abs { row: Num.toU16 (row + 1), col: 0 }))))
 
     { char: " ", fg: prev.fg, bg: prev.bg, lines: List.append lines line, styles: prev.styles }
 
@@ -738,7 +562,7 @@ joinPixels = \{ rowStrs, prev }, curr ->
 
     { rowStrs: List.append rowStrs pixelStr, prev: curr }
 
-drawBox : { r : I32, c : I32, w : I32, h : I32, fg ? Color, bg ? Color, char ? Str, styles ? List Style } -> DrawFn
+drawBox : { r : U16, c : U16, w : U16, h : U16, fg ? Color, bg ? Color, char ? Str, styles ? List Style } -> DrawFn
 drawBox = \{ r, c, w, h, fg ? Default, bg ? Default, char ? "#", styles ? [] } -> \_, { row, col } ->
 
         startRow = r
@@ -757,14 +581,14 @@ drawBox = \{ r, c, w, h, fg ? Default, bg ? Default, char ? "#", styles ? [] } -
         else
             Err {}
 
-drawVLine : { r : I32, c : I32, len : I32, fg ? Color, bg ? Color, char ? Str, styles ? List Style } -> DrawFn
+drawVLine : { r : U16, c : U16, len : U16, fg ? Color, bg ? Color, char ? Str, styles ? List Style } -> DrawFn
 drawVLine = \{ r, c, len, fg ? Default, bg ? Default, char ? "|", styles ? [] } -> \_, { row, col } ->
         if col == c && (row >= r && row < (r + len)) then
             Ok { char, fg, bg, styles }
         else
             Err {}
 
-drawHLine : { r : I32, c : I32, len : I32, fg ? Color, bg ? Color, char ? Str, styles ? List Style } -> DrawFn
+drawHLine : { r : U16, c : U16, len : U16, fg ? Color, bg ? Color, char ? Str, styles ? List Style } -> DrawFn
 drawHLine = \{ r, c, len, fg ? Default, bg ? Default, char ? "-", styles ? [] } -> \_, { row, col } ->
         if row == r && (col >= c && col < (c + len)) then
             Ok { char, fg, bg, styles }
@@ -778,10 +602,10 @@ drawCursor = \{ fg ? Default, bg ? Default, char ? " ", styles ? [] } -> \cursor
         else
             Err {}
 
-drawText : Str, { r : I32, c : I32, fg ? Color, bg ? Color, styles ? List Style } -> DrawFn
+drawText : Str, { r : U16, c : U16, fg ? Color, bg ? Color, styles ? List Style } -> DrawFn
 drawText = \text, { r, c, fg ? Default, bg ? Default, styles ? [] } -> \_, pixel ->
         bytes = Str.toUtf8 text
-        len = text |> Str.toUtf8 |> List.len |> Num.toI32
+        len = text |> Str.toUtf8 |> List.len |> Num.toU16
         if pixel.row == r && pixel.col >= c && pixel.col < (c + len) then
             bytes
             |> List.get (Num.intCast (pixel.col - c))

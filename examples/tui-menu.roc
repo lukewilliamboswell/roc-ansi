@@ -1,18 +1,18 @@
 app [main] {
-    cli: platform "https://github.com/roc-lang/basic-cli/releases/download/0.10.0/vNe6s9hWzoTZtFmNkvEICPErI9ptji_ySjicO6CkucY.tar.br",
+    cli: platform "https://github.com/roc-lang/basic-cli/releases/download/0.12.0/Lb8EgiejTUzbggO2HVVuPJFkwvvsfW6LojkLR20kTVE.tar.br",
     ansi: "../package/main.roc",
 }
 
 import cli.Stdout
 import cli.Stdin
 import cli.Tty
-import cli.Task
-import ansi.Core
+import cli.Task exposing [Task]
 import cli.Utc
+import ansi.Core
 
 Model : {
     screen : Core.ScreenSize,
-    cursor : Core.Position,
+    cursor : Core.CursorPosition,
     prevDraw : Utc.Utc,
     currDraw : Utc.Utc,
     things : List Str,
@@ -34,20 +34,20 @@ init = {
 }
 
 render : Model -> List Core.DrawFn
-render = \state ->
+render = \model ->
     # PRESS 'd' to toggle debug screen
-    debug = if state.debug then debugScreen state else []
+    debug = if model.debug then debugScreen model else []
 
-    when state.state is
+    when model.state is
         ConfirmPage _ ->
             List.join [
-                confirmScreen state,
+                confirmScreen model,
                 debug,
             ]
 
         _ ->
             List.join [
-                homeScreen state,
+                homeScreen model,
                 debug,
             ]
 
@@ -82,8 +82,7 @@ runUILoop = \prevModel ->
 
     # Draw the screen
     drawFns = render model
-    Core.drawScreen model drawFns
-        |> Stdout.write!
+    Core.drawScreen model drawFns |> Stdout.write!
 
     # Get user input
     input = Stdin.bytes |> Task.map! Core.parseRawStdin
@@ -91,19 +90,18 @@ runUILoop = \prevModel ->
     # Parse user input into a command
     command =
         when (input, model.state) is
-            (KeyPress Up, _) -> MoveCursor Up
-            (KeyPress Down, _) -> MoveCursor Down
-            (KeyPress Left, _) -> MoveCursor Left
-            (KeyPress Right, _) -> MoveCursor Right
-            (KeyPress LowerD, _) -> ToggleDebug
-            (KeyPress Enter, HomePage) -> UserToggledScreen
-            (KeyPress Enter, ConfirmPage s) -> UserWantToDoSomthing s
-            (KeyPress Escape, ConfirmPage _) -> UserToggledScreen
-            (KeyPress Escape, _) -> Exit
-            (KeyPress _, _) -> Nothing
+            (Arrow Up, _) -> MoveCursor Up
+            (Arrow Down, _) -> MoveCursor Down
+            (Arrow Left, _) -> MoveCursor Left
+            (Arrow Right, _) -> MoveCursor Right
+            (Lower D, _) -> ToggleDebug
+            (Action Enter, HomePage) -> UserToggledScreen
+            (Action Enter, ConfirmPage s) -> UserWantToDoSomthing s
+            (Action Escape, ConfirmPage _) -> UserToggledScreen
+            (Action Escape, _) -> Exit
+            (Ctrl C, _) -> Exit
             (Unsupported _, _) -> Nothing
-            (CtrlC, _) -> Exit
-            (CtrlS, _) | (CtrlZ, _) | (CtrlY, _) -> Nothing
+            (_, _) -> Nothing
 
     # Update model so we can keep a history of user input
     modelWithInput = { model & inputs: List.append model.inputs input }
@@ -126,12 +124,10 @@ runUILoop = \prevModel ->
 
                 _ -> Task.ok (Step { modelWithInput & state: HomePage })
 
-mapSelected : Model -> List { selected : Bool, s : Str, row : I32 }
+mapSelected : Model -> List { selected : Bool, s : Str, row : U16 }
 mapSelected = \model ->
     s, idx <- List.mapWithIndex model.things
-
-    row = 3 + (Num.toI32 idx)
-
+    row = 3 + (Num.toU16 idx)
     { selected: model.cursor.row == row, s, row }
 
 getSelected : Model -> Result Str [NothingSelected]
@@ -145,7 +141,7 @@ getTerminalSize : Task.Task Core.ScreenSize _
 getTerminalSize =
 
     # Move the cursor to bottom right corner of terminal
-    cmd = [MoveCursor (To { row: 999, col: 999 }), GetCursor] |> List.map Control |> List.map Core.toStr |> Str.joinWith ""
+    cmd = [Cursor (Abs { row: 999, col: 999 }), Cursor (Position (Get))] |> List.map Control |> List.map Core.toStr |> Str.joinWith ""
     Stdout.write! cmd
 
     # Read the cursor position
@@ -164,12 +160,13 @@ homeScreen = \model ->
             Core.drawText " ENTER TO RUN, ESCAPE TO QUIT" { r: 2, c: 1, fg: Standard White },
             Core.drawBox { r: 0, c: 0, w: model.screen.width, h: model.screen.height },
         ],
-        { selected, s, row } <- model |> mapSelected |> List.map
-
-        if selected then
-            Core.drawText " > $(s)" { r: row, c: 2, fg: Standard Green }
-        else
-            Core.drawText " - $(s)" { r: row, c: 2, fg: Standard Black },
+        model
+        |> mapSelected
+        |> List.map \{ selected, s, row } ->
+            if selected then
+                Core.drawText " > $(s)" { r: row, c: 2, fg: Standard Green }
+            else
+                Core.drawText " - $(s)" { r: row, c: 2, fg: Standard Black },
     ]
     |> List.join
 
