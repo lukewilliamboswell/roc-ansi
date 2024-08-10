@@ -3,35 +3,43 @@ module [drawGrid]
 import Utils
 import Spacing
 
-BorderFill a : { start : a, base : a, end : a, sep : a }
+# Taken from MDN
+# dir An enumerated attribute indicating the directionality of the element's text. It can have the following values:
+# ltr, which means left to right and is to be used for languages that are written from the left to the right (like English);
+# rtl, which means right to left and is to be used for languages that are written from the right to the left (like Arabic);
+# Dir : [Ltr, Rtl]
 
-squaredBorder : BorderFill (BorderFill Str)
+# toStr : Dir -> Str
+# toStr = \dir ->
+#    when dir is
+#        Ltr -> "ltr"
+#        Rtl -> "rtl"
+
+LineFill a : { start : a, base : a, end : a, sep : a }
+
+squaredBorder : LineFill (LineFill Str)
 squaredBorder = {
-    start: { base: "─", sep: "┬", start: "┌", end: "┐" },
-    sep: { base: "─", sep: "┼", start: "├", end: "┤" },
-    base: { base: " ", sep: "│", start: "│", end: "│" },
-    end: { base: "─", sep: "┴", start: "└", end: "┘" },
+    start: { start: "┌", base: "─", sep: "┬", end: "┐" },
+    base: { start: "│", base: " ", sep: "│", end: "│" },
+    sep: { start: "├", base: "─", sep: "┼", end: "┤" },
+    end: { start: "└", base: "─", sep: "┴", end: "┘" },
 }
 
-roundedBorder : BorderFill (BorderFill Str)
+roundedBorder : LineFill (LineFill Str)
 roundedBorder = {
-    start: { base: "─", sep: "┬", start: "╭", end: "╮" },
-    sep: { base: "─", sep: "┼", start: "├", end: "┤" },
-    base: { base: " ", sep: "│", start: "│", end: "│" },
-    end: { base: "─", sep: "┴", start: "╰", end: "╯" },
+    start: { start: "╭", base: "─", sep: "┬", end: "╮" },
+    base: { start: "│", base: " ", sep: "│", end: "│" },
+    sep: { start: "├", base: "─", sep: "┼", end: "┤" },
+    end: { start: "╰", base: "─", sep: "┴", end: "╯" },
 }
 
-prettyBorder : BorderFill (BorderFill Str)
+prettyBorder : LineFill (LineFill Str)
 prettyBorder = {
-    start: { base: "─", sep: "─", start: "╭", end: "╮" },
-    sep: { base: "─", sep: " ", start: "│", end: "│" },
-    base: { base: " ", sep: " ", start: "│", end: "│" },
-    end: { base: "─", sep: "─", start: "╰", end: "╯" },
+    start: { start: "╭", base: "─", sep: "─", end: "╮" },
+    base: { start: "│", base: " ", sep: " ", end: "│" },
+    sep: { start: "│", base: "─", sep: " ", end: "│" },
+    end: { start: "╰", base: "─", sep: "─", end: "╯" },
 }
-
-# Option value : Result value [None]
-# noBorder : BorderFill (Option Str)
-# noBorder = { base: Err None, sep: Err None, start: Err None, end: Err None }
 
 # Display strategies
 
@@ -84,6 +92,7 @@ testHeader = testRows |> List.get 0 |> Result.withDefault []
 ## It only works for left-to-right writing.
 ## It only truncates for single line words (horizontal size only). TODO: Add multiline support (breakdown words, add hyphen)?
 ## It only pads to the right. TODO: Add word alignment support?
+truncOrPad : Str, Str -> (Str, U64 -> Str)
 truncOrPad = \truncChar, fillChar ->
     \str, size ->
         if size == 0 then
@@ -103,32 +112,57 @@ truncOrPad = \truncChar, fillChar ->
                 ## If the string is exactly the specified size, return it as is.
                 str
 
-drawRow : List Str, List U64, BorderFill Str -> Str
-drawRow = \data, sizes, border ->
-    (
-        when data is
-            [] -> List.map sizes \_ -> ""
-            d -> d
-    )
-    |> List.map2 sizes (truncOrPad "…" border.base)
-    |> List.intersperse (border.sep)
-    |> List.prepend (border.start)
-    |> List.append (border.end)
+drawCell = \data -> data
+
+# This should draw a list of Nodes, not a list of Str?
+drawRow : List Str, List U64, LineFill Str, { mx ? (Num *, Num *)a, px ? (Num *, Num *)a }* -> Str
+drawRow = \data, sizes, border, { px ? (0, 0), mx ? (0, 0) } ->
+    fill = \elem, size -> List.range { start: At 0, end: Before size } |> List.map (\_ -> elem)
+    block =
+        (
+            when data is
+                [] -> List.map sizes \_ -> ""
+                d -> d
+        )
+        |> List.map2 sizes (truncOrPad "…" border.base)
+
+    blocks =
+        List.map
+            block
+            (
+                \cell -> [
+                        fill "░" px.0, # Padding left (maybe use border.base?)
+                        [cell], # Content
+                        fill "░" px.1, # Padding right (maybe use border.base?)
+                    ]
+                    |> List.map (\x -> Str.joinWith x "")
+                    |> Str.joinWith ""
+            )
+
+    [
+        blocks
+        |> List.intersperse border.sep,
+    ]
+    |> List.prepend (fill border.start 1) # Border left
+    |> List.prepend (fill "░" mx.0) # Margin left
+    |> List.append (fill border.end 1) # Border right
+    |> List.append (fill "░" mx.1) # Margin right
+    |> List.join
     |> Str.joinWith ""
 
-expect drawRow testHeader [0, 1, 2, 3, 4] squaredBorder.base == "││…│C…│Pr…│Sto…│"
-expect drawRow testHeader [5, 6, 7, 8, 9, 10, 11] squaredBorder.base == "│Prod…│Produ…│Catego…│Price   │StockQua…│SupplierID│"
+expect drawRow testHeader [0, 1, 2, 3, 4] squaredBorder.base {} == "││…│C…│Pr…│Sto…│"
+expect drawRow testHeader [5, 6, 7, 8, 9, 10, 11] squaredBorder.base {} == "│Prod…│Produ…│Catego…│Price   │StockQua…│SupplierID│"
 
-expect drawRow [] [0] squaredBorder.start == "┌┐"
-expect drawRow [] [1] squaredBorder.start == "┌─┐"
-expect drawRow [] [0, 1, 2, 3] squaredBorder.start == "┌┬─┬──┬───┐"
-expect drawRow [] [0, 1, 2, 3] squaredBorder.sep == "├┼─┼──┼───┤"
-expect drawRow [] [0, 1, 2, 3] squaredBorder.base == "││ │  │   │"
-expect drawRow [] [0, 1, 2, 3] squaredBorder.end == "└┴─┴──┴───┘"
-expect drawRow [] [1, 0] roundedBorder.start == "╭─┬╮"
-expect drawRow [] [1, 0] roundedBorder.sep == "├─┼┤"
-expect drawRow [] [1, 0] roundedBorder.base == "│ ││"
-expect drawRow [] [1, 0] roundedBorder.end == "╰─┴╯"
+expect drawRow [] [0] squaredBorder.start {} == "┌┐"
+expect drawRow [] [1] squaredBorder.start {} == "┌─┐"
+expect drawRow [] [0, 1, 2, 3] squaredBorder.start {} == "┌┬─┬──┬───┐"
+expect drawRow [] [0, 1, 2, 3] squaredBorder.sep {} == "├┼─┼──┼───┤"
+expect drawRow [] [0, 1, 2, 3] squaredBorder.base {} == "││ │  │   │"
+expect drawRow [] [0, 1, 2, 3] squaredBorder.end {} == "└┴─┴──┴───┘"
+expect drawRow [] [1, 0] roundedBorder.start {} == "╭─┬╮"
+expect drawRow [] [1, 0] roundedBorder.sep {} == "├─┼┤"
+expect drawRow [] [1, 0] roundedBorder.base {} == "│ ││"
+expect drawRow [] [1, 0] roundedBorder.end {} == "╰─┴╯"
 
 testColumns = dataToColumns testData (7, 6) |> Result.withDefault []
 testColumn = testColumns |> List.get 0 |> Result.withDefault []
@@ -152,9 +186,9 @@ fixAnomalies = \xs, k ->
     xs |> List.map (replaceFn t mean mean) |> List.map Num.floor
 
 # Estimate the sizes when the user doesn't provide them
-estimateSize = \xs -> fixAnomalies xs 2 |> List.walk 0 Num.max
+autoSize = \xs -> fixAnomalies xs 2 |> List.walk 0 Num.max
 
-testSizes = testColumns |> List.map (\x -> x |> List.map getDataLength |> estimateSize)
+testSizes = testColumns |> List.map (\x -> x |> List.map getDataLength |> autoSize)
 
 expect
     actual = testSizes
@@ -162,17 +196,39 @@ expect
     actual == expected
 
 # TODO: How to make borders optional?
-drawGrid : List (List Str), List U64, BorderFill (BorderFill Str) -> Str
-drawGrid = \grid, sizes, border ->
-    List.map grid (\row -> (row, border.base))
-    |> List.intersperse ([], border.sep)
-    |> List.prepend ([], border.start)
-    |> List.append ([], border.end)
-    |> List.map (\(d, b) -> drawRow d sizes b)
+drawGrid : List (List Str),
+    List U64,
+    LineFill (LineFill Str),
+    {
+        mx ? (Int *, Int *),
+        my ? (Int *, Int *),
+        px ? (Int *, Int *),
+        py ? (Int *, Int *),
+    }
+    -> Str
+drawGrid = \grid, sizes, border, { mx ? (0, 0), my ? (0, 0), px ? (0, 0), py ? (0, 0) } ->
+    paddingFill = ([], { base: "░", sep: border.base.sep, start: border.base.start, end: border.base.end }) # This should only be blank space, Spacing.xw?
+    marginFill = ([], { base: "░", sep: "░", start: "░", end: "░" }) # This should only be blank space, Spacing.xw?
+    fill = \elem, size -> List.range { start: At 0, end: Before size } |> List.map (\_ -> elem)
+    List.map
+        grid
+        (\row -> [
+                fill paddingFill py.0, # Padding top
+                [(row, border.base)], # Content
+                fill paddingFill py.1, # Padding bottom
+            ]
+            |> List.join)
+    |> List.intersperse (fill ([], border.sep) 1) # Border between
+    |> List.prepend (fill ([], border.start) 1) # Border top
+    |> List.prepend (fill marginFill my.0) # Margin top
+    |> List.append (fill ([], border.end) 1) # Border bottom
+    |> List.append (fill marginFill my.1) # Margin bottom
+    |> List.join
+    |> List.map (\(d, b) -> drawRow d sizes b { px, mx })
     |> Str.joinWith Spacing.yw
 
 expect
-    actual = drawGrid [["Apple", "Banana", "Cat"], ["Dog", "Elephant", "Fish"]] [2, 2, 2] squaredBorder
+    actual = drawGrid [["Apple", "Banana", "Cat"], ["Dog", "Elephant", "Fish"]] [2, 2, 2] squaredBorder {}
     expected =
         """
         ┌──┬──┬──┐
@@ -183,20 +239,53 @@ expect
         """
     actual == expected
 
+expect
+    actual = drawGrid [["Apple", "Banana", "Cat"], ["Dog", "Elephant", "Fish"]] [2, 2, 2] squaredBorder { mx: (1, 2), my: (1, 2) }
+    expected =
+        """
+        ░░░░░░░░░░░░░
+        ░┌──┬──┬──┐░░
+        ░│A…│B…│C…│░░
+        ░├──┼──┼──┤░░
+        ░│D…│E…│F…│░░
+        ░└──┴──┴──┘░░
+        ░░░░░░░░░░░░░
+        ░░░░░░░░░░░░░
+        """
+    actual == expected
+
+expect
+    actual = drawGrid [["Apple", "Banana", "Cat"], ["Dog", "Elephant", "Fish"]] [2, 2, 2] squaredBorder { px: (1, 2), py: (1, 2) }
+    expected =
+        """
+        ┌░──░░┬░──░░┬░──░░┐
+        │░░░░░│░░░░░│░░░░░│
+        │░A…░░│░B…░░│░C…░░│
+        │░░░░░│░░░░░│░░░░░│
+        │░░░░░│░░░░░│░░░░░│
+        ├░──░░┼░──░░┼░──░░┤
+        │░░░░░│░░░░░│░░░░░│
+        │░D…░░│░E…░░│░F…░░│
+        │░░░░░│░░░░░│░░░░░│
+        │░░░░░│░░░░░│░░░░░│
+        └░──░░┴░──░░┴░──░░┘
+        """
+    actual == expected
+
 # TODO:
 # Maybe sizes should be a struct that has { width: U16, height: U16, flex ? U16 } instead of a single list of U16
 # Maybe headers should be data
 # It should derive from the drawGrid function!
-drawTable : List (List Str), List U64, BorderFill (BorderFill Str) -> Str
+drawTable : List (List Str), List U64, LineFill (LineFill Str) -> Str
 drawTable = \rows, sizes, border ->
     when rows is
         [] -> ""
         [head, .. as tail] ->
-            t = drawRow [] sizes border.start
-            h = drawRow head sizes border.base
-            m = drawRow [] sizes border.sep
-            d = tail |> List.map (\a -> drawRow a sizes border.base) |> Str.joinWith Spacing.yw
-            b = drawRow [] sizes border.end
+            t = drawRow [] sizes border.start {}
+            h = drawRow head sizes border.base {}
+            m = drawRow [] sizes border.sep {}
+            d = tail |> List.map (\a -> drawRow a sizes border.base {}) |> Str.joinWith Spacing.yw
+            b = drawRow [] sizes border.end {}
             [t, h, m, d, b] |> Str.joinWith Spacing.yw
 
 expect
