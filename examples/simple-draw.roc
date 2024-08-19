@@ -43,8 +43,8 @@ main =
     #    Draw.render
     #        size
     #        [
-    #            Draw.cursor {row:10,col:10} { char: "X" },
-    #            #Draw.box { r : 0, c : 0, w : size.width, h : size.height, fg : Standard Blue },
+    #            Draw.pixel {row:10,col:10} { char: "X" },
+    #            Draw.box { r : 0, c : 0, w : size.width, h : size.height, fg : Standard Blue },
     #        ]
 
     # diff this against the previous screen

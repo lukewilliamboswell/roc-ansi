@@ -84,7 +84,7 @@ expect
     ]
     result = diffPixels oldPixels newPixels 3 CurrentPixel Default Default []
 
-    result.0 == "\u(001b)[1B\u(001b)[34m\u(001b)[47mBAR"
+    result.0 == "\u(001b)[1E\u(001b)[34m\u(001b)[47mBAR"
 
 # Keep track of how many pixels behind current is from
 # the cursor. This is relative, so if there is no
@@ -167,10 +167,10 @@ updateCursorOnDraw = \screenWidth, cursor ->
 
             if rowsBehind > 0 && colsBehind > 0 then
                 # move cursor relative down by rows and right by cols
-                ("\u(001b)[$(Num.toStr rowsBehind)B\u(001b)[$(Num.toStr colsBehind)D", updateCursorRelative cursor Draw)
+                ("\u(001b)[$(Num.toStr rowsBehind)E\u(001b)[$(Num.toStr colsBehind)D", updateCursorRelative cursor Draw)
             else if rowsBehind > 0 then
                 # move cursor relative down by rows, cols is 0
-                ("\u(001b)[$(Num.toStr rowsBehind)B", updateCursorRelative cursor Draw)
+                ("\u(001b)[$(Num.toStr rowsBehind)E", updateCursorRelative cursor Draw)
             else
                 # move cursor relative just right by cols
                 ("\u(001b)[$(Num.toStr colsBehind)D", updateCursorRelative cursor Draw)
@@ -179,7 +179,7 @@ updateCursorOnDraw = \screenWidth, cursor ->
 expect updateCursorOnDraw 3 CurrentPixel == ("", CurrentPixel)
 
 # cursor 1 row and 1 col behind current pixel
-expect updateCursorOnDraw 3 (PrevPixel 4) == ("\u(001b)[1B\u(001b)[1D", CurrentPixel)
+expect updateCursorOnDraw 3 (PrevPixel 4) == ("\u(001b)[1E\u(001b)[1D", CurrentPixel)
 
 # cursor 0 row and 2 col behind current pixel
 expect updateCursorOnDraw 3 (PrevPixel 2) == ("\u(001b)[2D", CurrentPixel)
@@ -239,7 +239,7 @@ expect
 
     result = diffPixel old new screenWidth cursor currentFg currentBg currentStyles
 
-    result.5 == "\u(001b)[1B\u(001b)[5D🇦🇺"
+    result.5 == "\u(001b)[1E\u(001b)[5D🇦🇺"
 
 # changed char, fg, and bg should update cursor position down 1 row, right 5 cols
 # colors different from both and current
@@ -254,4 +254,4 @@ expect
 
     result = diffPixel old new screenWidth cursor currentFg currentBg currentStyles
 
-    result.5 == "\u(001b)[1B\u(001b)[5D\u(001b)[37m\u(001b)[44m🇦🇺"
+    result.5 == "\u(001b)[1E\u(001b)[5D\u(001b)[37m\u(001b)[44m🇦🇺"
