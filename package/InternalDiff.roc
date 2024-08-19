@@ -32,7 +32,7 @@ diffPixelsHelp = \oldPixels -> \(buf, newPixels, screenWidth, cursor, currentFg,
     oldPixel =
         List.get oldPixels idx
         # new screen larger than old screen use a default pixel for diffing
-        |> Result.withDefault { char : " ", fg : Default, bg : Default, styles : [] }
+        |> Result.withDefault { char : "/", fg : Default, bg : Default, styles : [] }
 
     (_, updatedCursor, updatedFg, updatedBg, updatedStyles, pixelStr) = diffPixel oldPixel newPixel screenWidth cursor currentFg currentBg currentStyles
 

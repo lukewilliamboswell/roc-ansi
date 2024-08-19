@@ -23,8 +23,8 @@ DrawFn : InternalDraw.DrawFn
 Pixel : InternalDraw.Pixel
 
 VirtualScreen := {
-        screen : ScreenSize,
-        pixels : List Pixel,
+    screen : ScreenSize,
+    pixels : List Pixel,
 } implements [Inspect]
 
 empty : VirtualScreen
@@ -47,10 +47,10 @@ render = \screen, drawFns ->
                             Ok p -> Break (Ok p)
                             Err _ -> Continue state
             )
-            |> Result.withDefault { char: " ", fg: Default, bg: Standard Magenta, styles: [] }
+            |> Result.withDefault { char: ",", fg: Default, bg: Standard Magenta, styles: [] }
 
     |> List.join
-    |> \pixels -> @VirtualScreen { screen, pixels}
+    |> \pixels -> @VirtualScreen { screen, pixels }
 
 # old screen, new screen -> (stdout, new screen)
 draw : VirtualScreen, VirtualScreen -> (Str, VirtualScreen)
