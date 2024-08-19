@@ -3,23 +3,102 @@ module []
 import Draw exposing [Pixel]
 import Color exposing [Color]
 import Style exposing [Style]
-import Control
 
 # TODO be sure to use an ESC[0m to reset all attributes once before drawing screen
 
-# Keep track of how many pixels behind current
+# TODO check if it is better to diff all the pixels in one go, or to instead chunk into rows or something
+diffPixels : List Pixel, List Pixel, U16, CusorRelativePosition, Color, Color, List Style -> (Str, List Pixel, U16, CusorRelativePosition, Color, Color, List Style)
+diffPixels = \oldPixels, newPixels, screenWidth, cursor, currentFg, currentBg, currentStyles ->
+
+    # TODO -- check if it is worth having this check here, does this just introduce a deep check
+    # for equality, when it may be just as fast to loop through and check each pixel one at a time
+    if oldPixels == newPixels then
+
+        # move the cursor relative offset to the next row
+        # skip drawing anything for this row on the screen
+        updatedCursor = updateCursorRelative cursor (Row screenWidth)
+
+        ("", newPixels, screenWidth, updatedCursor, currentFg, currentBg, currentStyles)
+
+    else
+        # walk the pixels and diff them
+        List.walkWithIndex newPixels ("", newPixels, screenWidth, cursor, currentFg, currentBg, currentStyles) (diffPixelsHelp oldPixels)
+
+diffPixelsHelp : List Pixel -> ((Str, List Pixel, U16, CusorRelativePosition, Color, Color, List Style), Pixel, U64 -> (Str, List Pixel, U16, CusorRelativePosition, Color, Color, List Style))
+diffPixelsHelp = \oldPixels -> \(buf, newPixels, screenWidth, cursor, currentFg, currentBg, currentStyles), newPixel, idx ->
+    oldPixel =
+        List.get oldPixels idx
+        # new screen larger than old screen use a default pixel for diffing
+        |> Result.withDefault { char : " ", fg : Default, bg : Default, styles : [] }
+
+    (_, updatedCursor, updatedFg, updatedBg, updatedStyles, pixelStr) = diffPixel oldPixel newPixel screenWidth cursor currentFg currentBg currentStyles
+
+    ("$(buf)$(pixelStr)", newPixels, screenWidth, updatedCursor, updatedFg, updatedBg, updatedStyles)
+
+# no changes, just the cursor offset should be updated
+expect
+    result = diffPixels [] [] 100 CurrentPixel Default Default []
+    result.3 == PrevPixel 100
+
+# no changes, just the cursor offset should be updated
+expect
+    result = diffPixels [] [] 100 (PrevPixel 23) Default Default []
+    result.3 == PrevPixel 123
+
+# changes should include updates to color
+expect
+    oldPixels = [
+        { char : "f", fg : Default, bg : Default, styles : [] },
+        { char : "o", fg : Default, bg : Default, styles : [] },
+        { char : "o", fg : Default, bg : Default, styles : [] },
+    ]
+    newPixels = [
+        { char : "B", fg : Standard Blue, bg : Standard White, styles : [] },
+        { char : "A", fg : Standard Blue, bg : Standard White, styles : [] },
+        { char : "R", fg : Standard Blue, bg : Standard White, styles : [] },
+    ]
+    result = diffPixels oldPixels newPixels 100 CurrentPixel Default Default []
+
+    result.0 == "\u(001b)[34m\u(001b)[47mBAR"
+
+# should ONLY include 1 cursor position and update to color and the new changes
+# here we expect to change the second row, so cursor shift 1 row down
+expect
+    oldPixels = [
+        { char : "f", fg : Default, bg : Default, styles : [] },
+        { char : "o", fg : Default, bg : Default, styles : [] },
+        { char : "o", fg : Default, bg : Default, styles : [] },
+        { char : "b", fg : Default, bg : Default, styles : [] },
+        { char : "a", fg : Default, bg : Default, styles : [] },
+        { char : "r", fg : Default, bg : Default, styles : [] },
+    ]
+    newPixels = [
+        { char : "f", fg : Default, bg : Default, styles : [] },
+        { char : "o", fg : Default, bg : Default, styles : [] },
+        { char : "o", fg : Default, bg : Default, styles : [] },
+        { char : "B", fg : Standard Blue, bg : Standard White, styles : [] },
+        { char : "A", fg : Standard Blue, bg : Standard White, styles : [] },
+        { char : "R", fg : Standard Blue, bg : Standard White, styles : [] },
+    ]
+    result = diffPixels oldPixels newPixels 3 CurrentPixel Default Default []
+
+    result.0 == "\u(001b)[1B\u(001b)[34m\u(001b)[47mBAR"
+
+# Keep track of how many pixels behind current is from
 # the cursor. This is relative, so if there is no
 # change we don't need to include an ANSI command
-# to move it
+# to move the cursor before drawing
 CusorRelativePosition : [PrevPixel U16, CurrentPixel]
 
-updateCursorRelative : CusorRelativePosition, [NoDraw, Draw] -> CusorRelativePosition
+updateCursorRelative : CusorRelativePosition, [NoDraw, Draw, Row U16] -> CusorRelativePosition
 updateCursorRelative = \cursor, update ->
     when (cursor, update) is
         (PrevPixel n, NoDraw) -> PrevPixel (n+1)
-        (PrevPixel _, Draw) -> CurrentPixel
         (CurrentPixel, NoDraw) -> PrevPixel 1
+        (PrevPixel _, Draw) -> CurrentPixel
         (CurrentPixel, Draw) -> CurrentPixel
+        (PrevPixel n, Row r) -> PrevPixel (n+r)
+        (CurrentPixel, Row r) -> PrevPixel r
 
 diffPixel : Pixel, Pixel, U16, CusorRelativePosition, Color, Color, List Style -> (Pixel, CusorRelativePosition, Color, Color, List Style, Str)
 diffPixel = \old, new, screenWidth, cursor, currentFg, currentBg, currentStyles ->
@@ -84,9 +163,12 @@ updateCursorOnDraw = \screenWidth, cursor ->
             rowsBehind = n // screenWidth
             colsBehind = n % screenWidth
 
-            if rowsBehind > 0 then
+            if rowsBehind > 0 && colsBehind > 0 then
                 # move cursor relative down by rows and right by cols
                 ("\u(001b)[$(Num.toStr rowsBehind)B\u(001b)[$(Num.toStr colsBehind)D", updateCursorRelative cursor Draw)
+            else if rowsBehind > 0 then
+                # move cursor relative down by rows, cols is 0
+                ("\u(001b)[$(Num.toStr rowsBehind)B", updateCursorRelative cursor Draw)
             else
                 # move cursor relative just right by cols
                 ("\u(001b)[$(Num.toStr colsBehind)D", updateCursorRelative cursor Draw)
