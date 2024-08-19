@@ -9,7 +9,7 @@ module [
     DrawFn,
     Pixel,
     ScreenSize,
-    CursorPosition,
+    Position,
     Input,
     parseCursor,
     updateCursor,
@@ -24,6 +24,7 @@ module [
     symbolToStr,
 ]
 
+import InternalDraw
 import Color exposing [Color]
 import Style exposing [Style]
 import Control exposing [Control]
@@ -427,11 +428,11 @@ lowerToStr = \letter ->
         Z -> "z"
 
 ScreenSize : { width : U16, height : U16 }
-CursorPosition : { row : U16, col : U16 }
-DrawFn : CursorPosition, CursorPosition -> Result Pixel {}
+Position : InternalDraw.Position
+DrawFn : Position, Position -> Result Pixel {}
 Pixel : { char : Str, fg : Color, bg : Color, styles : List Style }
 
-parseCursor : List U8 -> CursorPosition
+parseCursor : List U8 -> Position
 parseCursor = \bytes ->
     { val: row, rest: afterFirst } = takeNumber { val: 0, rest: List.dropFirst bytes 2 }
     { val: col } = takeNumber { val: 0, rest: List.dropFirst afterFirst 1 }
@@ -460,7 +461,7 @@ expect takeNumber { val: 0, rest: [27, 91, 51, 51, 59, 49, 82] } == { val: 0, re
 expect takeNumber { val: 0, rest: [51, 51, 59, 49, 82] } == { val: 33, rest: [59, 49, 82] }
 expect takeNumber { val: 0, rest: [49, 82] } == { val: 1, rest: [82] }
 
-updateCursor : { cursor : CursorPosition, screen : ScreenSize }a, [Up, Down, Left, Right] -> { cursor : CursorPosition, screen : ScreenSize }a
+updateCursor : { cursor : Position, screen : ScreenSize }a, [Up, Down, Left, Right] -> { cursor : Position, screen : ScreenSize }a
 updateCursor = \state, direction ->
     when direction is
         Up ->
@@ -496,7 +497,7 @@ updateCursor = \state, direction ->
             }
 
 ## Loop through each pixel in screen and build up a single string to write to stdout
-drawScreen : { cursor : CursorPosition, screen : ScreenSize }*, List DrawFn -> Str
+drawScreen : { cursor : Position, screen : ScreenSize }*, List DrawFn -> Str
 drawScreen = \{ cursor, screen }, drawFns ->
     pixels =
         row <- List.range { start: At 0, end: Before screen.height } |> List.map

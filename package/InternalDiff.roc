@@ -14,17 +14,18 @@ diffPixels = \oldPixels, newPixels, screenWidth, cursor, currentFg, currentBg, c
 
     # TODO -- check if it is worth having this check here, does this just introduce a deep check
     # for equality, when it may be just as fast to loop through and check each pixel one at a time
-    if oldPixels == newPixels then
+    #if oldPixels == newPixels then
 
-        # move the cursor relative offset to the next row
-        # skip drawing anything for this row on the screen
-        updatedCursor = updateCursorRelative cursor (Row screenWidth)
+    #    # move the cursor relative offset to the next row
+    #    # skip drawing anything for this row on the screen
+    #    updatedCursor = updateCursorRelative cursor (Row screenWidth)
 
-        ("", newPixels, screenWidth, updatedCursor, currentFg, currentBg, currentStyles)
+    #    ("", newPixels, screenWidth, updatedCursor, currentFg, currentBg, currentStyles)
 
-    else
-        # walk the pixels and diff them
-        List.walkWithIndex newPixels ("", newPixels, screenWidth, cursor, currentFg, currentBg, currentStyles) (diffPixelsHelp oldPixels)
+    #else
+
+    # walk the pixels and diff them
+    List.walkWithIndex newPixels ("", newPixels, screenWidth, cursor, currentFg, currentBg, currentStyles) (diffPixelsHelp oldPixels)
 
 diffPixelsHelp : List Pixel -> ((Str, List Pixel, U16, CusorRelativePosition, Color, Color, List Style), Pixel, U64 -> (Str, List Pixel, U16, CusorRelativePosition, Color, Color, List Style))
 diffPixelsHelp = \oldPixels -> \(buf, newPixels, screenWidth, cursor, currentFg, currentBg, currentStyles), newPixel, idx ->
@@ -113,18 +114,21 @@ diffPixel = \old, new, screenWidth, cursor, currentFg, currentBg, currentStyles 
         # set foreground color?
         # note we are using currentFg here as we don't care about the old value, but what was
         # last drawn to the screen
-        (buf1, updatedFg) = updateColorOnDraw buf0 Foreground currentFg new.fg
+        #(buf1, updatedFg) = updateColorOnDraw buf0 Foreground currentFg new.fg
 
         # set background color?
         # note we are using currentBg here as we don't care about the old value, but what was
         # last drawn to the screen
-        (buf2, updatedBg) = updateColorOnDraw buf1 Background currentBg new.bg
+        #(buf2, updatedBg) = updateColorOnDraw buf1 Background currentBg new.bg
 
         # set styles?
         # TODO -- lets just leave this for later...
 
         # return the pixel, updated values and buffer
-        (new, updatedCursor, updatedFg, updatedBg, currentStyles, "$(buf2)$(new.char)")
+        #(new, updatedCursor, updatedFg, updatedBg, currentStyles, "$(buf2)$(new.char)")
+
+        # debugg... let's just do the cursor movement for now
+        (new, updatedCursor, currentFg, currentBg, currentStyles, "$(buf0)$(new.char)")
 
 # note we are using the current color here as we don't care about the old/previous value,
 # but what was the last drawn to the screen, as that is what will be continued unless we

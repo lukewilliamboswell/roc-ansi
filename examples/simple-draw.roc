@@ -20,7 +20,9 @@ main =
 
     # not strictly necessary, but gets us the expected behaviour
     Stdout.write! (Core.toStr (Control (Erase (Display All))))
-    Stdout.write! (Core.toStr (Control (Cursor (Abs { row: 0, col: 0 }))))
+
+    # note this is 1-based -- let's make a helper so people don't get caught out
+    Stdout.write! (Core.toStr (Control (Cursor (Abs { row: 1, col: 1 }))))
 
     # render our screen using a list draw of functions
     firstScreen =
@@ -33,29 +35,29 @@ main =
             ]
 
     # diff this against the previous screen (here we are using an empty screen)
-    (output1, _) = Draw.draw Draw.empty firstScreen
+    #(_, _) = Draw.draw Draw.empty firstScreen
 
     # write the output including ANSI control codes to stdout
-    Stdout.write! output1
+    #Stdout.write! output1
 
     # render our screen using a list draw of functions
-    #secondScreen =
-    #    Draw.render
-    #        size
-    #        [
-    #            Draw.pixel {row:10,col:10} { char: "X" },
-    #            Draw.box { r : 0, c : 0, w : size.width, h : size.height, fg : Standard Blue },
-    #        ]
+    secondScreen =
+        Draw.render
+            size
+            [
+                Draw.pixel {row:10,col:10} { char: "X" },
+                Draw.box { r : 0, c : 0, w : size.width, h : size.height, fg : Standard Blue },
+            ]
 
     # diff this against the previous screen
-    #(output2, _) = Draw.draw firstScreen secondScreen
+    (output2, _) = Draw.draw firstScreen secondScreen
 
     # move the cursor back to the starting position
     #Stdout.write! (Core.toStr (Control (Cursor (Abs { row: 0, col: 0 }))))
-    #Stdout.write! "\u(000b)[0;0H"
+    Stdout.write! "\u(000b)[1;1H"
 
     # write the output including ANSI control codes to stdout
-    #Stdout.write! output2
+    Stdout.write! output2
 
     # reset the terminal so it continues behaving as expected
     #Stdout.write! (Core.toStr Reset)
