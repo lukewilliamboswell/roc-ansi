@@ -35,13 +35,10 @@ Escape : [
 ]
 
 toStr : Escape -> Str
-toStr = \escape -> "\u(001b)"
-    |> Str.concat
-        (
-            when escape is
-                Reset -> "c"
-                Control control -> "[" |> Str.concat (Control.toCode control)
-        )
+toStr = \escape ->
+    when escape is
+        Reset -> "\u(001b)c"
+        Control control -> "\u(001b)[$(Control.toCode control)"
 
 ## Add styles to a string
 style : Str, List Style -> Str
@@ -433,84 +430,6 @@ ScreenSize : { width : U16, height : U16 }
 CursorPosition : { row : U16, col : U16 }
 DrawFn : CursorPosition, CursorPosition -> Result Pixel {}
 Pixel : { char : Str, fg : Color, bg : Color, styles : List Style }
-
-#VirtualScreen : List (List Pixel)
-
-#redrawScreen : VirtualScreen, ScreenSize, List DrawFn -> (VirtualScreen, Str)
-#redrawScreen = \previous, size, drawFns ->
-
-#    defaultPixel = { char: " ", fg: Default, bg: Default, styles: [] }
-
-#    # allocate a list for the new screen rows
-#    nextRows = List.withCapacity size.height
-
-#    # TODO what if the previous screen size is smaller than the new
-#    # TODO what about larger?
-
-#    # loop through all the rows from the previous screen
-#    List.walkWithIndexUntil state \state, prevRow, prevRowIdx ->
-
-#        # if the previous screen is taller than the new one, we can just exit early
-#        if prevRowIdx >= size.height then
-#            Break state
-#        else
-
-#            InnerRowState : {
-#                nextRow : List Pixel,
-#                drawStr : Str,
-#                changes : [Clean, Dirty],
-#                lastPixel : Pixel,
-#            }
-
-
-#            # loop through all of the pixels in the previous screen for row `prevRowIdx`
-#            nextRowState : InnerRowState
-#            nextRowState =
-#                prevRow
-#                |> List.walkWithIndexUntil { nextRow: [], drawStr: "" } \innerState, prevPixel, prevColIdx ->
-
-#                    # if the previous screen is wider than the new one, we can just exit early
-#                    if prevColIdx >= size.width then
-#                        Break innerState
-#                    else
-
-#                        # current pixel position (we can cast here and be sure it's safe,
-#                        # because the screen should be less than Num.maxU16)
-#                        currentPosition = { row: Num.intCast prevRowIdx, col: Num.intCast prevColIdx }
-
-#                        # TODO can we remove the cursor part of DrawFns altogether?
-#                        virtualCursor = { row, col }
-
-#                        # loop through all the drafFns and stop at the first one that returns a pixel, or
-#                        # else use the default pixel
-#                        nextPixel =
-#                            (
-#                                List.walkUntil
-#                                    drawFns
-#                                    Err {}
-#                                    \state, drawFn ->
-#                                        when drawFn virtualCursor currentPosition is
-#                                            Ok pixel -> Break (Ok pixel)
-#                                            Err _ -> Continue state
-#                            )
-#                            |> Result.withDefault defaultPixel
-
-#                        # compare previous pixel with the next one
-#                        comparison = if prevPixel == nextPixel then Clean else Dirty
-#                        when (innerState.changes, comparison) is
-#                            (Clean, Clean) -> Continue {
-#                                    nextRow: List.append innerState.nextRow nextPixel
-#                                    drawStr: innerState.drawStr,
-#                                    changes: Clean,
-#                                }
-
-#                            (Clean, Dirty) ->
-#                                # we need to move the cursor to the current position
-#                                # and then draw the new pixel
-#                                toStr (Control (Cursor (Abs currentPosition)))
-
-
-
 
 parseCursor : List U8 -> CursorPosition
 parseCursor = \bytes ->

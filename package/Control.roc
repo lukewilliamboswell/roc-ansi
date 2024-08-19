@@ -45,36 +45,24 @@ toCode = \a ->
                         Restore -> "u"
 
                 Display state ->
-                    "?25"
-                    |> Str.concat
-                        (
-                            when state is
-                                On -> "l"
-                                Off -> "h"
-                        )
+                    when state is
+                        On -> "?25l"
+                        Off -> "?25h"
 
                 Rel direction number ->
-                    Num.toStr number
-                    |> Str.concat
-                        (
-                            when direction is
-                                Up -> "A"
-                                Down -> "B"
-                                Right -> "C"
-                                Left -> "D"
-                        )
+                    when direction is
+                        Up -> "$(Num.toStr number)A"
+                        Down -> "$(Num.toStr number)B"
+                        Right -> "$(Num.toStr number)C"
+                        Left -> "$(Num.toStr number)D"
 
                 Row direction number ->
-                    Num.toStr number
-                    |> Str.concat
-                        (
-                            when direction is
-                                Next -> "E"
-                                Prev -> "F"
-                        )
+                    when direction is
+                        Next -> "$(Num.toStr number)E"
+                        Prev -> "$(Num.toStr number)F"
 
-                Abs { row, col } -> [row, col] |> List.map Num.toStr |> Str.joinWith ";" |> Str.concat "H"
-                Col col -> col |> Num.toStr |> Str.concat "G"
+                Abs { row, col } -> "$(Num.toStr row);$(Num.toStr col)H"
+                Col col -> "$(Num.toStr col)G"
 
         Erase b ->
             when b is

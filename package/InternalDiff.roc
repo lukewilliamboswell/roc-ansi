@@ -1,6 +1,8 @@
-module []
+module [
+    diffPixels,
+]
 
-import Draw exposing [Pixel]
+import InternalDraw exposing [Pixel]
 import Color exposing [Color]
 import Style exposing [Style]
 
