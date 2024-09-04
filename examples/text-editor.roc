@@ -150,11 +150,11 @@ main =
     # Check if the file exists
     fileExists =
         Path.isFile path
-        |> Task.onErr! \err ->
-            if err == PathDoesNotExist then
-                Task.ok Bool.false
-            else
-                Task.err UnableToCheckFile
+            |> Task.onErr! \err ->
+                if err == PathDoesNotExist then
+                    Task.ok Bool.false
+                else
+                    Task.err UnableToCheckFile
 
     # Read the file
     original = getFileContentsTask! { fileExists, path }
@@ -377,10 +377,10 @@ getTerminalSize =
 
     # Move the cursor to bottom right corner of terminal
     [Cursor (Abs { row: 999, col: 999 }), Cursor (Position (Get))]
-    |> List.map Control
-    |> List.map Core.toStr
-    |> Str.joinWith ""
-    |> Stdout.write!
+        |> List.map Control
+        |> List.map Core.toStr
+        |> Str.joinWith ""
+        |> Stdout.write!
 
     # Read the cursor position
     Stdin.bytes {}
