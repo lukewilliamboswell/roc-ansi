@@ -237,6 +237,8 @@ runUILoop = \prevModel ->
             Action Space -> InsertCharacter " "
             Action Enter -> InsertCharacter "\n"
             Symbol symbol -> InsertCharacter (Core.symbolToStr symbol)
+            Upper key -> InsertCharacter (Core.upperToStr key)
+            Lower key -> InsertCharacter (Core.lowerToStr key)
             Ctrl C -> Exit
             Ctrl S -> SaveChanges
             Ctrl Y -> RedoChanges

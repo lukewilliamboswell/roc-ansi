@@ -22,6 +22,8 @@ module [
     drawBox,
     drawCursor,
     symbolToStr,
+    lowerToStr,
+    upperToStr,
 ]
 
 import Color exposing [Color]
