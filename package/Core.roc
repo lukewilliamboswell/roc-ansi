@@ -22,6 +22,8 @@ module [
     drawBox,
     drawCursor,
     symbolToStr,
+    lowerToStr,
+    upperToStr,
 ]
 
 import Color exposing [Color]
@@ -502,16 +504,15 @@ updateCursor = \state, direction ->
 drawScreen : { cursor : CursorPosition, screen : ScreenSize }*, List DrawFn -> Str
 drawScreen = \{ cursor, screen }, drawFns ->
     pixels =
-        row <- List.range { start: At 0, end: Before screen.height } |> List.map
-        col <- List.range { start: At 0, end: Before screen.width } |> List.map
-
-        List.walkUntil
-            drawFns
-            { char: " ", fg: Default, bg: Default, styles: [] }
-            \defaultPixel, drawFn ->
-                when drawFn cursor { row, col } is
-                    Ok pixel -> Break pixel
-                    Err _ -> Continue defaultPixel
+        List.map (List.range { start: At 0, end: Before screen.height }) \row ->
+            List.map (List.range { start: At 0, end: Before screen.width }) \col ->
+                List.walkUntil
+                    drawFns
+                    { char: " ", fg: Default, bg: Default, styles: [] }
+                    \defaultPixel, drawFn ->
+                        when drawFn cursor { row, col } is
+                            Ok pixel -> Break pixel
+                            Err _ -> Continue defaultPixel
 
     pixels
     |> joinAllPixels

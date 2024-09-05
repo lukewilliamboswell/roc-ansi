@@ -1,12 +1,11 @@
 app [main] {
-    cli: platform "https://github.com/roc-lang/basic-cli/releases/download/0.12.0/Lb8EgiejTUzbggO2HVVuPJFkwvvsfW6LojkLR20kTVE.tar.br",
+    cli: platform "https://github.com/roc-lang/basic-cli/releases/download/0.15.0/SlwdbJ-3GR7uBWQo6zlmYWNYOxnvo8r6YABXD-45UOw.tar.br",
     ansi: "../package/main.roc",
 }
 
 import cli.Stdout
 import cli.Stdin
 import cli.Tty
-import cli.Task exposing [Task]
 import cli.Utc
 import ansi.Core
 
@@ -54,11 +53,11 @@ render = \model ->
 main =
 
     # TUI Dashboard
-    Tty.enableRawMode!
+    Tty.enableRawMode! {}
     model = Task.loop! init runUILoop
     # Restore terminal
     Stdout.write! (Core.toStr Reset)
-    Tty.disableRawMode!
+    Tty.disableRawMode! {}
 
     # EXIT or RUN selected solution
     when model.state is
@@ -72,7 +71,7 @@ runUILoop : Model -> Task.Task [Step Model, Done Model] _
 runUILoop = \prevModel ->
 
     # Get the time of this draw
-    now = Utc.now!
+    now = Utc.now! {}
 
     # Update screen size (in case it was resized since the last draw)
     terminalSize = getTerminalSize!
@@ -85,7 +84,7 @@ runUILoop = \prevModel ->
     Core.drawScreen model drawFns |> Stdout.write!
 
     # Get user input
-    input = Stdin.bytes |> Task.map! Core.parseRawStdin
+    input = Stdin.bytes {} |> Task.map! Core.parseRawStdin
 
     # Parse user input into a command
     command =
@@ -126,9 +125,9 @@ runUILoop = \prevModel ->
 
 mapSelected : Model -> List { selected : Bool, s : Str, row : U16 }
 mapSelected = \model ->
-    s, idx <- List.mapWithIndex model.things
-    row = 3 + (Num.toU16 idx)
-    { selected: model.cursor.row == row, s, row }
+    List.mapWithIndex model.things \s, idx ->
+        row = 3 + (Num.toU16 idx)
+        { selected: model.cursor.row == row, s, row }
 
 getSelected : Model -> Result Str [NothingSelected]
 getSelected = \model ->
@@ -145,7 +144,7 @@ getTerminalSize =
     Stdout.write! cmd
 
     # Read the cursor position
-    Stdin.bytes
+    Stdin.bytes {}
         |> Task.map Core.parseCursor
         |> Task.map! \{ row, col } -> { width: col, height: row }
 

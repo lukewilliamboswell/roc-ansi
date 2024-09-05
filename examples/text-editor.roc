@@ -1,5 +1,5 @@
 app [main] {
-    cli: platform "https://github.com/roc-lang/basic-cli/releases/download/0.13.0/nW9yMRtZuCYf1Oa9vbE5XoirMwzLbtoSgv7NGhUlqYA.tar.br",
+    cli: platform "https://github.com/roc-lang/basic-cli/releases/download/0.15.0/SlwdbJ-3GR7uBWQo6zlmYWNYOxnvo8r6YABXD-45UOw.tar.br",
     ansi: "../package/main.roc",
 
     # TODO use unicode when https://github.com/roc-lang/roc/issues/5477 resolved
@@ -12,7 +12,6 @@ import cli.Stdin
 import cli.Tty
 import cli.Arg
 import cli.Path
-import cli.Task exposing [Task]
 # Package with helpers for working with the terminal
 import ansi.Core
 import ansi.PieceTable
@@ -146,29 +145,28 @@ drawViewPort = \{ lines, lineOffset, width, height, position } -> \_, { row, col
 main =
 
     # Read path of file to edit from argument
-    path <- readArgFilePath |> Task.await
+    path = readArgFilePath!
 
     # Check if the file exists
-    fileExists <-
+    fileExists =
         Path.isFile path
-        |> Task.onErr \err ->
-            if err == PathDoesNotExist then
-                Task.ok Bool.false
-            else
-                Task.err UnableToCheckFile
-        |> Task.await
+            |> Task.onErr! \err ->
+                if err == PathDoesNotExist then
+                    Task.ok Bool.false
+                else
+                    Task.err UnableToCheckFile
 
     # Read the file
-    original <- getFileContentsTask { fileExists, path } |> Task.await
+    original = getFileContentsTask! { fileExists, path }
 
     # Loop UI command->update->render
-    {} <- Tty.enableRawMode |> Task.await
-    model <- Task.loop (init original path) runUILoop |> Task.await
+    Tty.enableRawMode! {}
+    model = Task.loop! (init original path) runUILoop
 
     # Restore terminal
-    {} <- Stdout.write (Core.toStr Reset) |> Task.await
-    {} <- Tty.disableRawMode |> Task.await
-    {} <- Stdout.write (Core.toStr (Control (Cursor (Abs { row: 0, col: 0 })))) |> Task.await
+    Stdout.write! (Core.toStr Reset)
+    Tty.disableRawMode! {}
+    Stdout.write! (Core.toStr (Control (Cursor (Abs { row: 0, col: 0 }))))
 
     Stdout.line "Finished editing $(Path.display model.filePath)"
 
@@ -199,7 +197,7 @@ runUILoop : Model -> Task.Task [Step Model, Done Model] []_
 runUILoop = \prevModel ->
 
     # Update screen size (in case it was resized since the last draw)
-    terminalSize <- getTerminalSize |> Task.await
+    terminalSize = getTerminalSize!
 
     # Update the model with screen size and time of this draw
     model = { prevModel & screen: terminalSize }
@@ -222,10 +220,10 @@ runUILoop = \prevModel ->
 
     # Draw the screen
     drawFns = render model lines
-    {} <- Core.drawScreen model drawFns |> Stdout.write |> Task.await
+    Core.drawScreen model drawFns |> Stdout.write!
 
     # Get user input
-    input <- Stdin.bytes |> Task.map Core.parseRawStdin |> Task.await
+    input = Stdin.bytes {} |> Task.map! Core.parseRawStdin
 
     # Parse input into a command
     command =
@@ -239,6 +237,8 @@ runUILoop = \prevModel ->
             Action Space -> InsertCharacter " "
             Action Enter -> InsertCharacter "\n"
             Symbol symbol -> InsertCharacter (Core.symbolToStr symbol)
+            Upper key -> InsertCharacter (Core.upperToStr key)
+            Lower key -> InsertCharacter (Core.lowerToStr key)
             Ctrl C -> Exit
             Ctrl S -> SaveChanges
             Ctrl Y -> RedoChanges
@@ -319,9 +319,8 @@ runUILoop = \prevModel ->
                     |> List.join
 
                 # Write changes to file
-                {} <- Path.writeBytes model.filePath fileBytes
-                    |> Task.mapErr UnableToSaveFile
-                    |> Task.await
+                Path.writeBytes model.filePath fileBytes
+                    |> Task.mapErr! UnableToSaveFile
 
                 # Reset the editor state, cleanup history and rebuild buffers
                 { model2 &
@@ -377,16 +376,14 @@ getTerminalSize : Task.Task Core.ScreenSize []_
 getTerminalSize =
 
     # Move the cursor to bottom right corner of terminal
-    {} <-
-        [Cursor (Abs { row: 999, col: 999 }), Cursor (Position (Get))]
+    [Cursor (Abs { row: 999, col: 999 }), Cursor (Position (Get))]
         |> List.map Control
         |> List.map Core.toStr
         |> Str.joinWith ""
-        |> Stdout.write
-        |> Task.await
+        |> Stdout.write!
 
     # Read the cursor position
-    Stdin.bytes
+    Stdin.bytes {}
     |> Task.map Core.parseCursor
     |> Task.map \{ row, col } -> { width: col, height: row }
 
