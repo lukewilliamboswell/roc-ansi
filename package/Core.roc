@@ -1,6 +1,7 @@
 module [
     # ANSI
     Escape,
+    Color,
     toStr,
     style,
     color,
@@ -26,9 +27,11 @@ module [
     upperToStr,
 ]
 
-import Color exposing [Color]
+import Color
 import Style exposing [Style]
 import Control exposing [Control]
+
+Color : Color.Color
 
 ## [Ansi Escape Codes](https://en.wikipedia.org/wiki/ANSI_escape_code)
 Escape : [
