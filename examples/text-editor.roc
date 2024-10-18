@@ -13,7 +13,7 @@ import cli.Tty
 import cli.Arg
 import cli.Path
 # Package with helpers for working with the terminal
-import ansi.Core
+import ansi.ANSI
 import ansi.PieceTable
 
 # Helpers for working with unicode
@@ -40,10 +40,10 @@ Grapheme : Str
 # Keep track of application state between update->render loop
 Model : {
     # Keep track of screen size to handle resizes
-    screen : Core.ScreenSize,
+    screen : ANSI.ScreenSize,
 
     # Keep track of the cursor position
-    cursor : Core.CursorPosition,
+    cursor : ANSI.CursorPosition,
 
     # Offset the viewPort from the start of file
     lineOffset : U16,
@@ -84,7 +84,7 @@ init = \original, filePath ->
     }
 
 # Render the screen after each update
-render : Model, List (List Grapheme) -> List Core.DrawFn
+render : Model, List (List Grapheme) -> List ANSI.DrawFn
 render = \state, lines ->
 
     changesCount = List.len state.history - 1 |> Num.toStr
@@ -97,8 +97,8 @@ render = \state, lines ->
 
     # Draw functions
     [
-        Core.drawText "ESC to EXIT: $(savedMsg)" { r: state.screen.height - 1, c: 0, fg: Standard Magenta },
-        Core.drawCursor { bg: Standard Green },
+        ANSI.drawText "ESC to EXIT: $(savedMsg)" { r: state.screen.height - 1, c: 0, fg: Standard Magenta },
+        ANSI.drawCursor { bg: Standard Green },
         drawViewPort {
             lines,
             lineOffset: state.lineOffset,
@@ -115,9 +115,9 @@ drawViewPort :
         lineOffset : U16,
         width : U16,
         height : U16,
-        position : Core.CursorPosition,
+        position : ANSI.CursorPosition,
     }
-    -> Core.DrawFn
+    -> ANSI.DrawFn
 drawViewPort = \{ lines, lineOffset, width, height, position } -> \_, { row, col } ->
         if row < position.row || row >= (position.row + height) || col < position.col || col >= (position.col + width) then
             Err {} # only draw pixels within this viewport
@@ -164,9 +164,9 @@ main =
     model = Task.loop! (init original path) runUILoop
 
     # Restore terminal
-    Stdout.write! (Core.toStr Reset)
+    Stdout.write! (ANSI.toStr Reset)
     Tty.disableRawMode! {}
-    Stdout.write! (Core.toStr (Control (Cursor (Abs { row: 0, col: 0 }))))
+    Stdout.write! (ANSI.toStr (Control (Cursor (Abs { row: 0, col: 0 }))))
 
     Stdout.line "Finished editing $(Path.display model.filePath)"
 
@@ -220,10 +220,10 @@ runUILoop = \prevModel ->
 
     # Draw the screen
     drawFns = render model lines
-    Core.drawScreen model drawFns |> Stdout.write!
+    ANSI.drawScreen model drawFns |> Stdout.write!
 
     # Get user input
-    input = Stdin.bytes {} |> Task.map! Core.parseRawStdin
+    input = Stdin.bytes {} |> Task.map! ANSI.parseRawStdin
 
     # Parse input into a command
     command =
@@ -236,9 +236,9 @@ runUILoop = \prevModel ->
             Action Delete -> DeleteUnderCursor
             Action Space -> InsertCharacter " "
             Action Enter -> InsertCharacter "\n"
-            Symbol symbol -> InsertCharacter (Core.symbolToStr symbol)
-            Upper key -> InsertCharacter (Core.upperToStr key)
-            Lower key -> InsertCharacter (Core.lowerToStr key)
+            Symbol symbol -> InsertCharacter (ANSI.symbolToStr symbol)
+            Upper key -> InsertCharacter (ANSI.upperToStr key)
+            Lower key -> InsertCharacter (ANSI.lowerToStr key)
             Ctrl C -> Exit
             Ctrl S -> SaveChanges
             Ctrl Y -> RedoChanges
@@ -297,9 +297,9 @@ runUILoop = \prevModel ->
             }
             |> \m ->
                 if str == "\n" then
-                    Core.updateCursor m Down
+                    ANSI.updateCursor m Down
                 else
-                    Core.updateCursor m Right
+                    ANSI.updateCursor m Right
             |> updateSaveState NotSaved
             |> Step
             |> Task.ok
@@ -346,7 +346,7 @@ runUILoop = \prevModel ->
                 else if model2.cursor.col == model2.screen.width - 1 && direction == Right then
                     model2
                 else
-                    Core.updateCursor model2 direction
+                    ANSI.updateCursor model2 direction
 
             Task.ok (Step model3)
 
@@ -372,19 +372,19 @@ updateUndoRedo = \m, direction ->
                 [.. as rest, latest] -> { m & history: List.append m.history latest, future: rest }
 
 # Get the size of the terminal window
-getTerminalSize : Task.Task Core.ScreenSize []_
+getTerminalSize : Task.Task ANSI.ScreenSize []_
 getTerminalSize =
 
     # Move the cursor to bottom right corner of terminal
     [Cursor (Abs { row: 999, col: 999 }), Cursor (Position (Get))]
         |> List.map Control
-        |> List.map Core.toStr
+        |> List.map ANSI.toStr
         |> Str.joinWith ""
         |> Stdout.write!
 
     # Read the cursor position
     Stdin.bytes {}
-    |> Task.map Core.parseCursor
+    |> Task.map ANSI.parseCursor
     |> Task.map \{ row, col } -> { width: col, height: row }
 
 # Helper to split grepheme's on line breaks
