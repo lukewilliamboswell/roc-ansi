@@ -4,16 +4,16 @@ app [main] {
 }
 
 import cli.Stdout
-import ansi.Core
+import ansi.ANSI
 
 main =
     [
         "The ",
-        "GREEN" |> Core.color { fg: Standard Green },
+        "GREEN" |> ANSI.color { fg: Standard Green },
         " frog, the ",
-        "BLUE" |> Core.color { fg: Standard Blue },
+        "BLUE" |> ANSI.color { fg: Standard Blue },
         " bird, and the ",
-        "RED" |> Core.color { fg: Standard Red },
+        "RED" |> ANSI.color { fg: Standard Red },
         " ant shared a leaf.",
     ]
     |> Str.joinWith ""

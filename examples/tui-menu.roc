@@ -7,15 +7,15 @@ import cli.Stdout
 import cli.Stdin
 import cli.Tty
 import cli.Utc
-import ansi.Core
+import ansi.ANSI
 
 Model : {
-    screen : Core.ScreenSize,
-    cursor : Core.CursorPosition,
+    screen : ANSI.ScreenSize,
+    cursor : ANSI.CursorPosition,
     prevDraw : Utc.Utc,
     currDraw : Utc.Utc,
     things : List Str,
-    inputs : List Core.Input,
+    inputs : List ANSI.Input,
     debug : Bool,
     state : [HomePage, ConfirmPage Str, DoSomething Str, UserExited],
 }
@@ -32,7 +32,7 @@ init = {
     state: HomePage,
 }
 
-render : Model -> List Core.DrawFn
+render : Model -> List ANSI.DrawFn
 render = \model ->
     # PRESS 'd' to toggle debug screen
     debug = if model.debug then debugScreen model else []
@@ -56,7 +56,7 @@ main =
     Tty.enableRawMode! {}
     model = Task.loop! init runUILoop
     # Restore terminal
-    Stdout.write! (Core.toStr Reset)
+    Stdout.write! (ANSI.toStr Reset)
     Tty.disableRawMode! {}
 
     # EXIT or RUN selected solution
@@ -81,10 +81,10 @@ runUILoop = \prevModel ->
 
     # Draw the screen
     drawFns = render model
-    Core.drawScreen model drawFns |> Stdout.write!
+    ANSI.drawScreen model drawFns |> Stdout.write!
 
     # Get user input
-    input = Stdin.bytes {} |> Task.map! Core.parseRawStdin
+    input = Stdin.bytes {} |> Task.map! ANSI.parseRawStdin
 
     # Parse user input into a command
     command =
@@ -110,7 +110,7 @@ runUILoop = \prevModel ->
         Nothing -> Task.ok (Step modelWithInput)
         Exit -> Task.ok (Done { modelWithInput & state: UserExited })
         ToggleDebug -> Task.ok (Step { modelWithInput & debug: !modelWithInput.debug })
-        MoveCursor direction -> Task.ok (Step (Core.updateCursor modelWithInput direction))
+        MoveCursor direction -> Task.ok (Step (ANSI.updateCursor modelWithInput direction))
         UserWantToDoSomthing s -> Task.ok (Done { modelWithInput & state: DoSomething s })
         UserToggledScreen ->
             when modelWithInput.state is
@@ -136,53 +136,53 @@ getSelected = \model ->
     |> List.first
     |> Result.mapErr \_ -> NothingSelected
 
-getTerminalSize : Task.Task Core.ScreenSize _
+getTerminalSize : Task.Task ANSI.ScreenSize _
 getTerminalSize =
 
     # Move the cursor to bottom right corner of terminal
-    cmd = [Cursor (Abs { row: 999, col: 999 }), Cursor (Position (Get))] |> List.map Control |> List.map Core.toStr |> Str.joinWith ""
+    cmd = [Cursor (Abs { row: 999, col: 999 }), Cursor (Position (Get))] |> List.map Control |> List.map ANSI.toStr |> Str.joinWith ""
     Stdout.write! cmd
 
     # Read the cursor position
     Stdin.bytes {}
-        |> Task.map Core.parseCursor
+        |> Task.map ANSI.parseCursor
         |> Task.map! \{ row, col } -> { width: col, height: row }
 
-homeScreen : Model -> List Core.DrawFn
+homeScreen : Model -> List ANSI.DrawFn
 homeScreen = \model ->
     [
         [
-            Core.drawCursor { bg: Standard Green },
-            Core.drawText " Choose your Thing, Toggle debug overlay with 'd'" { r: 1, c: 1, fg: Standard Green },
-            Core.drawText "RUN" { r: 2, c: 11, fg: Standard Blue },
-            Core.drawText "QUIT" { r: 2, c: 26, fg: Standard Red },
-            Core.drawText " ENTER TO RUN, ESCAPE TO QUIT" { r: 2, c: 1, fg: Standard White },
-            Core.drawBox { r: 0, c: 0, w: model.screen.width, h: model.screen.height },
+            ANSI.drawCursor { bg: Standard Green },
+            ANSI.drawText " Choose your Thing, Toggle debug overlay with 'd'" { r: 1, c: 1, fg: Standard Green },
+            ANSI.drawText "RUN" { r: 2, c: 11, fg: Standard Blue },
+            ANSI.drawText "QUIT" { r: 2, c: 26, fg: Standard Red },
+            ANSI.drawText " ENTER TO RUN, ESCAPE TO QUIT" { r: 2, c: 1, fg: Standard White },
+            ANSI.drawBox { r: 0, c: 0, w: model.screen.width, h: model.screen.height },
         ],
         model
         |> mapSelected
         |> List.map \{ selected, s, row } ->
             if selected then
-                Core.drawText " > $(s)" { r: row, c: 2, fg: Standard Green }
+                ANSI.drawText " > $(s)" { r: row, c: 2, fg: Standard Green }
             else
-                Core.drawText " - $(s)" { r: row, c: 2, fg: Standard Black },
+                ANSI.drawText " - $(s)" { r: row, c: 2, fg: Standard Black },
     ]
     |> List.join
 
-confirmScreen : Model -> List Core.DrawFn
+confirmScreen : Model -> List ANSI.DrawFn
 confirmScreen = \state -> [
-    Core.drawCursor { bg: Standard Green },
-    Core.drawText " Would you like to do something?" { r: 1, c: 1, fg: Standard Yellow },
-    Core.drawText "CONFIRM" { r: 2, c: 11, fg: Standard Blue },
-    Core.drawText "RETURN" { r: 2, c: 30, fg: Standard Red },
-    Core.drawText " ENTER TO CONFIRM, ESCAPE TO RETURN" { r: 2, c: 1, fg: Standard White },
-    Core.drawText " count: TBC" { r: 3, c: 1 },
-    Core.drawText " speed: TBC" { r: 4, c: 1 },
-    Core.drawText " size: TBC" { r: 5, c: 1 },
-    Core.drawBox { r: 0, c: 0, w: state.screen.width, h: state.screen.height },
+    ANSI.drawCursor { bg: Standard Green },
+    ANSI.drawText " Would you like to do something?" { r: 1, c: 1, fg: Standard Yellow },
+    ANSI.drawText "CONFIRM" { r: 2, c: 11, fg: Standard Blue },
+    ANSI.drawText "RETURN" { r: 2, c: 30, fg: Standard Red },
+    ANSI.drawText " ENTER TO CONFIRM, ESCAPE TO RETURN" { r: 2, c: 1, fg: Standard White },
+    ANSI.drawText " count: TBC" { r: 3, c: 1 },
+    ANSI.drawText " speed: TBC" { r: 4, c: 1 },
+    ANSI.drawText " size: TBC" { r: 5, c: 1 },
+    ANSI.drawBox { r: 0, c: 0, w: state.screen.width, h: state.screen.height },
 ]
 
-debugScreen : Model -> List Core.DrawFn
+debugScreen : Model -> List ANSI.DrawFn
 debugScreen = \state ->
     cursorStr = "CURSOR R$(Num.toStr state.cursor.row), C$(Num.toStr state.cursor.col)"
     screenStr = "SCREEN H$(Num.toStr state.screen.height), W$(Num.toStr state.screen.width)"
@@ -190,15 +190,15 @@ debugScreen = \state ->
     lastInput =
         state.inputs
         |> List.last
-        |> Result.map Core.inputToStr
+        |> Result.map ANSI.inputToStr
         |> Result.map \str -> "INPUT $(str)"
         |> Result.withDefault "NO INPUT YET"
 
     [
-        Core.drawText lastInput { r: state.screen.height - 5, c: 1, fg: Standard Magenta },
-        Core.drawText inputDeltaStr { r: state.screen.height - 4, c: 1, fg: Standard Magenta },
-        Core.drawText cursorStr { r: state.screen.height - 3, c: 1, fg: Standard Magenta },
-        Core.drawText screenStr { r: state.screen.height - 2, c: 1, fg: Standard Magenta },
-        Core.drawVLine { r: 1, c: state.screen.width // 2, len: state.screen.height, fg: Standard White },
-        Core.drawHLine { c: 1, r: state.screen.height // 2, len: state.screen.width, fg: Standard White },
+        ANSI.drawText lastInput { r: state.screen.height - 5, c: 1, fg: Standard Magenta },
+        ANSI.drawText inputDeltaStr { r: state.screen.height - 4, c: 1, fg: Standard Magenta },
+        ANSI.drawText cursorStr { r: state.screen.height - 3, c: 1, fg: Standard Magenta },
+        ANSI.drawText screenStr { r: state.screen.height - 2, c: 1, fg: Standard Magenta },
+        ANSI.drawVLine { r: 1, c: state.screen.width // 2, len: state.screen.height, fg: Standard White },
+        ANSI.drawHLine { c: 1, r: state.screen.height // 2, len: state.screen.width, fg: Standard White },
     ]
