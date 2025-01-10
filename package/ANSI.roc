@@ -2,7 +2,7 @@ module [
     # ANSI
     Escape,
     Color,
-    toStr,
+    to_str,
     style,
     color,
 
@@ -12,19 +12,19 @@ module [
     ScreenSize,
     CursorPosition,
     Input,
-    parseCursor,
-    updateCursor,
-    inputToStr,
-    parseRawStdin,
-    drawScreen,
-    drawText,
-    drawVLine,
-    drawHLine,
-    drawBox,
-    drawCursor,
-    symbolToStr,
-    lowerToStr,
-    upperToStr,
+    parse_cursor,
+    update_cursor,
+    input_to_str,
+    parse_raw_stdin,
+    draw_screen,
+    draw_text,
+    draw_v_line,
+    draw_h_line,
+    draw_box,
+    draw_cursor,
+    symbol_to_str,
+    lower_to_str,
+    upper_to_str,
 ]
 
 import Color
@@ -39,30 +39,30 @@ Escape : [
     Control Control,
 ]
 
-toStr : Escape -> Str
-toStr = \escape -> "\u(001b)"
-    |> Str.concat
-        (
-            when escape is
-                Reset -> "c"
-                Control control -> "[" |> Str.concat (Control.toCode control)
-        )
+to_str : Escape -> Str
+to_str = \escape ->
+    "\u(001b)"
+    |> Str.concat(
+        when escape is
+            Reset -> "c"
+            Control(control) -> "[" |> Str.concat(Control.to_code(control)),
+    )
 
 ## Add styles to a string
 style : Str, List Style -> Str
 style = \str, styles ->
     styles
-    |> List.map Style
-    |> List.map Control
-    |> List.map toStr
-    |> List.append str
-    |> Str.joinWith ""
+    |> List.map(Style)
+    |> List.map(Control)
+    |> List.map(to_str)
+    |> List.append(str)
+    |> Str.join_with("")
 
-resetStyle = "" |> style [Default]
+reset_style = "" |> style([Default])
 
 ## Add color styles to a string and then resets to default
-color : Str, { fg ? Color, bg ? Color } -> Str
-color = \str, { fg ? Default, bg ? Default } -> str |> style [Foreground (fg), Background (bg)] |> Str.concat resetStyle
+color : Str, { fg ?? Color, bg ?? Color } -> Str
+color = \str, { fg ?? Default, bg ?? Default } -> str |> style([Foreground(fg), Background(bg)]) |> Str.concat(reset_style)
 
 Symbol : [
     ExclamationMark,
@@ -116,164 +116,164 @@ Input : [
     Unsupported (List U8),
 ]
 
-parseRawStdin : List U8 -> Input
-parseRawStdin = \bytes ->
+parse_raw_stdin : List U8 -> Input
+parse_raw_stdin = \bytes ->
     when bytes is
-        [0, ..] -> Ctrl Space
-        [1, ..] -> Ctrl A
-        [2, ..] -> Ctrl B
-        [3, ..] -> Ctrl C
-        [4, ..] -> Ctrl D
-        [5, ..] -> Ctrl E
-        [6, ..] -> Ctrl F
-        [7, ..] -> Ctrl G
-        [8, ..] -> Ctrl H
-        [9, ..] -> Ctrl I
-        [10, ..] -> Ctrl J
-        [11, ..] -> Ctrl K
-        [12, ..] -> Ctrl L
-        [13, ..] -> Action Enter
+        [0, ..] -> Ctrl(Space)
+        [1, ..] -> Ctrl(A)
+        [2, ..] -> Ctrl(B)
+        [3, ..] -> Ctrl(C)
+        [4, ..] -> Ctrl(D)
+        [5, ..] -> Ctrl(E)
+        [6, ..] -> Ctrl(F)
+        [7, ..] -> Ctrl(G)
+        [8, ..] -> Ctrl(H)
+        [9, ..] -> Ctrl(I)
+        [10, ..] -> Ctrl(J)
+        [11, ..] -> Ctrl(K)
+        [12, ..] -> Ctrl(L)
+        [13, ..] -> Action(Enter)
         # [13, ..] -> Ctrl M # Same as Action Enter
-        [14, ..] -> Ctrl N
-        [15, ..] -> Ctrl O
-        [16, ..] -> Ctrl P
-        [17, ..] -> Ctrl Q
-        [18, ..] -> Ctrl R
-        [19, ..] -> Ctrl S
-        [20, ..] -> Ctrl T
-        [21, ..] -> Ctrl U
-        [22, ..] -> Ctrl V
-        [23, ..] -> Ctrl W
-        [24, ..] -> Ctrl X
-        [25, ..] -> Ctrl Y
-        [26, ..] -> Ctrl Z
-        [27, 91, 'A', ..] -> Arrow Up
-        [27, 91, 'B', ..] -> Arrow Down
-        [27, 91, 'C', ..] -> Arrow Right
-        [27, 91, 'D', ..] -> Arrow Left
-        [27, ..] -> Action Escape
+        [14, ..] -> Ctrl(N)
+        [15, ..] -> Ctrl(O)
+        [16, ..] -> Ctrl(P)
+        [17, ..] -> Ctrl(Q)
+        [18, ..] -> Ctrl(R)
+        [19, ..] -> Ctrl(S)
+        [20, ..] -> Ctrl(T)
+        [21, ..] -> Ctrl(U)
+        [22, ..] -> Ctrl(V)
+        [23, ..] -> Ctrl(W)
+        [24, ..] -> Ctrl(X)
+        [25, ..] -> Ctrl(Y)
+        [26, ..] -> Ctrl(Z)
+        [27, 91, 'A', ..] -> Arrow(Up)
+        [27, 91, 'B', ..] -> Arrow(Down)
+        [27, 91, 'C', ..] -> Arrow(Right)
+        [27, 91, 'D', ..] -> Arrow(Left)
+        [27, ..] -> Action(Escape)
         # [27, ..] -> Ctrl SquareOpenBracket # Same as Action Escape
-        [28, ..] -> Ctrl BackSlash
-        [29, ..] -> Ctrl SquareCloseBracket
-        [30, ..] -> Ctrl Caret
-        [31, ..] -> Ctrl Underscore
-        [32, ..] -> Action Space
-        ['!', ..] -> Symbol ExclamationMark
-        ['"', ..] -> Symbol QuotationMark
-        ['#', ..] -> Symbol NumberSign
-        ['$', ..] -> Symbol DollarSign
-        ['%', ..] -> Symbol PercentSign
-        ['&', ..] -> Symbol Ampersand
-        ['\'', ..] -> Symbol Apostrophe
-        ['(', ..] -> Symbol RoundOpenBracket
-        [')', ..] -> Symbol RoundCloseBracket
-        ['*', ..] -> Symbol Asterisk
-        ['+', ..] -> Symbol PlusSign
-        [',', ..] -> Symbol Comma
-        ['-', ..] -> Symbol Hyphen
-        ['.', ..] -> Symbol FullStop
-        ['/', ..] -> Symbol ForwardSlash
-        ['0', ..] -> Number N0
-        ['1', ..] -> Number N1
-        ['2', ..] -> Number N2
-        ['3', ..] -> Number N3
-        ['4', ..] -> Number N4
-        ['5', ..] -> Number N5
-        ['6', ..] -> Number N6
-        ['7', ..] -> Number N7
-        ['8', ..] -> Number N8
-        ['9', ..] -> Number N9
-        [':', ..] -> Symbol Colon
-        [';', ..] -> Symbol SemiColon
-        ['<', ..] -> Symbol LessThanSign
-        ['=', ..] -> Symbol EqualsSign
-        ['>', ..] -> Symbol GreaterThanSign
-        ['?', ..] -> Symbol QuestionMark
-        ['@', ..] -> Symbol AtSign
-        ['A', ..] -> Upper A
-        ['B', ..] -> Upper B
-        ['C', ..] -> Upper C
-        ['D', ..] -> Upper D
-        ['E', ..] -> Upper E
-        ['F', ..] -> Upper F
-        ['G', ..] -> Upper G
-        ['H', ..] -> Upper H
-        ['I', ..] -> Upper I
-        ['J', ..] -> Upper J
-        ['K', ..] -> Upper K
-        ['L', ..] -> Upper L
-        ['M', ..] -> Upper M
-        ['N', ..] -> Upper N
-        ['O', ..] -> Upper O
-        ['P', ..] -> Upper P
-        ['Q', ..] -> Upper Q
-        ['R', ..] -> Upper R
-        ['S', ..] -> Upper S
-        ['T', ..] -> Upper T
-        ['U', ..] -> Upper U
-        ['V', ..] -> Upper V
-        ['W', ..] -> Upper W
-        ['X', ..] -> Upper X
-        ['Y', ..] -> Upper Y
-        ['Z', ..] -> Upper Z
-        ['[', ..] -> Symbol SquareOpenBracket
-        ['\\', ..] -> Symbol Backslash
-        [']', ..] -> Symbol SquareCloseBracket
-        ['^', ..] -> Symbol Caret
-        ['_', ..] -> Symbol Underscore
-        ['`', ..] -> Symbol GraveAccent
-        ['a', ..] -> Lower A
-        ['b', ..] -> Lower B
-        ['c', ..] -> Lower C
-        ['d', ..] -> Lower D
-        ['e', ..] -> Lower E
-        ['f', ..] -> Lower F
-        ['g', ..] -> Lower G
-        ['h', ..] -> Lower H
-        ['i', ..] -> Lower I
-        ['j', ..] -> Lower J
-        ['k', ..] -> Lower K
-        ['l', ..] -> Lower L
-        ['m', ..] -> Lower M
-        ['n', ..] -> Lower N
-        ['o', ..] -> Lower O
-        ['p', ..] -> Lower P
-        ['q', ..] -> Lower Q
-        ['r', ..] -> Lower R
-        ['s', ..] -> Lower S
-        ['t', ..] -> Lower T
-        ['u', ..] -> Lower U
-        ['v', ..] -> Lower V
-        ['w', ..] -> Lower W
-        ['x', ..] -> Lower X
-        ['y', ..] -> Lower Y
-        ['z', ..] -> Lower Z
-        ['{', ..] -> Symbol CurlyOpenBrace
-        ['|', ..] -> Symbol VerticalBar
-        ['}', ..] -> Symbol CurlyCloseBrace
-        ['~', ..] -> Symbol Tilde
-        [127, ..] -> Action Delete
-        _ -> Unsupported bytes
+        [28, ..] -> Ctrl(BackSlash)
+        [29, ..] -> Ctrl(SquareCloseBracket)
+        [30, ..] -> Ctrl(Caret)
+        [31, ..] -> Ctrl(Underscore)
+        [32, ..] -> Action(Space)
+        ['!', ..] -> Symbol(ExclamationMark)
+        ['"', ..] -> Symbol(QuotationMark)
+        ['#', ..] -> Symbol(NumberSign)
+        ['$', ..] -> Symbol(DollarSign)
+        ['%', ..] -> Symbol(PercentSign)
+        ['&', ..] -> Symbol(Ampersand)
+        ['\'', ..] -> Symbol(Apostrophe)
+        ['(', ..] -> Symbol(RoundOpenBracket)
+        [')', ..] -> Symbol(RoundCloseBracket)
+        ['*', ..] -> Symbol(Asterisk)
+        ['+', ..] -> Symbol(PlusSign)
+        [',', ..] -> Symbol(Comma)
+        ['-', ..] -> Symbol(Hyphen)
+        ['.', ..] -> Symbol(FullStop)
+        ['/', ..] -> Symbol(ForwardSlash)
+        ['0', ..] -> Number(N0)
+        ['1', ..] -> Number(N1)
+        ['2', ..] -> Number(N2)
+        ['3', ..] -> Number(N3)
+        ['4', ..] -> Number(N4)
+        ['5', ..] -> Number(N5)
+        ['6', ..] -> Number(N6)
+        ['7', ..] -> Number(N7)
+        ['8', ..] -> Number(N8)
+        ['9', ..] -> Number(N9)
+        [':', ..] -> Symbol(Colon)
+        [';', ..] -> Symbol(SemiColon)
+        ['<', ..] -> Symbol(LessThanSign)
+        ['=', ..] -> Symbol(EqualsSign)
+        ['>', ..] -> Symbol(GreaterThanSign)
+        ['?', ..] -> Symbol(QuestionMark)
+        ['@', ..] -> Symbol(AtSign)
+        ['A', ..] -> Upper(A)
+        ['B', ..] -> Upper(B)
+        ['C', ..] -> Upper(C)
+        ['D', ..] -> Upper(D)
+        ['E', ..] -> Upper(E)
+        ['F', ..] -> Upper(F)
+        ['G', ..] -> Upper(G)
+        ['H', ..] -> Upper(H)
+        ['I', ..] -> Upper(I)
+        ['J', ..] -> Upper(J)
+        ['K', ..] -> Upper(K)
+        ['L', ..] -> Upper(L)
+        ['M', ..] -> Upper(M)
+        ['N', ..] -> Upper(N)
+        ['O', ..] -> Upper(O)
+        ['P', ..] -> Upper(P)
+        ['Q', ..] -> Upper(Q)
+        ['R', ..] -> Upper(R)
+        ['S', ..] -> Upper(S)
+        ['T', ..] -> Upper(T)
+        ['U', ..] -> Upper(U)
+        ['V', ..] -> Upper(V)
+        ['W', ..] -> Upper(W)
+        ['X', ..] -> Upper(X)
+        ['Y', ..] -> Upper(Y)
+        ['Z', ..] -> Upper(Z)
+        ['[', ..] -> Symbol(SquareOpenBracket)
+        ['\\', ..] -> Symbol(Backslash)
+        [']', ..] -> Symbol(SquareCloseBracket)
+        ['^', ..] -> Symbol(Caret)
+        ['_', ..] -> Symbol(Underscore)
+        ['`', ..] -> Symbol(GraveAccent)
+        ['a', ..] -> Lower(A)
+        ['b', ..] -> Lower(B)
+        ['c', ..] -> Lower(C)
+        ['d', ..] -> Lower(D)
+        ['e', ..] -> Lower(E)
+        ['f', ..] -> Lower(F)
+        ['g', ..] -> Lower(G)
+        ['h', ..] -> Lower(H)
+        ['i', ..] -> Lower(I)
+        ['j', ..] -> Lower(J)
+        ['k', ..] -> Lower(K)
+        ['l', ..] -> Lower(L)
+        ['m', ..] -> Lower(M)
+        ['n', ..] -> Lower(N)
+        ['o', ..] -> Lower(O)
+        ['p', ..] -> Lower(P)
+        ['q', ..] -> Lower(Q)
+        ['r', ..] -> Lower(R)
+        ['s', ..] -> Lower(S)
+        ['t', ..] -> Lower(T)
+        ['u', ..] -> Lower(U)
+        ['v', ..] -> Lower(V)
+        ['w', ..] -> Lower(W)
+        ['x', ..] -> Lower(X)
+        ['y', ..] -> Lower(Y)
+        ['z', ..] -> Lower(Z)
+        ['{', ..] -> Symbol(CurlyOpenBrace)
+        ['|', ..] -> Symbol(VerticalBar)
+        ['}', ..] -> Symbol(CurlyCloseBrace)
+        ['~', ..] -> Symbol(Tilde)
+        [127, ..] -> Action(Delete)
+        _ -> Unsupported(bytes)
 
-expect parseRawStdin [27, 91, 65] == Arrow Up
-expect parseRawStdin [27] == Action Escape
+expect parse_raw_stdin([27, 91, 65]) == Arrow(Up)
+expect parse_raw_stdin([27]) == Action(Escape)
 
-inputToStr : Input -> Str
-inputToStr = \input ->
+input_to_str : Input -> Str
+input_to_str = \input ->
     when input is
-        Ctrl key -> "Ctrl - " |> Str.concat (ctrlToStr key)
-        Action key -> "Action " |> Str.concat (actionToStr key)
-        Arrow key -> "Arrow " |> Str.concat (arrowToStr key)
-        Symbol key -> "Symbol " |> Str.concat (symbolToStr key)
-        Number key -> "Number " |> Str.concat (numberToStr key)
-        Upper key -> "Letter " |> Str.concat (upperToStr key)
-        Lower key -> "Letter " |> Str.concat (lowerToStr key)
-        Unsupported bytes ->
-            bytesStr = bytes |> List.map Num.toStr |> Str.joinWith ","
-            "Unsupported [$(bytesStr)]"
+        Ctrl(key) -> "Ctrl - " |> Str.concat(ctrl_to_str(key))
+        Action(key) -> "Action " |> Str.concat(action_to_str(key))
+        Arrow(key) -> "Arrow " |> Str.concat(arrow_to_str(key))
+        Symbol(key) -> "Symbol " |> Str.concat(symbol_to_str(key))
+        Number(key) -> "Number " |> Str.concat(number_to_str(key))
+        Upper(key) -> "Letter " |> Str.concat(upper_to_str(key))
+        Lower(key) -> "Letter " |> Str.concat(lower_to_str(key))
+        Unsupported(bytes) ->
+            bytes_str = bytes |> List.map(Num.to_str) |> Str.join_with(",")
+            "Unsupported [$(bytes_str)]"
 
-ctrlToStr : Ctrl -> Str
-ctrlToStr = \ctrl ->
+ctrl_to_str : Ctrl -> Str
+ctrl_to_str = \ctrl ->
     when ctrl is
         A -> "A"
         B -> "B"
@@ -308,24 +308,24 @@ ctrlToStr = \ctrl ->
         Caret -> "^"
         Underscore -> "_"
 
-actionToStr : Action -> Str
-actionToStr = \action ->
+action_to_str : Action -> Str
+action_to_str = \action ->
     when action is
         Escape -> "Escape"
         Enter -> "Enter"
         Space -> "Space"
         Delete -> "Delete"
 
-arrowToStr : Arrow -> Str
-arrowToStr = \arrow ->
+arrow_to_str : Arrow -> Str
+arrow_to_str = \arrow ->
     when arrow is
         Up -> "Up"
         Down -> "Down"
         Left -> "Left"
         Right -> "Right"
 
-symbolToStr : Symbol -> Str
-symbolToStr = \symbol ->
+symbol_to_str : Symbol -> Str
+symbol_to_str = \symbol ->
     when symbol is
         ExclamationMark -> "!"
         QuotationMark -> "\""
@@ -360,8 +360,8 @@ symbolToStr = \symbol ->
         CurlyCloseBrace -> "}"
         Tilde -> "~"
 
-numberToStr : Number -> Str
-numberToStr = \number ->
+number_to_str : Number -> Str
+number_to_str = \number ->
     when number is
         N0 -> "0"
         N1 -> "1"
@@ -374,8 +374,8 @@ numberToStr = \number ->
         N8 -> "8"
         N9 -> "9"
 
-upperToStr : Letter -> Str
-upperToStr = \letter ->
+upper_to_str : Letter -> Str
+upper_to_str = \letter ->
     when letter is
         A -> "A"
         B -> "B"
@@ -404,8 +404,8 @@ upperToStr = \letter ->
         Y -> "Y"
         Z -> "Z"
 
-lowerToStr : Letter -> Str
-lowerToStr = \letter ->
+lower_to_str : Letter -> Str
+lower_to_str = \letter ->
     when letter is
         A -> "a"
         B -> "b"
@@ -439,37 +439,37 @@ CursorPosition : { row : U16, col : U16 }
 DrawFn : CursorPosition, CursorPosition -> Result Pixel {}
 Pixel : { char : Str, fg : Color, bg : Color, styles : List Style }
 
-parseCursor : List U8 -> CursorPosition
-parseCursor = \bytes ->
-    { val: row, rest: afterFirst } = takeNumber { val: 0, rest: List.dropFirst bytes 2 }
-    { val: col } = takeNumber { val: 0, rest: List.dropFirst afterFirst 1 }
+parse_cursor : List U8 -> CursorPosition
+parse_cursor = \bytes ->
+    { val: row, rest: after_first } = take_number({ val: 0, rest: List.drop_first(bytes, 2) })
+    { val: col } = take_number({ val: 0, rest: List.drop_first(after_first, 1) })
 
     { row, col }
 
 # test "ESC[33;1R"
-expect parseCursor [27, 91, 51, 51, 59, 49, 82] == { row: 33, col: 1 }
+expect parse_cursor([27, 91, 51, 51, 59, 49, 82]) == { row: 33, col: 1 }
 
-takeNumber : { val : U16, rest : List U8 } -> { val : U16, rest : List U8 }
-takeNumber = \in ->
+take_number : { val : U16, rest : List U8 } -> { val : U16, rest : List U8 }
+take_number = \in ->
     when in.rest is
-        [a, ..] if a == '0' -> takeNumber { val: in.val * 10 + 0, rest: List.dropFirst in.rest 1 }
-        [a, ..] if a == '1' -> takeNumber { val: in.val * 10 + 1, rest: List.dropFirst in.rest 1 }
-        [a, ..] if a == '2' -> takeNumber { val: in.val * 10 + 2, rest: List.dropFirst in.rest 1 }
-        [a, ..] if a == '3' -> takeNumber { val: in.val * 10 + 3, rest: List.dropFirst in.rest 1 }
-        [a, ..] if a == '4' -> takeNumber { val: in.val * 10 + 4, rest: List.dropFirst in.rest 1 }
-        [a, ..] if a == '5' -> takeNumber { val: in.val * 10 + 5, rest: List.dropFirst in.rest 1 }
-        [a, ..] if a == '6' -> takeNumber { val: in.val * 10 + 6, rest: List.dropFirst in.rest 1 }
-        [a, ..] if a == '7' -> takeNumber { val: in.val * 10 + 7, rest: List.dropFirst in.rest 1 }
-        [a, ..] if a == '8' -> takeNumber { val: in.val * 10 + 8, rest: List.dropFirst in.rest 1 }
-        [a, ..] if a == '9' -> takeNumber { val: in.val * 10 + 9, rest: List.dropFirst in.rest 1 }
+        [a, ..] if a == '0' -> take_number({ val: in.val * 10 + 0, rest: List.drop_first(in.rest, 1) })
+        [a, ..] if a == '1' -> take_number({ val: in.val * 10 + 1, rest: List.drop_first(in.rest, 1) })
+        [a, ..] if a == '2' -> take_number({ val: in.val * 10 + 2, rest: List.drop_first(in.rest, 1) })
+        [a, ..] if a == '3' -> take_number({ val: in.val * 10 + 3, rest: List.drop_first(in.rest, 1) })
+        [a, ..] if a == '4' -> take_number({ val: in.val * 10 + 4, rest: List.drop_first(in.rest, 1) })
+        [a, ..] if a == '5' -> take_number({ val: in.val * 10 + 5, rest: List.drop_first(in.rest, 1) })
+        [a, ..] if a == '6' -> take_number({ val: in.val * 10 + 6, rest: List.drop_first(in.rest, 1) })
+        [a, ..] if a == '7' -> take_number({ val: in.val * 10 + 7, rest: List.drop_first(in.rest, 1) })
+        [a, ..] if a == '8' -> take_number({ val: in.val * 10 + 8, rest: List.drop_first(in.rest, 1) })
+        [a, ..] if a == '9' -> take_number({ val: in.val * 10 + 9, rest: List.drop_first(in.rest, 1) })
         _ -> in
 
-expect takeNumber { val: 0, rest: [27, 91, 51, 51, 59, 49, 82] } == { val: 0, rest: [27, 91, 51, 51, 59, 49, 82] }
-expect takeNumber { val: 0, rest: [51, 51, 59, 49, 82] } == { val: 33, rest: [59, 49, 82] }
-expect takeNumber { val: 0, rest: [49, 82] } == { val: 1, rest: [82] }
+expect take_number({ val: 0, rest: [27, 91, 51, 51, 59, 49, 82] }) == { val: 0, rest: [27, 91, 51, 51, 59, 49, 82] }
+expect take_number({ val: 0, rest: [51, 51, 59, 49, 82] }) == { val: 33, rest: [59, 49, 82] }
+expect take_number({ val: 0, rest: [49, 82] }) == { val: 1, rest: [82] }
 
-updateCursor : { cursor : CursorPosition, screen : ScreenSize }a, [Up, Down, Left, Right] -> { cursor : CursorPosition, screen : ScreenSize }a
-updateCursor = \state, direction ->
+update_cursor : { cursor : CursorPosition, screen : ScreenSize }a, [Up, Down, Left, Right] -> { cursor : CursorPosition, screen : ScreenSize }a
+update_cursor = \state, direction ->
     when direction is
         Up ->
             { state &
@@ -504,117 +504,130 @@ updateCursor = \state, direction ->
             }
 
 ## Loop through each pixel in screen and build up a single string to write to stdout
-drawScreen : { cursor : CursorPosition, screen : ScreenSize }*, List DrawFn -> Str
-drawScreen = \{ cursor, screen }, drawFns ->
+draw_screen : { cursor : CursorPosition, screen : ScreenSize }*, List DrawFn -> Str
+draw_screen = \{ cursor, screen }, draw_fns ->
     pixels =
-        List.map (List.range { start: At 0, end: Before screen.height }) \row ->
-            List.map (List.range { start: At 0, end: Before screen.width }) \col ->
-                List.walkUntil
-                    drawFns
-                    { char: " ", fg: Default, bg: Default, styles: [] }
-                    \defaultPixel, drawFn ->
-                        when drawFn cursor { row, col } is
-                            Ok pixel -> Break pixel
-                            Err _ -> Continue defaultPixel
+        List.map(
+            List.range({ start: At(0), end: Before(screen.height) }),
+            \row ->
+                List.map(
+                    List.range({ start: At(0), end: Before(screen.width) }),
+                    \col ->
+                        List.walk_until(
+                            draw_fns,
+                            { char: " ", fg: Default, bg: Default, styles: [] },
+                            \default_pixel, draw_fn ->
+                                when draw_fn(cursor, { row, col }) is
+                                    Ok(pixel) -> Break(pixel)
+                                    Err(_) -> Continue(default_pixel),
+                        ),
+                ),
+        )
 
     pixels
-    |> joinAllPixels
+    |> join_all_pixels
 
-joinAllPixels : List (List Pixel) -> Str
-joinAllPixels = \rows ->
+join_all_pixels : List (List Pixel) -> Str
+join_all_pixels = \rows ->
 
-    walkWithIndex = \remaining, idx, state, fn ->
+    walk_with_index = \remaining, idx, state, fn ->
         when remaining is
             [] -> state
-            [head, .. as rest] -> walkWithIndex rest (idx + 1) (fn state head idx) fn
+            [head, .. as rest] -> walk_with_index(rest, (idx + 1), fn(state, head, idx), fn)
 
     init = {
         char: " ",
         fg: Default,
         bg: Default,
-        lines: List.withCapacity (List.len rows),
+        lines: List.with_capacity(List.len(rows)),
         styles: [],
     }
 
-    walkWithIndex rows 0 init joinPixelRow
+    walk_with_index(rows, 0, init, join_pixel_row)
     |> .lines
-    |> Str.joinWith ""
+    |> Str.join_with("")
 
-joinPixelRow : { char : Str, fg : Color, bg : Color, lines : List Str, styles : List Style }, List Pixel, U64 -> { char : Str, fg : Color, bg : Color, lines : List Str, styles : List Style }
-joinPixelRow = \{ char, fg, bg, lines, styles }, pixelRow, row ->
+join_pixel_row : { char : Str, fg : Color, bg : Color, lines : List Str, styles : List Style }, List Pixel, U64 -> { char : Str, fg : Color, bg : Color, lines : List Str, styles : List Style }
+join_pixel_row = \{ char, fg, bg, lines, styles }, pixel_row, row ->
 
-    { rowStrs, prev } =
-        List.walk
-            pixelRow
-            { rowStrs: List.withCapacity (Num.intCast (List.len pixelRow)), prev: { char, fg, bg, styles } }
-            joinPixels
+    { row_strs, prev } =
+        List.walk(
+            pixel_row,
+            { row_strs: List.with_capacity(Num.int_cast(List.len(pixel_row))), prev: { char, fg, bg, styles } },
+            join_pixels,
+        )
 
     line =
-        rowStrs
-        |> Str.joinWith "" # Set cursor at the start of line we want to draw
-        |> Str.withPrefix (toStr (Control (Cursor (Abs { row: Num.toU16 (row + 1), col: 0 }))))
+        row_strs
+        |> Str.join_with("") # Set cursor at the start of line we want to draw
+        |> Str.with_prefix(to_str(Control(Cursor(Abs({ row: Num.to_u16((row + 1)), col: 0 })))))
 
-    { char: " ", fg: prev.fg, bg: prev.bg, lines: List.append lines line, styles: prev.styles }
+    { char: " ", fg: prev.fg, bg: prev.bg, lines: List.append(lines, line), styles: prev.styles }
 
-joinPixels : { rowStrs : List Str, prev : Pixel }, Pixel -> { rowStrs : List Str, prev : Pixel }
-joinPixels = \{ rowStrs, prev }, curr ->
-    pixelStr =
+join_pixels : { row_strs : List Str, prev : Pixel }, Pixel -> { row_strs : List Str, prev : Pixel }
+join_pixels = \{ row_strs, prev }, curr ->
+    pixel_str =
         # Prepend an ASCII escape ONLY if there is a change between pixels
         curr.char
-        |> \str -> if curr.fg != prev.fg then Str.concat (toStr (Control (Style (Foreground curr.fg)))) str else str
-        |> \str -> if curr.bg != prev.bg then Str.concat (toStr (Control (Style (Background curr.bg)))) str else str
+        |> \str -> if curr.fg != prev.fg then Str.concat(to_str(Control(Style(Foreground(curr.fg)))), str) else str
+        |> \str -> if curr.bg != prev.bg then Str.concat(to_str(Control(Style(Background(curr.bg)))), str) else str
 
-    { rowStrs: List.append rowStrs pixelStr, prev: curr }
+    { row_strs: List.append(row_strs, pixel_str), prev: curr }
 
-drawBox : { r : U16, c : U16, w : U16, h : U16, fg ? Color, bg ? Color, char ? Str, styles ? List Style } -> DrawFn
-drawBox = \{ r, c, w, h, fg ? Default, bg ? Default, char ? "#", styles ? [] } -> \_, { row, col } ->
+draw_box : { r : U16, c : U16, w : U16, h : U16, fg ?? Color, bg ?? Color, char ?? Str, styles ?? List Style } -> DrawFn
+draw_box = \{ r, c, w, h, fg ?? Default, bg ?? Default, char ?? "#", styles ?? [] } ->
+    \_, { row, col } ->
 
-        startRow = r
-        endRow = (r + h)
-        startCol = c
-        endCol = (c + w)
+        start_row = r
+        end_row = (r + h)
+        start_col = c
+        end_col = (c + w)
 
-        if row == r && (col >= startCol && col < endCol) then
-            Ok { char, fg, bg, styles } # TOP BORDER
-        else if row == (r + h - 1) && (col >= startCol && col < endCol) then
-            Ok { char, fg, bg, styles } # BOTTOM BORDER
-        else if col == c && (row >= startRow && row < endRow) then
-            Ok { char, fg, bg, styles } # LEFT BORDER
-        else if col == (c + w - 1) && (row >= startRow && row < endRow) then
-            Ok { char, fg, bg, styles } # RIGHT BORDER
+        if row == r && (col >= start_col && col < end_col) then
+            Ok({ char, fg, bg, styles }) # TOP BORDER
+        else if row == (r + h - 1) && (col >= start_col && col < end_col) then
+            Ok({ char, fg, bg, styles }) # BOTTOM BORDER
+        else if col == c && (row >= start_row && row < end_row) then
+            Ok({ char, fg, bg, styles }) # LEFT BORDER
+        else if col == (c + w - 1) && (row >= start_row && row < end_row) then
+            Ok({ char, fg, bg, styles }) # RIGHT BORDER
         else
-            Err {}
+            Err({})
 
-drawVLine : { r : U16, c : U16, len : U16, fg ? Color, bg ? Color, char ? Str, styles ? List Style } -> DrawFn
-drawVLine = \{ r, c, len, fg ? Default, bg ? Default, char ? "|", styles ? [] } -> \_, { row, col } ->
+draw_v_line : { r : U16, c : U16, len : U16, fg ?? Color, bg ?? Color, char ?? Str, styles ?? List Style } -> DrawFn
+draw_v_line = \{ r, c, len, fg ?? Default, bg ?? Default, char ?? "|", styles ?? [] } ->
+    \_, { row, col } ->
         if col == c && (row >= r && row < (r + len)) then
-            Ok { char, fg, bg, styles }
+            Ok({ char, fg, bg, styles })
         else
-            Err {}
+            Err({})
 
-drawHLine : { r : U16, c : U16, len : U16, fg ? Color, bg ? Color, char ? Str, styles ? List Style } -> DrawFn
-drawHLine = \{ r, c, len, fg ? Default, bg ? Default, char ? "-", styles ? [] } -> \_, { row, col } ->
+draw_h_line : { r : U16, c : U16, len : U16, fg ?? Color, bg ?? Color, char ?? Str, styles ?? List Style } -> DrawFn
+draw_h_line = \{ r, c, len, fg ?? Default, bg ?? Default, char ?? "-", styles ?? [] } ->
+    \_, { row, col } ->
         if row == r && (col >= c && col < (c + len)) then
-            Ok { char, fg, bg, styles }
+            Ok({ char, fg, bg, styles })
         else
-            Err {}
+            Err({})
 
-drawCursor : { fg ? Color, bg ? Color, char ? Str, styles ? List Style } -> DrawFn
-drawCursor = \{ fg ? Default, bg ? Default, char ? " ", styles ? [] } -> \cursor, { row, col } ->
+draw_cursor : { fg ?? Color, bg ?? Color, char ?? Str, styles ?? List Style } -> DrawFn
+draw_cursor = \{ fg ?? Default, bg ?? Default, char ?? " ", styles ?? [] } ->
+    \cursor, { row, col } ->
         if (row == cursor.row) && (col == cursor.col) then
-            Ok { char, fg, bg, styles }
+            Ok({ char, fg, bg, styles })
         else
-            Err {}
+            Err({})
 
-drawText : Str, { r : U16, c : U16, fg ? Color, bg ? Color, styles ? List Style } -> DrawFn
-drawText = \text, { r, c, fg ? Default, bg ? Default, styles ? [] } -> \_, pixel ->
-        bytes = Str.toUtf8 text
-        len = text |> Str.toUtf8 |> List.len |> Num.toU16
+draw_text : Str, { r : U16, c : U16, fg ?? Color, bg ?? Color, styles ?? List Style } -> DrawFn
+draw_text = \text, { r, c, fg ?? Default, bg ?? Default, styles ?? [] } ->
+    \_, pixel ->
+        bytes = Str.to_utf8(text)
+        len = text |> Str.to_utf8 |> List.len |> Num.to_u16
         if pixel.row == r && pixel.col >= c && pixel.col < (c + len) then
             bytes
-            |> List.get (Num.intCast (pixel.col - c))
-            |> Result.try \b -> Str.fromUtf8 [b]
-            |> Result.map \char -> { char, fg, bg, styles }
-            |> Result.mapErr \_ -> {}
+            |> List.get(Num.int_cast((pixel.col - c)))
+            |> Result.try(\b -> Str.from_utf8([b]))
+            |> Result.map(\char -> { char, fg, bg, styles })
+            |> Result.map_err(\_ -> {})
         else
-            Err {}
+            Err({})

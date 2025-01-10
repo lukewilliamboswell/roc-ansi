@@ -1,4 +1,4 @@
-module [Control, toCode]
+module [Control, to_code]
 
 import Style exposing [Style]
 
@@ -29,56 +29,53 @@ Control : [
     Style Style,
 ]
 
-toCode : Control -> Str
-toCode = \a ->
+to_code : Control -> Str
+to_code = \a ->
     when a is
-        Screen b ->
+        Screen(b) ->
             when b is
                 Size -> "18t"
 
-        Cursor b ->
+        Cursor(b) ->
             when b is
-                Position state ->
+                Position(state) ->
                     when state is
                         Get -> "6n"
                         Save -> "s"
                         Restore -> "u"
 
-                Display state ->
+                Display(state) ->
                     "?25"
-                    |> Str.concat
-                        (
-                            when state is
-                                On -> "l"
-                                Off -> "h"
-                        )
+                    |> Str.concat(
+                        when state is
+                            On -> "l"
+                            Off -> "h",
+                    )
 
-                Rel direction number ->
-                    Num.toStr number
-                    |> Str.concat
-                        (
-                            when direction is
-                                Up -> "A"
-                                Down -> "B"
-                                Right -> "C"
-                                Left -> "D"
-                        )
+                Rel(direction, number) ->
+                    Num.to_str(number)
+                    |> Str.concat(
+                        when direction is
+                            Up -> "A"
+                            Down -> "B"
+                            Right -> "C"
+                            Left -> "D",
+                    )
 
-                Row direction number ->
-                    Num.toStr number
-                    |> Str.concat
-                        (
-                            when direction is
-                                Next -> "E"
-                                Prev -> "F"
-                        )
+                Row(direction, number) ->
+                    Num.to_str(number)
+                    |> Str.concat(
+                        when direction is
+                            Next -> "E"
+                            Prev -> "F",
+                    )
 
-                Abs { row, col } -> [row, col] |> List.map Num.toStr |> Str.joinWith ";" |> Str.concat "H"
-                Col col -> col |> Num.toStr |> Str.concat "G"
+                Abs({ row, col }) -> [row, col] |> List.map(Num.to_str) |> Str.join_with(";") |> Str.concat("H")
+                Col(col) -> col |> Num.to_str |> Str.concat("G")
 
-        Erase b ->
+        Erase(b) ->
             when b is
-                Display d ->
+                Display(d) ->
                     (
                         when d is
                             ToEnd -> 0
@@ -86,26 +83,25 @@ toCode = \a ->
                             All -> 2
                         # ClearScreen -> 3
                     )
-                    |> Num.toStr
-                    |> Str.concat "J"
+                    |> Num.to_str
+                    |> Str.concat("J")
 
-                Line l ->
+                Line(l) ->
                     (
                         when l is
                             ToEnd -> 0
                             ToStart -> 1
                             All -> 2
                     )
-                    |> Num.toStr
-                    |> Str.concat "K"
+                    |> Num.to_str
+                    |> Str.concat("K")
 
-        Scroll direction lines ->
-            Num.toStr lines
-            |> Str.concat
-                (
-                    when direction is
-                        Up -> "S"
-                        Down -> "T"
-                )
+        Scroll(direction, lines) ->
+            Num.to_str(lines)
+            |> Str.concat(
+                when direction is
+                    Up -> "S"
+                    Down -> "T",
+            )
 
-        Style style -> style |> Style.toCode |> List.map Num.toStr |> Str.joinWith ";" |> Str.concat "m"
+        Style(style) -> style |> Style.to_code |> List.map(Num.to_str) |> Str.join_with(";") |> Str.concat("m")
