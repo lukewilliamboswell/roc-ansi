@@ -67,7 +67,7 @@ main! = \_ ->
     # EXIT or RUN selected solution
     when model.state is
         DoSomething(selected) ->
-            Stdout.line!("Doing something with $(selected)... now exiting...")
+            Stdout.line!("Doing something with ${selected}... now exiting...")
 
         _ ->
             Stdout.line!("Exiting...")
@@ -172,9 +172,9 @@ home_screen = \model ->
         |> List.map(
             \{ selected, s, row } ->
                 if selected then
-                    ANSI.draw_text(" > $(s)", { r: row, c: 2, fg: Standard(Green) })
+                    ANSI.draw_text(" > ${s}", { r: row, c: 2, fg: Standard(Green) })
                 else
-                    ANSI.draw_text(" - $(s)", { r: row, c: 2, fg: Standard(Black) }),
+                    ANSI.draw_text(" - ${s}", { r: row, c: 2, fg: Standard(Black) }),
         ),
     ]
     |> List.join
@@ -194,14 +194,14 @@ confirm_screen = \state -> [
 
 debug_screen : Model -> List ANSI.DrawFn
 debug_screen = \state ->
-    cursor_str = "CURSOR R$(Num.to_str(state.cursor.row)), C$(Num.to_str(state.cursor.col))"
-    screen_str = "SCREEN H$(Num.to_str(state.screen.height)), W$(Num.to_str(state.screen.width))"
-    input_delta_str = "DELTA $(Num.to_str(Utc.delta_as_millis(state.prev_draw, state.curr_draw))) millis"
+    cursor_str = "CURSOR R${Num.to_str(state.cursor.row)}, C${Num.to_str(state.cursor.col)}"
+    screen_str = "SCREEN H${Num.to_str(state.screen.height)}, W${Num.to_str(state.screen.width)}"
+    input_delta_str = "DELTA ${Num.to_str(Utc.delta_as_millis(state.prev_draw, state.curr_draw))} millis"
     last_input =
         state.inputs
         |> List.last
         |> Result.map(ANSI.input_to_str)
-        |> Result.map(\str -> "INPUT $(str)")
+        |> Result.map(\str -> "INPUT ${str}")
         |> Result.with_default("NO INPUT YET")
 
     [

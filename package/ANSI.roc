@@ -270,7 +270,7 @@ input_to_str = \input ->
         Lower(key) -> "Letter " |> Str.concat(lower_to_str(key))
         Unsupported(bytes) ->
             bytes_str = bytes |> List.map(Num.to_str) |> Str.join_with(",")
-            "Unsupported [$(bytes_str)]"
+            "Unsupported [${bytes_str}]"
 
 ctrl_to_str : Ctrl -> Str
 ctrl_to_str = \ctrl ->

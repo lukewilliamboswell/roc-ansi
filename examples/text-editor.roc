@@ -91,13 +91,13 @@ render = \state, lines ->
     redo_msg = if List.len(state.future) > 0 then ", CTRL-Y to Redo changes" else ""
     saved_msg =
         when state.save_state is
-            NoChanges -> "Nothing to save$(redo_msg)"
-            NotSaved -> "CTRL-S to save $(changes_count) changes, CTRL-Z to Undo changes$(redo_msg)"
-            Saved -> "Changes saved to $(Path.display(state.file_path))"
+            NoChanges -> "Nothing to save${redo_msg}"
+            NotSaved -> "CTRL-S to save ${changes_count} changes, CTRL-Z to Undo changes${redo_msg}"
+            Saved -> "Changes saved to ${Path.display(state.file_path)}"
 
     # Draw functions
     [
-        ANSI.draw_text("ESC to EXIT: $(saved_msg)", { r: state.screen.height - 1, c: 0, fg: Standard(Magenta) }),
+        ANSI.draw_text("ESC to EXIT: ${saved_msg}", { r: state.screen.height - 1, c: 0, fg: Standard(Magenta) }),
         ANSI.draw_cursor({ bg: Standard(Green) }),
         draw_view_port(
             {
@@ -174,7 +174,7 @@ main! = \args ->
     Tty.disable_raw_mode!({})
     Stdout.write!(ANSI.to_str(Control(Cursor(Abs({ row: 0, col: 0 })))))?
 
-    Stdout.line!("Finished editing $(Path.display(model.file_path))")
+    Stdout.line!("Finished editing ${Path.display(model.file_path)}")
 
 # A task that will read the file contents, split into extended grapheme clusters
 get_file_contents! : { file_exists : Bool, path : Path.Path } => Result (List Grapheme) _
