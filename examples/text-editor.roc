@@ -201,7 +201,7 @@ read_arg_file_path = |args|
             |> Path.from_str
             |> Ok
 
-        _ -> Err(FailedToReadArgs ("expected file argument e.g. 'roc run tui-editor.roc -- file.txt'"))
+        _ -> Err(FailedToReadArgs ("expected file argument e.g. 'roc run text-editor.roc -- file.txt'"))
 
 # UI Loop command->update->render
 run_ui_loop! : Model => Result Model []_
