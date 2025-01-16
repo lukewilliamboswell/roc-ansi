@@ -7,7 +7,7 @@ app [main!] {
 import cli.Stdout
 import ansi.ANSI
 
-main! = \_ ->
+main! = |_|
     [
         "Bold On" |> ANSI.style([Bold(On)]) |> ANSI.style([Default]),
         "Faint On" |> ANSI.style([Faint(On)]) |> ANSI.style([Default]),

@@ -34,7 +34,7 @@ init = {
 }
 
 render : Model -> List ANSI.DrawFn
-render = \model ->
+render = |model|
     # PRESS 'd' to toggle debug screen
     debug = if model.debug then debug_screen(model) else []
 
@@ -55,7 +55,7 @@ render = \model ->
                 ],
             )
 
-main! = \_ ->
+main! = |_|
 
     # TUI Dashboard
     Tty.enable_raw_mode!({})
@@ -73,7 +73,7 @@ main! = \_ ->
             Stdout.line!("Exiting...")
 
 run_ui_loop! : Model => Result Model []_
-run_ui_loop! = \prev_model ->
+run_ui_loop! = |prev_model|
 
     # Get the time of this draw
     now = Utc.now!({})
@@ -129,23 +129,23 @@ run_ui_loop! = \prev_model ->
                 _ -> run_ui_loop!({ model_with_input & state: HomePage })
 
 map_selected : Model -> List { selected : Bool, s : Str, row : U16 }
-map_selected = \model ->
+map_selected = |model|
     List.map_with_index(
         model.things,
-        \s, idx ->
+        |s, idx|
             row = 3 + (Num.to_u16(idx))
             { selected: model.cursor.row == row, s, row },
     )
 
 get_selected : Model -> Result Str [NothingSelected]
-get_selected = \model ->
+get_selected = |model|
     map_selected(model)
-    |> List.keep_oks(\{ selected, s } -> if selected then Ok(s) else Err({}))
+    |> List.keep_oks(|{ selected, s }| if selected then Ok(s) else Err({}))
     |> List.first
-    |> Result.map_err(\_ -> NothingSelected)
+    |> Result.map_err(|_| NothingSelected)
 
 get_terminal_size! : {} => Result ANSI.ScreenSize _
-get_terminal_size! = \{} ->
+get_terminal_size! = |{}|
 
     # Move the cursor to bottom right corner of terminal
     cmd = [Cursor(Abs({ row: 999, col: 999 })), Cursor(Position(Get))] |> List.map(Control) |> List.map(ANSI.to_str) |> Str.join_with("")
@@ -154,10 +154,10 @@ get_terminal_size! = \{} ->
     # Read the cursor position
     Stdin.bytes!({})
     |> Result.map(ANSI.parse_cursor)
-    |> Result.map(\{ row, col } -> { width: col, height: row })
+    |> Result.map(|{ row, col }| { width: col, height: row })
 
 home_screen : Model -> List ANSI.DrawFn
-home_screen = \model ->
+home_screen = |model|
     [
         [
             ANSI.draw_cursor({ bg: Standard(Green) }),
@@ -170,7 +170,7 @@ home_screen = \model ->
         model
         |> map_selected
         |> List.map(
-            \{ selected, s, row } ->
+            |{ selected, s, row }|
                 if selected then
                     ANSI.draw_text(" > ${s}", { r: row, c: 2, fg: Standard(Green) })
                 else
@@ -180,7 +180,7 @@ home_screen = \model ->
     |> List.join
 
 confirm_screen : Model -> List ANSI.DrawFn
-confirm_screen = \state -> [
+confirm_screen = |state| [
     ANSI.draw_cursor({ bg: Standard(Green) }),
     ANSI.draw_text(" Would you like to do something?", { r: 1, c: 1, fg: Standard(Yellow) }),
     ANSI.draw_text("CONFIRM", { r: 2, c: 11, fg: Standard(Blue) }),
@@ -193,7 +193,7 @@ confirm_screen = \state -> [
 ]
 
 debug_screen : Model -> List ANSI.DrawFn
-debug_screen = \state ->
+debug_screen = |state|
     cursor_str = "CURSOR R${Num.to_str(state.cursor.row)}, C${Num.to_str(state.cursor.col)}"
     screen_str = "SCREEN H${Num.to_str(state.screen.height)}, W${Num.to_str(state.screen.width)}"
     input_delta_str = "DELTA ${Num.to_str(Utc.delta_as_millis(state.prev_draw, state.curr_draw))} millis"
@@ -201,7 +201,7 @@ debug_screen = \state ->
         state.inputs
         |> List.last
         |> Result.map(ANSI.input_to_str)
-        |> Result.map(\str -> "INPUT ${str}")
+        |> Result.map(|str| "INPUT ${str}")
         |> Result.with_default("NO INPUT YET")
 
     [

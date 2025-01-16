@@ -28,10 +28,10 @@ import ansi.PieceTable
 #
 # This is required as the above bug prevents CI from running.
 split : Str -> Result (List Str) []
-split = \in ->
+split = |in|
     in
     |> Str.to_utf8
-    |> List.keep_oks(\char -> Str.from_utf8([char]))
+    |> List.keep_oks(|char| Str.from_utf8([char]))
     |> Ok
 
 # We are working with a single visible "character", let's use an alias to help with type checking
@@ -65,7 +65,7 @@ Model : {
 
 # Initilise the application state
 init : List Grapheme, Path.Path -> Model
-init = \original, file_path ->
+init = |original, file_path|
 
     # initialise with the contents of the text file we want to edit
     first_piece_table : List PieceTable.Entry
@@ -85,7 +85,7 @@ init = \original, file_path ->
 
 # Render the screen after each update
 render : Model, List (List Grapheme) -> List ANSI.DrawFn
-render = \state, lines ->
+render = |state, lines|
 
     changes_count = List.len(state.history) - 1 |> Num.to_str
     redo_msg = if List.len(state.future) > 0 then ", CTRL-Y to Redo changes" else ""
@@ -120,8 +120,8 @@ draw_view_port :
         position : ANSI.CursorPosition,
     }
     -> ANSI.DrawFn
-draw_view_port = \{ lines, line_offset, width, height, position } ->
-    \_, { row, col } ->
+draw_view_port = |{ lines, line_offset, width, height, position }|
+    |_, { row, col }|
         if row < position.row || row >= (position.row + height) || col < position.col || col >= (position.col + width) then
             Err({}) # only draw pixels within this viewport
         else
@@ -145,7 +145,7 @@ draw_view_port = \{ lines, line_offset, width, height, position } ->
                         char = List.get(line, char_index) |> Result.with_default (" ")
                         Ok({ char, fg: Default, bg: Default, styles: [] })
 
-main! = \args ->
+main! = |args|
 
     # Read path of file to edit from argument
     path = read_arg_file_path(args)?
@@ -154,7 +154,7 @@ main! = \args ->
     file_exists =
         Path.is_file!(path)
         |> Result.on_err!(
-            \err ->
+            |err|
                 if err == PathDoesNotExist then
                     Ok(Bool.false)
                 else
@@ -178,12 +178,12 @@ main! = \args ->
 
 # A task that will read the file contents, split into extended grapheme clusters
 get_file_contents! : { file_exists : Bool, path : Path.Path } => Result (List Grapheme) _
-get_file_contents! = \{ file_exists, path } ->
+get_file_contents! = |{ file_exists, path }|
     if file_exists then
         Path.read_utf8!(path)
         |> Result.map_err(UnableToOpenFile)
         |> Result.try(
-            \file_contents ->
+            |file_contents|
                 file_contents
                 |> split
                 |> Result.map_err(UnableToSplitIntoGraphemes),
@@ -193,7 +193,7 @@ get_file_contents! = \{ file_exists, path } ->
 
 # Get the file path from the first argument
 read_arg_file_path : List Arg.Arg -> Result Path.Path _
-read_arg_file_path = \args ->
+read_arg_file_path = |args|
     when args is
         [_, path_arg, ..] ->
             path_arg
@@ -205,7 +205,7 @@ read_arg_file_path = \args ->
 
 # UI Loop command->update->render
 run_ui_loop! : Model => Result Model []_
-run_ui_loop! = \prev_model ->
+run_ui_loop! = |prev_model|
 
     # Update screen size (in case it was resized since the last draw)
     terminal_size = get_terminal_size!({})?
@@ -307,7 +307,7 @@ run_ui_loop! = \prev_model ->
                 # remove future as it is now stale
                 added: added,
             }
-            |> \m ->
+            |> |m|
                 if str == "\n" then
                     ANSI.update_cursor(m, Down)
                 else
@@ -362,11 +362,11 @@ run_ui_loop! = \prev_model ->
             run_ui_loop!(model3)
 
 update_save_state : Model, [NoChanges, NotSaved, Saved] -> Model
-update_save_state = \m, save_state -> { m & save_state }
+update_save_state = |m, save_state| { m & save_state }
 
 # undo moves table entries from history to future so they can be moved back if we redo
 update_undo_redo : Model, [Undo, Redo] -> Model
-update_undo_redo = \m, direction ->
+update_undo_redo = |m, direction|
     when direction is
         Undo ->
             when m.history is
@@ -384,7 +384,7 @@ update_undo_redo = \m, direction ->
 
 # Get the size of the terminal window
 get_terminal_size! : {} => Result ANSI.ScreenSize []_
-get_terminal_size! = \{} ->
+get_terminal_size! = |{}|
 
     # Move the cursor to bottom right corner of terminal
     [Cursor(Abs({ row: 999, col: 999 })), Cursor(Position(Get))]
@@ -397,11 +397,11 @@ get_terminal_size! = \{} ->
     # Read the cursor position
     Stdin.bytes!({})
     |> Result.map(ANSI.parse_cursor)
-    |> Result.map(\{ row, col } -> { width: col, height: row })
+    |> Result.map(|{ row, col }| { width: col, height: row })
 
 # Helper to split grepheme's on line breaks
 split_into_lines : List Grapheme, List Grapheme, List (List Grapheme) -> List (List Grapheme)
-split_into_lines = \chars, line, lines ->
+split_into_lines = |chars, line, lines|
     when chars is
         [] if List.is_empty(line) -> lines
         [] -> List.append(lines, line)
@@ -415,7 +415,7 @@ expect split_into_lines(["f", "o", "o", "\r\n", "b", "a", "r"], [], []) == [["f"
 # We need to know the index of the cursor relative to the text content, the
 # content has been broken into lines as CLRF and LF which we need to account for.
 calculate_cursor_index : List (List Grapheme), U16, { row : U16, col : U16 }, U64 -> U64
-calculate_cursor_index = \lines, line_offset, cursor, acc ->
+calculate_cursor_index = |lines, line_offset, cursor, acc|
     if line_offset > 0 then
         # add the length of each line that isn't displayed (before viewport)
         when lines is

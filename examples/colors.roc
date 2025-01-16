@@ -7,7 +7,7 @@ app [main!] {
 import cli.Stdout
 import ansi.ANSI
 
-main! = \_ ->
+main! = |_|
     [
         "Default color" |> ANSI.color({ fg: Default, bg: Default }),
         "Ansi 16 colors",
