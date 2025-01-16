@@ -1,4 +1,4 @@
-module [Style, toCode]
+module [Style, to_code]
 
 import Color exposing [Color]
 
@@ -18,39 +18,39 @@ Style : [
     Background Color,
 ]
 
-toCode : Style -> List U8
-toCode = \a ->
+to_code : Style -> List U8
+to_code = |a|
     when a is
         Default -> [0]
-        Bold state ->
+        Bold(state) ->
             when state is
                 On -> [1]
                 Off -> [22]
 
-        Faint state ->
+        Faint(state) ->
             when state is
                 On -> [2]
                 Off -> [22]
 
-        Italic state ->
+        Italic(state) ->
             when state is
                 On -> [3]
                 Off -> [23]
 
-        Underline state ->
+        Underline(state) ->
             when state is
                 On -> [4]
                 Off -> [24]
 
-        Strikethrough state ->
+        Strikethrough(state) ->
             when state is
                 On -> [9]
                 Off -> [29]
 
-        Invert state ->
+        Invert(state) ->
             when state is
                 On -> [7]
                 Off -> [27]
 
-        Foreground color -> color |> Color.toCode 30
-        Background color -> color |> Color.toCode 40
+        Foreground(color) -> color |> Color.to_code(30)
+        Background(color) -> color |> Color.to_code(40)
