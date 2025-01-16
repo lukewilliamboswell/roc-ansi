@@ -26,7 +26,7 @@ Entry : [Add Span, Original Span]
 ##
 ## If index is larger than current buffer, appends to end of file.
 insert : PieceTable a, { values : List a, index : U64 } -> PieceTable a
-insert = \{ original, added, table }, { values, index } ->
+insert = |{ original, added, table }, { values, index }|
 
     # Append values to Added buffer
     len = List.len(values)
@@ -43,7 +43,7 @@ insert = \{ original, added, table }, { values, index } ->
     }
 
 insert_help : List Entry, { index : U64, span : Entry }, List Entry -> List Entry
-insert_help = \in, { index, span }, out ->
+insert_help = |in, { index, span }, out|
     when in is
         [] -> out
         [Add(current), .. as rest] if index > current.len ->
@@ -126,10 +126,10 @@ insert_help = \in, { index, span }, out ->
 
 ## Calculate the total length when buffer indexes will be converted to a list
 length : List Entry -> U64
-length = \entries ->
+length = |entries|
 
     to_len : Entry -> U64
-    to_len = \e ->
+    to_len = |e|
         when e is
             Add({ len }) -> len
             Original({ len }) -> len
@@ -142,14 +142,14 @@ length = \entries ->
 ##
 ## If index is out of range this has no effect.
 delete : PieceTable a, { index : U64 } -> PieceTable a
-delete = \{ original, added, table }, { index } -> {
+delete = |{ original, added, table }, { index }| {
     original,
     added,
     table: delete_help(table, index, List.with_capacity((1 + List.len(table)))),
 }
 
 delete_help : List Entry, U64, List Entry -> List Entry
-delete_help = \in, index, out ->
+delete_help = |in, index, out|
     when in is
         [] -> out
         [Add(span), .. as rest] if index >= span.len -> delete_help(rest, (index - span.len), List.append(out, Add(span)))
@@ -200,10 +200,10 @@ delete_help = \in, index, out ->
 
 ## Fuse the original and added buffers into a single list
 to_list : PieceTable a -> List a
-to_list = \piece -> to_list_help(piece, [])
+to_list = |piece| to_list_help(piece, [])
 
 to_list_help : PieceTable a, List a -> List a
-to_list_help = \{ original, added, table }, acc ->
+to_list_help = |{ original, added, table }, acc|
     when table is
         [] -> acc
         [Add(span)] -> List.concat(acc, List.sublist(added, span))

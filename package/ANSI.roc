@@ -40,7 +40,7 @@ Escape : [
 ]
 
 to_str : Escape -> Str
-to_str = \escape ->
+to_str = |escape|
     "\u(001b)"
     |> Str.concat(
         when escape is
@@ -50,7 +50,7 @@ to_str = \escape ->
 
 ## Add styles to a string
 style : Str, List Style -> Str
-style = \str, styles ->
+style = |str, styles|
     styles
     |> List.map(Style)
     |> List.map(Control)
@@ -62,7 +62,7 @@ reset_style = "" |> style([Default])
 
 ## Add color styles to a string and then resets to default
 color : Str, { fg ?? Color, bg ?? Color } -> Str
-color = \str, { fg ?? Default, bg ?? Default } -> str |> style([Foreground(fg), Background(bg)]) |> Str.concat(reset_style)
+color = |str, { fg ?? Default, bg ?? Default }| str |> style([Foreground(fg), Background(bg)]) |> Str.concat(reset_style)
 
 Symbol : [
     ExclamationMark,
@@ -117,7 +117,7 @@ Input : [
 ]
 
 parse_raw_stdin : List U8 -> Input
-parse_raw_stdin = \bytes ->
+parse_raw_stdin = |bytes|
     when bytes is
         [0, ..] -> Ctrl(Space)
         [1, ..] -> Ctrl(A)
@@ -259,7 +259,7 @@ expect parse_raw_stdin([27, 91, 65]) == Arrow(Up)
 expect parse_raw_stdin([27]) == Action(Escape)
 
 input_to_str : Input -> Str
-input_to_str = \input ->
+input_to_str = |input|
     when input is
         Ctrl(key) -> "Ctrl - " |> Str.concat(ctrl_to_str(key))
         Action(key) -> "Action " |> Str.concat(action_to_str(key))
@@ -273,7 +273,7 @@ input_to_str = \input ->
             "Unsupported [${bytes_str}]"
 
 ctrl_to_str : Ctrl -> Str
-ctrl_to_str = \ctrl ->
+ctrl_to_str = |ctrl|
     when ctrl is
         A -> "A"
         B -> "B"
@@ -309,7 +309,7 @@ ctrl_to_str = \ctrl ->
         Underscore -> "_"
 
 action_to_str : Action -> Str
-action_to_str = \action ->
+action_to_str = |action|
     when action is
         Escape -> "Escape"
         Enter -> "Enter"
@@ -317,7 +317,7 @@ action_to_str = \action ->
         Delete -> "Delete"
 
 arrow_to_str : Arrow -> Str
-arrow_to_str = \arrow ->
+arrow_to_str = |arrow|
     when arrow is
         Up -> "Up"
         Down -> "Down"
@@ -325,7 +325,7 @@ arrow_to_str = \arrow ->
         Right -> "Right"
 
 symbol_to_str : Symbol -> Str
-symbol_to_str = \symbol ->
+symbol_to_str = |symbol|
     when symbol is
         ExclamationMark -> "!"
         QuotationMark -> "\""
@@ -361,7 +361,7 @@ symbol_to_str = \symbol ->
         Tilde -> "~"
 
 number_to_str : Number -> Str
-number_to_str = \number ->
+number_to_str = |number|
     when number is
         N0 -> "0"
         N1 -> "1"
@@ -375,7 +375,7 @@ number_to_str = \number ->
         N9 -> "9"
 
 upper_to_str : Letter -> Str
-upper_to_str = \letter ->
+upper_to_str = |letter|
     when letter is
         A -> "A"
         B -> "B"
@@ -405,7 +405,7 @@ upper_to_str = \letter ->
         Z -> "Z"
 
 lower_to_str : Letter -> Str
-lower_to_str = \letter ->
+lower_to_str = |letter|
     when letter is
         A -> "a"
         B -> "b"
@@ -440,7 +440,7 @@ DrawFn : CursorPosition, CursorPosition -> Result Pixel {}
 Pixel : { char : Str, fg : Color, bg : Color, styles : List Style }
 
 parse_cursor : List U8 -> CursorPosition
-parse_cursor = \bytes ->
+parse_cursor = |bytes|
     { val: row, rest: after_first } = take_number({ val: 0, rest: List.drop_first(bytes, 2) })
     { val: col } = take_number({ val: 0, rest: List.drop_first(after_first, 1) })
 
@@ -450,7 +450,7 @@ parse_cursor = \bytes ->
 expect parse_cursor([27, 91, 51, 51, 59, 49, 82]) == { row: 33, col: 1 }
 
 take_number : { val : U16, rest : List U8 } -> { val : U16, rest : List U8 }
-take_number = \in ->
+take_number = |in|
     when in.rest is
         [a, ..] if a == '0' -> take_number({ val: in.val * 10 + 0, rest: List.drop_first(in.rest, 1) })
         [a, ..] if a == '1' -> take_number({ val: in.val * 10 + 1, rest: List.drop_first(in.rest, 1) })
@@ -469,7 +469,7 @@ expect take_number({ val: 0, rest: [51, 51, 59, 49, 82] }) == { val: 33, rest: [
 expect take_number({ val: 0, rest: [49, 82] }) == { val: 1, rest: [82] }
 
 update_cursor : { cursor : CursorPosition, screen : ScreenSize }a, [Up, Down, Left, Right] -> { cursor : CursorPosition, screen : ScreenSize }a
-update_cursor = \state, direction ->
+update_cursor = |state, direction|
     when direction is
         Up ->
             { state &
@@ -505,18 +505,18 @@ update_cursor = \state, direction ->
 
 ## Loop through each pixel in screen and build up a single string to write to stdout
 draw_screen : { cursor : CursorPosition, screen : ScreenSize }*, List DrawFn -> Str
-draw_screen = \{ cursor, screen }, draw_fns ->
+draw_screen = |{ cursor, screen }, draw_fns|
     pixels =
         List.map(
             List.range({ start: At(0), end: Before(screen.height) }),
-            \row ->
+            |row|
                 List.map(
                     List.range({ start: At(0), end: Before(screen.width) }),
-                    \col ->
+                    |col|
                         List.walk_until(
                             draw_fns,
                             { char: " ", fg: Default, bg: Default, styles: [] },
-                            \default_pixel, draw_fn ->
+                            |default_pixel, draw_fn|
                                 when draw_fn(cursor, { row, col }) is
                                     Ok(pixel) -> Break(pixel)
                                     Err(_) -> Continue(default_pixel),
@@ -528,9 +528,9 @@ draw_screen = \{ cursor, screen }, draw_fns ->
     |> join_all_pixels
 
 join_all_pixels : List (List Pixel) -> Str
-join_all_pixels = \rows ->
+join_all_pixels = |rows|
 
-    walk_with_index = \remaining, idx, state, fn ->
+    walk_with_index = |remaining, idx, state, fn|
         when remaining is
             [] -> state
             [head, .. as rest] -> walk_with_index(rest, (idx + 1), fn(state, head, idx), fn)
@@ -548,7 +548,7 @@ join_all_pixels = \rows ->
     |> Str.join_with("")
 
 join_pixel_row : { char : Str, fg : Color, bg : Color, lines : List Str, styles : List Style }, List Pixel, U64 -> { char : Str, fg : Color, bg : Color, lines : List Str, styles : List Style }
-join_pixel_row = \{ char, fg, bg, lines, styles }, pixel_row, row ->
+join_pixel_row = |{ char, fg, bg, lines, styles }, pixel_row, row|
 
     { row_strs, prev } =
         List.walk(
@@ -565,18 +565,18 @@ join_pixel_row = \{ char, fg, bg, lines, styles }, pixel_row, row ->
     { char: " ", fg: prev.fg, bg: prev.bg, lines: List.append(lines, line), styles: prev.styles }
 
 join_pixels : { row_strs : List Str, prev : Pixel }, Pixel -> { row_strs : List Str, prev : Pixel }
-join_pixels = \{ row_strs, prev }, curr ->
+join_pixels = |{ row_strs, prev }, curr|
     pixel_str =
         # Prepend an ASCII escape ONLY if there is a change between pixels
         curr.char
-        |> \str -> if curr.fg != prev.fg then Str.concat(to_str(Control(Style(Foreground(curr.fg)))), str) else str
-        |> \str -> if curr.bg != prev.bg then Str.concat(to_str(Control(Style(Background(curr.bg)))), str) else str
+        |> |str| if curr.fg != prev.fg then Str.concat(to_str(Control(Style(Foreground(curr.fg)))), str) else str
+        |> |str| if curr.bg != prev.bg then Str.concat(to_str(Control(Style(Background(curr.bg)))), str) else str
 
     { row_strs: List.append(row_strs, pixel_str), prev: curr }
 
 draw_box : { r : U16, c : U16, w : U16, h : U16, fg ?? Color, bg ?? Color, char ?? Str, styles ?? List Style } -> DrawFn
-draw_box = \{ r, c, w, h, fg ?? Default, bg ?? Default, char ?? "#", styles ?? [] } ->
-    \_, { row, col } ->
+draw_box = |{ r, c, w, h, fg ?? Default, bg ?? Default, char ?? "#", styles ?? [] }|
+    |_, { row, col }|
 
         start_row = r
         end_row = (r + h)
@@ -595,39 +595,39 @@ draw_box = \{ r, c, w, h, fg ?? Default, bg ?? Default, char ?? "#", styles ?? [
             Err({})
 
 draw_v_line : { r : U16, c : U16, len : U16, fg ?? Color, bg ?? Color, char ?? Str, styles ?? List Style } -> DrawFn
-draw_v_line = \{ r, c, len, fg ?? Default, bg ?? Default, char ?? "|", styles ?? [] } ->
-    \_, { row, col } ->
+draw_v_line = |{ r, c, len, fg ?? Default, bg ?? Default, char ?? "|", styles ?? [] }|
+    |_, { row, col }|
         if col == c && (row >= r && row < (r + len)) then
             Ok({ char, fg, bg, styles })
         else
             Err({})
 
 draw_h_line : { r : U16, c : U16, len : U16, fg ?? Color, bg ?? Color, char ?? Str, styles ?? List Style } -> DrawFn
-draw_h_line = \{ r, c, len, fg ?? Default, bg ?? Default, char ?? "-", styles ?? [] } ->
-    \_, { row, col } ->
+draw_h_line = |{ r, c, len, fg ?? Default, bg ?? Default, char ?? "-", styles ?? [] }|
+    |_, { row, col }|
         if row == r && (col >= c && col < (c + len)) then
             Ok({ char, fg, bg, styles })
         else
             Err({})
 
 draw_cursor : { fg ?? Color, bg ?? Color, char ?? Str, styles ?? List Style } -> DrawFn
-draw_cursor = \{ fg ?? Default, bg ?? Default, char ?? " ", styles ?? [] } ->
-    \cursor, { row, col } ->
+draw_cursor = |{ fg ?? Default, bg ?? Default, char ?? " ", styles ?? [] }|
+    |cursor, { row, col }|
         if (row == cursor.row) && (col == cursor.col) then
             Ok({ char, fg, bg, styles })
         else
             Err({})
 
 draw_text : Str, { r : U16, c : U16, fg ?? Color, bg ?? Color, styles ?? List Style } -> DrawFn
-draw_text = \text, { r, c, fg ?? Default, bg ?? Default, styles ?? [] } ->
-    \_, pixel ->
+draw_text = |text, { r, c, fg ?? Default, bg ?? Default, styles ?? [] }|
+    |_, pixel|
         bytes = Str.to_utf8(text)
         len = text |> Str.to_utf8 |> List.len |> Num.to_u16
         if pixel.row == r && pixel.col >= c && pixel.col < (c + len) then
             bytes
             |> List.get(Num.int_cast((pixel.col - c)))
-            |> Result.try(\b -> Str.from_utf8([b]))
-            |> Result.map(\char -> { char, fg, bg, styles })
-            |> Result.map_err(\_ -> {})
+            |> Result.try(|b| Str.from_utf8([b]))
+            |> Result.map(|char| { char, fg, bg, styles })
+            |> Result.map_err(|_| {})
         else
             Err({})

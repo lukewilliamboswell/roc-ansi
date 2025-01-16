@@ -30,7 +30,7 @@ Control : [
 ]
 
 to_code : Control -> Str
-to_code = \a ->
+to_code = |a|
     when a is
         Screen(b) ->
             when b is

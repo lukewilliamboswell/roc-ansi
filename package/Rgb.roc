@@ -7,9 +7,9 @@ Rgb : (U8, U8, U8)
 Hex : U32
 
 from_hex : Hex -> Rgb
-from_hex = \hex ->
+from_hex = |hex|
     u24 = (Utils.clamp(0x000000, 0xFFFFFF))(hex)
-    c = \a -> u24 |> Num.shift_right_by(Num.mul(8, (2 - a))) |> Num.bitwise_and(0xFF) |> Num.to_u8
+    c = |a| u24 |> Num.shift_right_by(Num.mul(8, (2 - a))) |> Num.bitwise_and(0xFF) |> Num.to_u8
     (c(0), c(1), c(2))
 
 expect from_hex(0xFF0000) == (255, 0, 0)

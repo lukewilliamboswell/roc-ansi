@@ -9,7 +9,7 @@ import Rgb exposing [Rgb]
 C256 : U8
 
 to_code : C256 -> U8
-to_code = \color -> color
+to_code = |color| color
 
 # https://www.ditig.com/publications/256-colors-cheat-sheet
 system_range : List Rgb
@@ -37,14 +37,14 @@ grayscale_range = List.range({ start: At(8), end: Length(24), step: 10 })
 
 # https://www.hackitu.de/termcolor256/
 to_rgb : C256 -> Rgb
-to_rgb = \color ->
+to_rgb = |color|
     when Num.to_u64(to_code(color)) is
         code if code < 16 ->
             List.get(system_range, code) |> Result.with_default((0, 0, 0))
 
         code if code < 232 ->
             index = code - 16
-            c = \a -> List.get(chromatic_range, (index |> Num.div_trunc(Num.pow_int(6, (2 - a))) |> Num.rem(6))) |> Result.with_default(0)
+            c = |a| List.get(chromatic_range, (index |> Num.div_trunc(Num.pow_int(6, (2 - a))) |> Num.rem(6))) |> Result.with_default(0)
             (c(0), c(1), c(2))
 
         code ->

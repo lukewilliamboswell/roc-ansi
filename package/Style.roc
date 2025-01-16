@@ -19,7 +19,7 @@ Style : [
 ]
 
 to_code : Style -> List U8
-to_code = \a ->
+to_code = |a|
     when a is
         Default -> [0]
         Bold(state) ->

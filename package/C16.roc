@@ -9,7 +9,7 @@ C16 : [Standard Name, Bright Name]
 Name : [Black, Red, Green, Yellow, Blue, Magenta, Cyan, White]
 
 name_to_code : Name -> U8
-name_to_code = \name ->
+name_to_code = |name|
     when name is
         Black -> 0
         Red -> 1
@@ -21,7 +21,7 @@ name_to_code = \name ->
         White -> 7
 
 to_c256 : C16 -> C256
-to_c256 = \intensity ->
+to_c256 = |intensity|
     when intensity is
         Standard(name) -> 0 + name_to_code(name)
         Bright(name) -> 8 + name_to_code(name)

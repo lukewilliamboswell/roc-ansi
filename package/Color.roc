@@ -18,7 +18,7 @@ Color : [
 ]
 
 to_code : Color, U8 -> List U8
-to_code = \color, offset ->
+to_code = |color, offset|
     when color is
         Default -> [9 + offset]
         Rgb((red, green, blue)) -> [8 + offset, 2, red, green, blue]
