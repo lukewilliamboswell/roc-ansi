@@ -89,7 +89,7 @@ run_ui_loop! = |prev_model|
     ANSI.draw_screen(model, draw_fns) |> Stdout.write! |> try
 
     # Get user input
-    input = Stdin.bytes!({}) |> Result.map(ANSI.parse_raw_stdin) |> try
+    input = Stdin.bytes!({}) |> Result.map_ok(ANSI.parse_raw_stdin) |> try
 
     # Parse user input into a command
     command =
@@ -153,8 +153,8 @@ get_terminal_size! = |{}|
 
     # Read the cursor position
     Stdin.bytes!({})
-    |> Result.map(ANSI.parse_cursor)
-    |> Result.map(|{ row, col }| { width: col, height: row })
+    |> Result.map_ok(ANSI.parse_cursor)
+    |> Result.map_ok|{ row, col }| { width: col, height: row }
 
 home_screen : Model -> List ANSI.DrawFn
 home_screen = |model|
@@ -200,8 +200,8 @@ debug_screen = |state|
     last_input =
         state.inputs
         |> List.last
-        |> Result.map(ANSI.input_to_str)
-        |> Result.map(|str| "INPUT ${str}")
+        |> Result.map_ok(ANSI.input_to_str)
+        |> Result.map_ok|str| "INPUT ${str}"
         |> Result.with_default("NO INPUT YET")
 
     [

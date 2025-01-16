@@ -627,7 +627,7 @@ draw_text = |text, { r, c, fg ?? Default, bg ?? Default, styles ?? [] }|
             bytes
             |> List.get(Num.int_cast((pixel.col - c)))
             |> Result.try(|b| Str.from_utf8([b]))
-            |> Result.map(|char| { char, fg, bg, styles })
+            |> Result.map_ok|char| { char, fg, bg, styles }
             |> Result.map_err(|_| {})
         else
             Err({})

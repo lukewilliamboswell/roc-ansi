@@ -234,7 +234,7 @@ run_ui_loop! = |prev_model|
     ANSI.draw_screen(model, draw_fns) |> Stdout.write! |> try
 
     # Get user input
-    input = Result.map(Stdin.bytes!({}), ANSI.parse_raw_stdin)?
+    input = Result.map_ok(Stdin.bytes!({}), ANSI.parse_raw_stdin)?
 
     # Parse input into a command
     command =
@@ -396,8 +396,8 @@ get_terminal_size! = |{}|
 
     # Read the cursor position
     Stdin.bytes!({})
-    |> Result.map(ANSI.parse_cursor)
-    |> Result.map(|{ row, col }| { width: col, height: row })
+    |> Result.map_ok(ANSI.parse_cursor)
+    |> Result.map_ok(|{ row, col }| { width: col, height: row })
 
 # Helper to split grepheme's on line breaks
 split_into_lines : List Grapheme, List Grapheme, List (List Grapheme) -> List (List Grapheme)
