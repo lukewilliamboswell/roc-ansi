@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>PieceTable - Documentation</title>
+    <!-- <meta name="description" content="TODO populate this based on the module's description"> -->
+    <meta name="viewport" content="width=device-width" />
+    <base href="/roc-json/0.8.0/" />
+    <script type="text/javascript" src="search.js" defer></script>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="icon" href="/favicon.svg" />
+    <!-- Safari ignores rel="icon" and only respects rel="mask-icon". It will render the SVG with
+    fill="#000" unless this `color` attribute here is hardcoded (not a CSS `var()`) to override it.
+  -->
+    <link rel="mask-icon" href="/favicon.svg" color="#7d59dd" />
+    <link rel="prefetch" href="ANSI"/>
+    <link rel="prefetch" href="C16"/>
+    <link rel="prefetch" href="C256"/>
+    <link rel="prefetch" href="Color"/>
+    <link rel="prefetch" href="Control"/>
+    <link rel="prefetch" href="Rgb"/>
+    <link rel="prefetch" href="Style"/>
+    <link rel="prefetch" href="PieceTable"/>
+</head>
+
+<body>
+    <nav id="sidebar-nav">
+        <div class="pkg-and-logo">
+            <a class="logo" href="/" aria-labelledby="logo-link">
+                <svg viewBox="0 -6 51 58" fill="none" xmlns="http://www.w3.org/2000/svg" aria-labelledby="logo-link"
+                    role="img">
+                    <title id="logo-link">Return to Roc packages</title>
+                    <polygon role="presentation"
+                        points="0,0 23.8834,3.21052 37.2438,19.0101 45.9665,16.6324 50.5,22 45,22 44.0315,26.3689 26.4673,39.3424 27.4527,45.2132 17.655,53 23.6751,22.7086" />
+                </svg>
+            </a>
+            <h1 class="pkg-full-name" ><a href="/roc-json/0.8.0/" >Documentation</a></h1>
+            <button class="menu-toggle" aria-label="Toggle sidebar">
+                <svg viewBox="0 0 72 72" id="emoji" xmlns="http://www.w3.org/2000/svg" fill="currentcolor">
+                    <g id="SVGRepo_iconCarrier">
+                        <g id="color"></g>
+                        <g id="hair"></g>
+                        <g id="skin"></g>
+                        <g id="skin-shadow"></g>
+                        <g id="line">
+                            <line x1="16" x2="56" y1="26" y2="26" fill="none" stroke="currentColor"
+                                stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2">
+                            </line>
+                            <line x1="16" x2="56" y1="36" y2="36" fill="none" stroke="currentColor"
+                                stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2">
+                            </line>
+                            <line x1="16" x2="56" y1="46" y2="46" fill="none" stroke="currentColor"
+                                stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2">
+                            </line>
+                        </g>
+                    </g>
+                </svg>
+            </button>
+        </div>
+        <div class="module-links-container">
+            <div class="module-links">
+                <div class="sidebar-entry" ><a class="sidebar-module-link" href="ANSI" data-module-name="ANSI" ><span >ANSI</span><button class="entry-toggle" >▶</button></a><div class="sidebar-sub-entries" ><a href="ANSI#Color" >Color</a><a href="ANSI#Escape" >Escape</a><a href="ANSI#to_str" >to_str</a><a href="ANSI#style" >style</a><a href="ANSI#color" >color</a><a href="ANSI#Input" >Input</a><a href="ANSI#parse_raw_stdin" >parse_raw_stdin</a><a href="ANSI#input_to_str" >input_to_str</a><a href="ANSI#symbol_to_str" >symbol_to_str</a><a href="ANSI#upper_to_str" >upper_to_str</a><a href="ANSI#lower_to_str" >lower_to_str</a><a href="ANSI#ScreenSize" >ScreenSize</a><a href="ANSI#CursorPosition" >CursorPosition</a><a href="ANSI#DrawFn" >DrawFn</a><a href="ANSI#Pixel" >Pixel</a><a href="ANSI#parse_cursor" >parse_cursor</a><a href="ANSI#update_cursor" >update_cursor</a><a href="ANSI#draw_screen" >draw_screen</a><a href="ANSI#draw_box" >draw_box</a><a href="ANSI#draw_v_line" >draw_v_line</a><a href="ANSI#draw_h_line" >draw_h_line</a><a href="ANSI#draw_cursor" >draw_cursor</a><a href="ANSI#draw_text" >draw_text</a></div></div><div class="sidebar-entry" ><a class="sidebar-module-link" href="C16" data-module-name="C16" ><span >C16</span><button class="entry-toggle" >▶</button></a><div class="sidebar-sub-entries" ><a href="C16#C16" >C16</a><a href="C16#Name" >Name</a><a href="C16#name_to_code" >name_to_code</a><a href="C16#to_c256" >to_c256</a></div></div><div class="sidebar-entry" ><a class="sidebar-module-link" href="C256" data-module-name="C256" ><span >C256</span><button class="entry-toggle" >▶</button></a><div class="sidebar-sub-entries" ><a href="C256#C256" >C256</a><a href="C256#to_rgb" >to_rgb</a></div></div><div class="sidebar-entry" ><a class="sidebar-module-link" href="Color" data-module-name="Color" ><span >Color</span><button class="entry-toggle" >▶</button></a><div class="sidebar-sub-entries" ><a href="Color#Color" >Color</a><a href="Color#to_code" >to_code</a></div></div><div class="sidebar-entry" ><a class="sidebar-module-link" href="Control" data-module-name="Control" ><span >Control</span><button class="entry-toggle" >▶</button></a><div class="sidebar-sub-entries" ><a href="Control#Control" >Control</a><a href="Control#to_code" >to_code</a></div></div><div class="sidebar-entry" ><a class="sidebar-module-link" href="Rgb" data-module-name="Rgb" ><span >Rgb</span><button class="entry-toggle" >▶</button></a><div class="sidebar-sub-entries" ><a href="Rgb#Rgb" >Rgb</a><a href="Rgb#Hex" >Hex</a><a href="Rgb#from_hex" >from_hex</a></div></div><div class="sidebar-entry" ><a class="sidebar-module-link" href="Style" data-module-name="Style" ><span >Style</span><button class="entry-toggle" >▶</button></a><div class="sidebar-sub-entries" ><a href="Style#Style" >Style</a><a href="Style#to_code" >to_code</a></div></div><div class="sidebar-entry" ><a class="sidebar-module-link" href="PieceTable" data-module-name="PieceTable" ><span >PieceTable</span><button class="entry-toggle" >▶</button></a><div class="sidebar-sub-entries" ><a href="PieceTable#PieceTable" >PieceTable</a><a href="PieceTable#Entry" >Entry</a><a href="PieceTable#insert" >insert</a><a href="PieceTable#length" >length</a><a href="PieceTable#delete" >delete</a><a href="PieceTable#to_list" >to_list</a></div></div>
+            </div>
+        </div>
+    </nav>
+    <main>
+        <form id="module-search-form">
+            <button class="menu-toggle" aria-label="Toggle sidebar">
+                <svg viewBox="0 0 72 72" id="emoji" xmlns="http://www.w3.org/2000/svg" fill="currentcolor">
+                    <g id="SVGRepo_iconCarrier">
+                        <g id="color"></g>
+                        <g id="hair"></g>
+                        <g id="skin"></g>
+                        <g id="skin-shadow"></g>
+                        <g id="line">
+                            <line x1="16" x2="56" y1="26" y2="26" fill="none" stroke="currentColor"
+                                stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2">
+                            </line>
+                            <line x1="16" x2="56" y1="36" y2="36" fill="none" stroke="currentColor"
+                                stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2">
+                            </line>
+                            <line x1="16" x2="56" y1="46" y2="46" fill="none" stroke="currentColor"
+                                stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2">
+                            </line>
+                        </g>
+                    </g>
+                </svg>
+            </button>
+            <input id="module-search" aria-labelledby="search-label" type="text"
+                placeholder="Search Documentation" role="combobox" aria-autocomplete="list"
+                aria-expanded="false" aria-controls="search-type-ahead" />
+            <label for="module-search" id="search-label">(press
+                <span id="search-shortcut-key" aria-hidden="true">s</span>)</label>
+            <!-- Magnifying Glass icon -->
+            <svg version="1.1" xmlns="http://www.w3.org/2000/svg" class="search-icon"
+                xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 512 512"
+                xml:space="preserve">
+                <g>
+                    <path d="M449.803,62.197C408.443,20.807,353.85-0.037,299.646-0.006C245.428-0.037,190.85,20.807,149.49,62.197
+		C108.1,103.557,87.24,158.15,87.303,212.338c-0.047,37.859,10.359,75.766,30.547,109.359L15.021,424.525
+		c-20.016,20.016-20.016,52.453,0,72.469c20,20.016,52.453,20.016,72.453,0L190.318,394.15
+		c33.578,20.203,71.5,30.594,109.328,30.547c54.203,0.047,108.797-20.797,150.156-62.188
+		c41.375-41.359,62.234-95.938,62.188-150.172C512.053,158.15,491.178,103.557,449.803,62.197z M391.818,304.541
+		c-25.547,25.531-58.672,38.125-92.172,38.188c-33.5-0.063-66.609-12.656-92.188-38.188c-25.531-25.578-38.125-58.688-38.188-92.203
+		c0.063-33.484,12.656-66.609,38.188-92.172c25.578-25.531,58.688-38.125,92.188-38.188c33.5,0.063,66.625,12.656,92.188,38.188
+		c25.531,25.563,38.125,58.688,38.188,92.172C429.959,245.854,417.365,278.963,391.818,304.541z"></path>
+                </g>
+            </svg>
+            <ul id="search-type-ahead" role="listbox" aria-label="Search Results" class="hidden">
+                <li role="option" ><a href="ANSI#Color" class="type-ahead-link" ><span class="type-ahead-module-name" >ANSI</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >Color</span><span class="type-ahead-signature" > : Color.Color</span></a></li><li role="option" ><a href="ANSI#Escape" class="type-ahead-link" ><span class="type-ahead-module-name" >ANSI</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >Escape</span></a></li><li role="option" ><a href="ANSI#to_str" class="type-ahead-link" ><span class="type-ahead-module-name" >ANSI</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >to_str</span><span class="type-ahead-signature" > : Escape -> Str</span></a></li><li role="option" ><a href="ANSI#style" class="type-ahead-link" ><span class="type-ahead-module-name" >ANSI</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >style</span><span class="type-ahead-signature" > : Str, List Style -> Str</span></a></li><li role="option" ><a href="ANSI#color" class="type-ahead-link" ><span class="type-ahead-module-name" >ANSI</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >color</span><span class="type-ahead-signature" > : 
+    Str,     
+    {
+        fg ? Color,
+        bg ? Color
+    }
+    -> Str</span></a></li><li role="option" ><a href="ANSI#Input" class="type-ahead-link" ><span class="type-ahead-module-name" >ANSI</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >Input</span></a></li><li role="option" ><a href="ANSI#parse_raw_stdin" class="type-ahead-link" ><span class="type-ahead-module-name" >ANSI</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >parse_raw_stdin</span><span class="type-ahead-signature" > : List U8 -> Input</span></a></li><li role="option" ><a href="ANSI#input_to_str" class="type-ahead-link" ><span class="type-ahead-module-name" >ANSI</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >input_to_str</span><span class="type-ahead-signature" > : Input -> Str</span></a></li><li role="option" ><a href="ANSI#symbol_to_str" class="type-ahead-link" ><span class="type-ahead-module-name" >ANSI</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >symbol_to_str</span><span class="type-ahead-signature" > : Symbol -> Str</span></a></li><li role="option" ><a href="ANSI#upper_to_str" class="type-ahead-link" ><span class="type-ahead-module-name" >ANSI</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >upper_to_str</span><span class="type-ahead-signature" > : Letter -> Str</span></a></li><li role="option" ><a href="ANSI#lower_to_str" class="type-ahead-link" ><span class="type-ahead-module-name" >ANSI</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >lower_to_str</span><span class="type-ahead-signature" > : Letter -> Str</span></a></li><li role="option" ><a href="ANSI#ScreenSize" class="type-ahead-link" ><span class="type-ahead-module-name" >ANSI</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >ScreenSize</span></a></li><li role="option" ><a href="ANSI#CursorPosition" class="type-ahead-link" ><span class="type-ahead-module-name" >ANSI</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >CursorPosition</span></a></li><li role="option" ><a href="ANSI#DrawFn" class="type-ahead-link" ><span class="type-ahead-module-name" >ANSI</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >DrawFn</span></a></li><li role="option" ><a href="ANSI#Pixel" class="type-ahead-link" ><span class="type-ahead-module-name" >ANSI</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >Pixel</span></a></li><li role="option" ><a href="ANSI#parse_cursor" class="type-ahead-link" ><span class="type-ahead-module-name" >ANSI</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >parse_cursor</span><span class="type-ahead-signature" > : List U8 -> CursorPosition</span></a></li><li role="option" ><a href="ANSI#update_cursor" class="type-ahead-link" ><span class="type-ahead-module-name" >ANSI</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >update_cursor</span><span class="type-ahead-signature" > :     
+    {
+        cursor : CursorPosition,
+        screen : ScreenSize
+    }a,     
+    [
+        Up,
+        Down,
+        Left,
+        Right
+    ]
+    -> 
+        {
+            cursor : CursorPosition,
+            screen : ScreenSize
+        }a</span></a></li><li role="option" ><a href="ANSI#draw_screen" class="type-ahead-link" ><span class="type-ahead-module-name" >ANSI</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >draw_screen</span><span class="type-ahead-signature" > :     
+    {
+        cursor : CursorPosition,
+        screen : ScreenSize
+    }*, 
+    List DrawFn
+    -> Str</span></a></li><li role="option" ><a href="ANSI#draw_box" class="type-ahead-link" ><span class="type-ahead-module-name" >ANSI</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >draw_box</span><span class="type-ahead-signature" > :     
+    {
+        r : U16,
+        c : U16,
+        w : U16,
+        h : U16,
+        fg ? Color,
+        bg ? Color,
+        char ? Str,
+        styles ? List Style
+    }
+    -> DrawFn</span></a></li><li role="option" ><a href="ANSI#draw_v_line" class="type-ahead-link" ><span class="type-ahead-module-name" >ANSI</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >draw_v_line</span><span class="type-ahead-signature" > :     
+    {
+        r : U16,
+        c : U16,
+        len : U16,
+        fg ? Color,
+        bg ? Color,
+        char ? Str,
+        styles ? List Style
+    }
+    -> DrawFn</span></a></li><li role="option" ><a href="ANSI#draw_h_line" class="type-ahead-link" ><span class="type-ahead-module-name" >ANSI</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >draw_h_line</span><span class="type-ahead-signature" > :     
+    {
+        r : U16,
+        c : U16,
+        len : U16,
+        fg ? Color,
+        bg ? Color,
+        char ? Str,
+        styles ? List Style
+    }
+    -> DrawFn</span></a></li><li role="option" ><a href="ANSI#draw_cursor" class="type-ahead-link" ><span class="type-ahead-module-name" >ANSI</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >draw_cursor</span><span class="type-ahead-signature" > :     
+    {
+        fg ? Color,
+        bg ? Color,
+        char ? Str,
+        styles ? List Style
+    }
+    -> DrawFn</span></a></li><li role="option" ><a href="ANSI#draw_text" class="type-ahead-link" ><span class="type-ahead-module-name" >ANSI</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >draw_text</span><span class="type-ahead-signature" > : 
+    Str,     
+    {
+        r : U16,
+        c : U16,
+        fg ? Color,
+        bg ? Color,
+        styles ? List Style
+    }
+    -> DrawFn</span></a></li><li role="option" ><a href="C16#C16" class="type-ahead-link" ><span class="type-ahead-module-name" >C16</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >C16</span></a></li><li role="option" ><a href="C16#Name" class="type-ahead-link" ><span class="type-ahead-module-name" >C16</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >Name</span><span class="type-ahead-signature" > : 
+    [
+        Black,
+        Red,
+        Green,
+        Yellow,
+        Blue,
+        Magenta,
+        Cyan,
+        White
+    ]</span></a></li><li role="option" ><a href="C16#name_to_code" class="type-ahead-link" ><span class="type-ahead-module-name" >C16</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >name_to_code</span><span class="type-ahead-signature" > : Name -> U8</span></a></li><li role="option" ><a href="C16#to_c256" class="type-ahead-link" ><span class="type-ahead-module-name" >C16</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >to_c256</span><span class="type-ahead-signature" > : C16 -> C256</span></a></li><li role="option" ><a href="C256#C256" class="type-ahead-link" ><span class="type-ahead-module-name" >C256</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >C256</span></a></li><li role="option" ><a href="C256#to_rgb" class="type-ahead-link" ><span class="type-ahead-module-name" >C256</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >to_rgb</span><span class="type-ahead-signature" > : C256 -> Rgb</span></a></li><li role="option" ><a href="Color#Color" class="type-ahead-link" ><span class="type-ahead-module-name" >Color</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >Color</span></a></li><li role="option" ><a href="Color#to_code" class="type-ahead-link" ><span class="type-ahead-module-name" >Color</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >to_code</span><span class="type-ahead-signature" > : Color, U8 -> List U8</span></a></li><li role="option" ><a href="Control#Control" class="type-ahead-link" ><span class="type-ahead-module-name" >Control</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >Control</span></a></li><li role="option" ><a href="Control#to_code" class="type-ahead-link" ><span class="type-ahead-module-name" >Control</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >to_code</span><span class="type-ahead-signature" > : Control -> Str</span></a></li><li role="option" ><a href="Rgb#Rgb" class="type-ahead-link" ><span class="type-ahead-module-name" >Rgb</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >Rgb</span></a></li><li role="option" ><a href="Rgb#Hex" class="type-ahead-link" ><span class="type-ahead-module-name" >Rgb</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >Hex</span></a></li><li role="option" ><a href="Rgb#from_hex" class="type-ahead-link" ><span class="type-ahead-module-name" >Rgb</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >from_hex</span><span class="type-ahead-signature" > : Hex -> Rgb</span></a></li><li role="option" ><a href="Style#Style" class="type-ahead-link" ><span class="type-ahead-module-name" >Style</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >Style</span></a></li><li role="option" ><a href="Style#to_code" class="type-ahead-link" ><span class="type-ahead-module-name" >Style</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >to_code</span><span class="type-ahead-signature" > : Style -> List U8</span></a></li><li role="option" ><a href="PieceTable#PieceTable" class="type-ahead-link" ><span class="type-ahead-module-name" >PieceTable</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >PieceTable</span></a></li><li role="option" ><a href="PieceTable#Entry" class="type-ahead-link" ><span class="type-ahead-module-name" >PieceTable</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >Entry</span></a></li><li role="option" ><a href="PieceTable#insert" class="type-ahead-link" ><span class="type-ahead-module-name" >PieceTable</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >insert</span><span class="type-ahead-signature" > : 
+    PieceTable a,     
+    {
+        values : List a,
+        index : U64
+    }
+    -> PieceTable a</span></a></li><li role="option" ><a href="PieceTable#length" class="type-ahead-link" ><span class="type-ahead-module-name" >PieceTable</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >length</span><span class="type-ahead-signature" > : List Entry -> U64</span></a></li><li role="option" ><a href="PieceTable#delete" class="type-ahead-link" ><span class="type-ahead-module-name" >PieceTable</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >delete</span><span class="type-ahead-signature" > : PieceTable a, { index : U64 } -> PieceTable a</span></a></li><li role="option" ><a href="PieceTable#to_list" class="type-ahead-link" ><span class="type-ahead-module-name" >PieceTable</span><span class="type-ahead-module-dot" >.</span><span class="type-ahead-def-name" >to_list</span><span class="type-ahead-signature" > : PieceTable a -> List a</span></a></li>
+            </ul>
+        </form>
+        <h2 class="module-name" ><a href="/" >PieceTable</a></h2><section><h3 id="PieceTable" class="entry-name" ><a href="PieceTable#PieceTable" ><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" fill="currentColor"><!--!
+	Font Awesome Free 6.3.0 by @fontawesome - https://fontawesome.com License -
+	https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License)
+	Copyright 2023 Fonticons, Inc. -->
+	<path
+		d="M562.8 267.7c56.5-56.5 56.5-148 0-204.5c-50-50-128.8-56.5-186.3-15.4l-1.6 1.1c-14.4 10.3-17.7 30.3-7.4 44.6s30.3 17.7 44.6 7.4l1.6-1.1c32.1-22.9 76-19.3 103.8 8.6c31.5 31.5 31.5 82.5 0 114L405.3 334.8c-31.5 31.5-82.5 31.5-114 0c-27.9-27.9-31.5-71.8-8.6-103.8l1.1-1.6c10.3-14.4 6.9-34.4-7.4-44.6s-34.4-6.9-44.6 7.4l-1.1 1.6C189.5 251.2 196 330 246 380c56.5 56.5 148 56.5 204.5 0L562.8 267.7zM43.2 244.3c-56.5 56.5-56.5 148 0 204.5c50 50 128.8 56.5 186.3 15.4l1.6-1.1c14.4-10.3 17.7-30.3 7.4-44.6s-30.3-17.7-44.6-7.4l-1.6 1.1c-32.1 22.9-76 19.3-103.8-8.6C57 372 57 321 88.5 289.5L200.7 177.2c31.5-31.5 82.5-31.5 114 0c27.9 27.9 31.5 71.8 8.6 103.9l-1.1 1.6c-10.3 14.4-6.9 34.4 7.4 44.6s34.4 6.9 44.6-7.4l1.1-1.6C416.5 260.8 410 182 360 132c-56.5-56.5-148-56.5-204.5 0L43.2 244.3z" />
+</svg></a><code><span class="upperident">PieceTable</span><span class="lowerident"> a</span></code></h3><p>Represents a <a href="https://en.wikipedia.org/wiki/Piece_table">Piece table</a> which
+is typically used to represent a text document while it is edited in a text
+editor</p>
+</section><section><h3 id="Entry" class="entry-name" ><a href="PieceTable#Entry" ><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" fill="currentColor"><!--!
+	Font Awesome Free 6.3.0 by @fontawesome - https://fontawesome.com License -
+	https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License)
+	Copyright 2023 Fonticons, Inc. -->
+	<path
+		d="M562.8 267.7c56.5-56.5 56.5-148 0-204.5c-50-50-128.8-56.5-186.3-15.4l-1.6 1.1c-14.4 10.3-17.7 30.3-7.4 44.6s30.3 17.7 44.6 7.4l1.6-1.1c32.1-22.9 76-19.3 103.8 8.6c31.5 31.5 31.5 82.5 0 114L405.3 334.8c-31.5 31.5-82.5 31.5-114 0c-27.9-27.9-31.5-71.8-8.6-103.8l1.1-1.6c10.3-14.4 6.9-34.4-7.4-44.6s-34.4-6.9-44.6 7.4l-1.1 1.6C189.5 251.2 196 330 246 380c56.5 56.5 148 56.5 204.5 0L562.8 267.7zM43.2 244.3c-56.5 56.5-56.5 148 0 204.5c50 50 128.8 56.5 186.3 15.4l1.6-1.1c14.4-10.3 17.7-30.3 7.4-44.6s-30.3-17.7-44.6-7.4l-1.6 1.1c-32.1 22.9-76 19.3-103.8-8.6C57 372 57 321 88.5 289.5L200.7 177.2c31.5-31.5 82.5-31.5 114 0c27.9 27.9 31.5 71.8 8.6 103.9l-1.1 1.6c-10.3 14.4-6.9 34.4 7.4 44.6s34.4 6.9 44.6-7.4l1.1-1.6C416.5 260.8 410 182 360 132c-56.5-56.5-148-56.5-204.5 0L43.2 244.3z" />
+</svg></a><code><span class="upperident">Entry</span></code></h3><p>Represents an index into the original or add buffer</p>
+</section><section><h3 id="insert" class="entry-name" ><a href="PieceTable#insert" ><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" fill="currentColor"><!--!
+	Font Awesome Free 6.3.0 by @fontawesome - https://fontawesome.com License -
+	https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License)
+	Copyright 2023 Fonticons, Inc. -->
+	<path
+		d="M562.8 267.7c56.5-56.5 56.5-148 0-204.5c-50-50-128.8-56.5-186.3-15.4l-1.6 1.1c-14.4 10.3-17.7 30.3-7.4 44.6s30.3 17.7 44.6 7.4l1.6-1.1c32.1-22.9 76-19.3 103.8 8.6c31.5 31.5 31.5 82.5 0 114L405.3 334.8c-31.5 31.5-82.5 31.5-114 0c-27.9-27.9-31.5-71.8-8.6-103.8l1.1-1.6c10.3-14.4 6.9-34.4-7.4-44.6s-34.4-6.9-44.6 7.4l-1.1 1.6C189.5 251.2 196 330 246 380c56.5 56.5 148 56.5 204.5 0L562.8 267.7zM43.2 244.3c-56.5 56.5-56.5 148 0 204.5c50 50 128.8 56.5 186.3 15.4l1.6-1.1c14.4-10.3 17.7-30.3 7.4-44.6s-30.3-17.7-44.6-7.4l-1.6 1.1c-32.1 22.9-76 19.3-103.8-8.6C57 372 57 321 88.5 289.5L200.7 177.2c31.5-31.5 82.5-31.5 114 0c27.9 27.9 31.5 71.8 8.6 103.9l-1.1 1.6c-10.3 14.4-6.9 34.4 7.4 44.6s34.4 6.9 44.6-7.4l1.1-1.6C416.5 260.8 410 182 360 132c-56.5-56.5-148-56.5-204.5 0L43.2 244.3z" />
+</svg></a><code><span class="lowerident">insert</span><span class="kw"> :</span><span class="upperident"> 
+    PieceTable</span><span class="lowerident"> a</span><span class="delimeter">,</span><span class="delimeter">     
+    {</span><span class="lowerident">
+        values</span><span class="kw"> :</span><span class="upperident"> List</span><span class="lowerident"> a</span><span class="delimeter">,</span><span class="lowerident">
+        index</span><span class="kw"> :</span><span class="upperident"> U64</span><span class="delimeter">
+    }</span><span class="kw">
+    -&gt;</span><span class="upperident"> PieceTable</span><span class="lowerident"> a</span></code></h3><p>Insert <code>values</code> into the table at a given <code>index</code>.</p>
+<p>If index is larger than current buffer, appends to end of file.</p>
+</section><section><h3 id="length" class="entry-name" ><a href="PieceTable#length" ><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" fill="currentColor"><!--!
+	Font Awesome Free 6.3.0 by @fontawesome - https://fontawesome.com License -
+	https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License)
+	Copyright 2023 Fonticons, Inc. -->
+	<path
+		d="M562.8 267.7c56.5-56.5 56.5-148 0-204.5c-50-50-128.8-56.5-186.3-15.4l-1.6 1.1c-14.4 10.3-17.7 30.3-7.4 44.6s30.3 17.7 44.6 7.4l1.6-1.1c32.1-22.9 76-19.3 103.8 8.6c31.5 31.5 31.5 82.5 0 114L405.3 334.8c-31.5 31.5-82.5 31.5-114 0c-27.9-27.9-31.5-71.8-8.6-103.8l1.1-1.6c10.3-14.4 6.9-34.4-7.4-44.6s-34.4-6.9-44.6 7.4l-1.1 1.6C189.5 251.2 196 330 246 380c56.5 56.5 148 56.5 204.5 0L562.8 267.7zM43.2 244.3c-56.5 56.5-56.5 148 0 204.5c50 50 128.8 56.5 186.3 15.4l1.6-1.1c14.4-10.3 17.7-30.3 7.4-44.6s-30.3-17.7-44.6-7.4l-1.6 1.1c-32.1 22.9-76 19.3-103.8-8.6C57 372 57 321 88.5 289.5L200.7 177.2c31.5-31.5 82.5-31.5 114 0c27.9 27.9 31.5 71.8 8.6 103.9l-1.1 1.6c-10.3 14.4-6.9 34.4 7.4 44.6s34.4 6.9 44.6-7.4l1.1-1.6C416.5 260.8 410 182 360 132c-56.5-56.5-148-56.5-204.5 0L43.2 244.3z" />
+</svg></a><code><span class="lowerident">length</span><span class="kw"> :</span><span class="upperident"> List</span><span class="upperident"> Entry</span><span class="kw"> -&gt;</span><span class="upperident"> U64</span></code></h3><p>Calculate the total length when buffer indexes will be converted to a list</p>
+</section><section><h3 id="delete" class="entry-name" ><a href="PieceTable#delete" ><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" fill="currentColor"><!--!
+	Font Awesome Free 6.3.0 by @fontawesome - https://fontawesome.com License -
+	https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License)
+	Copyright 2023 Fonticons, Inc. -->
+	<path
+		d="M562.8 267.7c56.5-56.5 56.5-148 0-204.5c-50-50-128.8-56.5-186.3-15.4l-1.6 1.1c-14.4 10.3-17.7 30.3-7.4 44.6s30.3 17.7 44.6 7.4l1.6-1.1c32.1-22.9 76-19.3 103.8 8.6c31.5 31.5 31.5 82.5 0 114L405.3 334.8c-31.5 31.5-82.5 31.5-114 0c-27.9-27.9-31.5-71.8-8.6-103.8l1.1-1.6c10.3-14.4 6.9-34.4-7.4-44.6s-34.4-6.9-44.6 7.4l-1.1 1.6C189.5 251.2 196 330 246 380c56.5 56.5 148 56.5 204.5 0L562.8 267.7zM43.2 244.3c-56.5 56.5-56.5 148 0 204.5c50 50 128.8 56.5 186.3 15.4l1.6-1.1c14.4-10.3 17.7-30.3 7.4-44.6s-30.3-17.7-44.6-7.4l-1.6 1.1c-32.1 22.9-76 19.3-103.8-8.6C57 372 57 321 88.5 289.5L200.7 177.2c31.5-31.5 82.5-31.5 114 0c27.9 27.9 31.5 71.8 8.6 103.9l-1.1 1.6c-10.3 14.4-6.9 34.4 7.4 44.6s34.4 6.9 44.6-7.4l1.1-1.6C416.5 260.8 410 182 360 132c-56.5-56.5-148-56.5-204.5 0L43.2 244.3z" />
+</svg></a><code><span class="lowerident">delete</span><span class="kw"> :</span><span class="upperident"> PieceTable</span><span class="lowerident"> a</span><span class="delimeter">,</span><span class="delimeter"> {</span><span class="lowerident"> index</span><span class="kw"> :</span><span class="upperident"> U64</span><span class="delimeter"> }</span><span class="kw"> -&gt;</span><span class="upperident"> PieceTable</span><span class="lowerident"> a</span></code></h3><p>Delete the value at <code>index</code></p>
+<p>If index is out of range this has no effect.</p>
+</section><section><h3 id="to_list" class="entry-name" ><a href="PieceTable#to_list" ><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" fill="currentColor"><!--!
+	Font Awesome Free 6.3.0 by @fontawesome - https://fontawesome.com License -
+	https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License)
+	Copyright 2023 Fonticons, Inc. -->
+	<path
+		d="M562.8 267.7c56.5-56.5 56.5-148 0-204.5c-50-50-128.8-56.5-186.3-15.4l-1.6 1.1c-14.4 10.3-17.7 30.3-7.4 44.6s30.3 17.7 44.6 7.4l1.6-1.1c32.1-22.9 76-19.3 103.8 8.6c31.5 31.5 31.5 82.5 0 114L405.3 334.8c-31.5 31.5-82.5 31.5-114 0c-27.9-27.9-31.5-71.8-8.6-103.8l1.1-1.6c10.3-14.4 6.9-34.4-7.4-44.6s-34.4-6.9-44.6 7.4l-1.1 1.6C189.5 251.2 196 330 246 380c56.5 56.5 148 56.5 204.5 0L562.8 267.7zM43.2 244.3c-56.5 56.5-56.5 148 0 204.5c50 50 128.8 56.5 186.3 15.4l1.6-1.1c14.4-10.3 17.7-30.3 7.4-44.6s-30.3-17.7-44.6-7.4l-1.6 1.1c-32.1 22.9-76 19.3-103.8-8.6C57 372 57 321 88.5 289.5L200.7 177.2c31.5-31.5 82.5-31.5 114 0c27.9 27.9 31.5 71.8 8.6 103.9l-1.1 1.6c-10.3 14.4-6.9 34.4 7.4 44.6s34.4 6.9 44.6-7.4l1.1-1.6C416.5 260.8 410 182 360 132c-56.5-56.5-148-56.5-204.5 0L43.2 244.3z" />
+</svg></a><code><span class="lowerident">to</span><span class="lowerident">_</span><span class="lowerident">list</span><span class="kw"> :</span><span class="upperident"> PieceTable</span><span class="lowerident"> a</span><span class="kw"> -&gt;</span><span class="upperident"> List</span><span class="lowerident"> a</span></code></h3><p>Fuse the original and added buffers into a single list</p>
+</section>
+        <footer>
+            <p>Made by people who like to make nice things.</p>
+        </footer>
+    </main>
+</body>
+
+</html>

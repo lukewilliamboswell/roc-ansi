@@ -9,3 +9,6 @@ examples/**
 generated-docs/
 
 .direnv/
+
+*.tar.br
+*.tar.gz
