@@ -1,0 +1,479 @@
+# LLM Prompt for Documentation
+
+## Documentation
+
+### ANSI
+
+#### Color
+
+**Type Annotation**
+
+```roc
+Color.Color
+```
+
+#### Escape
+
+**Type Annotation**
+
+**Description**
+
+[Ansi Escape Codes](https://en.wikipedia.org/wiki/ANSI_escape_code)
+
+#### to_str
+
+**Type Annotation**
+
+```roc
+Escape -> Str
+```
+
+#### style
+
+**Type Annotation**
+
+```roc
+Str, List Style -> Str
+```
+
+**Description**
+
+Add styles to a string
+
+#### color
+
+**Type Annotation**
+
+```roc
+
+    Str,     
+    {
+        fg ? Color,
+        bg ? Color
+    }
+    -> Str
+```
+
+**Description**
+
+Add color styles to a string and then resets to default
+
+#### Input
+
+**Type Annotation**
+
+#### parse_raw_stdin
+
+**Type Annotation**
+
+```roc
+List U8 -> Input
+```
+
+#### input_to_str
+
+**Type Annotation**
+
+```roc
+Input -> Str
+```
+
+#### symbol_to_str
+
+**Type Annotation**
+
+```roc
+Symbol -> Str
+```
+
+#### upper_to_str
+
+**Type Annotation**
+
+```roc
+Letter -> Str
+```
+
+#### lower_to_str
+
+**Type Annotation**
+
+```roc
+Letter -> Str
+```
+
+#### ScreenSize
+
+**Type Annotation**
+
+#### CursorPosition
+
+**Type Annotation**
+
+#### DrawFn
+
+**Type Annotation**
+
+#### Pixel
+
+**Type Annotation**
+
+#### parse_cursor
+
+**Type Annotation**
+
+```roc
+List U8 -> CursorPosition
+```
+
+#### update_cursor
+
+**Type Annotation**
+
+```roc
+    
+    {
+        cursor : CursorPosition,
+        screen : ScreenSize
+    }a,     
+    [
+        Up,
+        Down,
+        Left,
+        Right
+    ]
+    -> 
+        {
+            cursor : CursorPosition,
+            screen : ScreenSize
+        }a
+```
+
+#### draw_screen
+
+**Type Annotation**
+
+```roc
+    
+    {
+        cursor : CursorPosition,
+        screen : ScreenSize
+    }*, 
+    List DrawFn
+    -> Str
+```
+
+**Description**
+
+Loop through each pixel in screen and build up a single string to write to stdout
+
+#### draw_box
+
+**Type Annotation**
+
+```roc
+    
+    {
+        r : U16,
+        c : U16,
+        w : U16,
+        h : U16,
+        fg ? Color,
+        bg ? Color,
+        char ? Str,
+        styles ? List Style
+    }
+    -> DrawFn
+```
+
+#### draw_v_line
+
+**Type Annotation**
+
+```roc
+    
+    {
+        r : U16,
+        c : U16,
+        len : U16,
+        fg ? Color,
+        bg ? Color,
+        char ? Str,
+        styles ? List Style
+    }
+    -> DrawFn
+```
+
+#### draw_h_line
+
+**Type Annotation**
+
+```roc
+    
+    {
+        r : U16,
+        c : U16,
+        len : U16,
+        fg ? Color,
+        bg ? Color,
+        char ? Str,
+        styles ? List Style
+    }
+    -> DrawFn
+```
+
+#### draw_cursor
+
+**Type Annotation**
+
+```roc
+    
+    {
+        fg ? Color,
+        bg ? Color,
+        char ? Str,
+        styles ? List Style
+    }
+    -> DrawFn
+```
+
+#### draw_text
+
+**Type Annotation**
+
+```roc
+
+    Str,     
+    {
+        r : U16,
+        c : U16,
+        fg ? Color,
+        bg ? Color,
+        styles ? List Style
+    }
+    -> DrawFn
+```
+
+### C16
+
+#### C16
+
+**Type Annotation**
+
+**Description**
+
+[Ansi 16 colors](https://en.wikipedia.org/wiki/ANSI_escape_code#3-bit_and_4-bit)
+This colors can be customized, leading to variations across different terminals.
+Therefore, if your use case requires a consistent color palette, it's recommended to avoid using them.
+
+#### Name
+
+**Type Annotation**
+
+```roc
+
+    [
+        Black,
+        Red,
+        Green,
+        Yellow,
+        Blue,
+        Magenta,
+        Cyan,
+        White
+    ]
+```
+
+#### name_to_code
+
+**Type Annotation**
+
+```roc
+Name -> U8
+```
+
+#### to_c256
+
+**Type Annotation**
+
+```roc
+C16 -> C256
+```
+
+### C256
+
+#### C256
+
+**Type Annotation**
+
+**Description**
+
+[Ansi 16 colors](https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit)
+System range (0-15)
+Chromatic range 6x6x6 cube (16-231)
+Grayscale range (232-255)
+
+#### to_rgb
+
+**Type Annotation**
+
+```roc
+C256 -> Rgb
+```
+
+### Color
+
+#### Color
+
+**Type Annotation**
+
+**Description**
+
+[Color](https://en.wikipedia.org/wiki/ANSI_escape_code#Colors)
+it includes the 4-bit, 8-bit and 24-bit colors supported on *most* modern terminal emulators.
+
+#### to_code
+
+**Type Annotation**
+
+```roc
+Color, U8 -> List U8
+```
+
+### Control
+
+#### Control
+
+**Type Annotation**
+
+**Description**
+
+[Control](https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_(Control_Sequence_Introducer)_sequences) (commonly known as Control Sequence Introducer or CSI)
+represents the control sequences for terminal commands.
+The provided commands are common and well-supported, though not exhaustive.
+
+#### to_code
+
+**Type Annotation**
+
+```roc
+Control -> Str
+```
+
+### Rgb
+
+#### Rgb
+
+**Type Annotation**
+
+#### Hex
+
+**Type Annotation**
+
+#### from_hex
+
+**Type Annotation**
+
+```roc
+Hex -> Rgb
+```
+
+### Style
+
+#### Style
+
+**Type Annotation**
+
+**Description**
+
+[Style](https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters) (commonly known as Select Graphic Rendition or SGR)
+represents the control sequence for terminal display attributes.
+It controls various attributes, which remain in effect until explicitly reset by a subsequent style sequence.
+The provided attributes are common and well-supported, though not exhaustive.
+
+#### to_code
+
+**Type Annotation**
+
+```roc
+Style -> List U8
+```
+
+### PieceTable
+
+#### PieceTable
+
+**Type Annotation**
+
+**Description**
+
+Represents a [Piece table](https://en.wikipedia.org/wiki/Piece_table) which
+is typically used to represent a text document while it is edited in a text
+editor
+
+#### Entry
+
+**Type Annotation**
+
+**Description**
+
+Represents an index into the original or add buffer
+
+#### insert
+
+**Type Annotation**
+
+```roc
+
+    PieceTable a,     
+    {
+        values : List a,
+        index : U64
+    }
+    -> PieceTable a
+```
+
+**Description**
+
+Insert `values` into the table at a given `index`.
+
+If index is larger than current buffer, appends to end of file.
+
+#### length
+
+**Type Annotation**
+
+```roc
+List Entry -> U64
+```
+
+**Description**
+
+Calculate the total length when buffer indexes will be converted to a list
+
+#### delete
+
+**Type Annotation**
+
+```roc
+PieceTable a, { index : U64 } -> PieceTable a
+```
+
+**Description**
+
+Delete the value at `index`
+
+If index is out of range this has no effect.
+
+#### to_list
+
+**Type Annotation**
+
+```roc
+PieceTable a -> List a
+```
+
+**Description**
+
+Fuse the original and added buffers into a single list
+

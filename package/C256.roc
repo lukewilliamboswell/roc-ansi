@@ -1,4 +1,4 @@
-module [C256, toRgb]
+module [C256, to_rgb]
 
 import Rgb exposing [Rgb]
 
@@ -8,12 +8,12 @@ import Rgb exposing [Rgb]
 ## Grayscale range (232-255)
 C256 : U8
 
-toCode : C256 -> U8
-toCode = \color -> color
+to_code : C256 -> U8
+to_code = |color| color
 
 # https://www.ditig.com/publications/256-colors-cheat-sheet
-systemRange : List Rgb
-systemRange = [
+system_range : List Rgb
+system_range = [
     (000, 000, 000), # Standard black
     (128, 000, 000), # Standard red
     (000, 128, 000), # Standard green
@@ -32,28 +32,28 @@ systemRange = [
     (255, 255, 255), # Bright white
 ]
 
-chromaticRange = List.concat [0] (List.range { start: At 95, end: Length 5, step: 40 })
-grayscaleRange = List.range { start: At 8, end: Length 24, step: 10 }
+chromatic_range = List.concat([0], List.range({ start: At(95), end: Length(5), step: 40 }))
+grayscale_range = List.range({ start: At(8), end: Length(24), step: 10 })
 
 # https://www.hackitu.de/termcolor256/
-toRgb : C256 -> Rgb
-toRgb = \color ->
-    when Num.toU64 (toCode color) is
+to_rgb : C256 -> Rgb
+to_rgb = |color|
+    when Num.to_u64(to_code(color)) is
         code if code < 16 ->
-            List.get systemRange code |> Result.withDefault (0, 0, 0)
+            List.get(system_range, code) |> Result.with_default((0, 0, 0))
 
         code if code < 232 ->
             index = code - 16
-            c = \a -> List.get chromaticRange (index |> Num.divTrunc (Num.powInt 6 (2 - a)) |> Num.rem 6) |> Result.withDefault 0
-            (c 0, c 1, c 2)
+            c = |a| List.get(chromatic_range, (index |> Num.div_trunc(Num.pow_int(6, (2 - a))) |> Num.rem(6))) |> Result.with_default(0)
+            (c(0), c(1), c(2))
 
         code ->
             index = code - 232
-            gray = List.get grayscaleRange index |> Result.withDefault 0
+            gray = List.get(grayscale_range, index) |> Result.with_default(0)
             (gray, gray, gray)
 
-expect toRgb 8 == (128, 128, 128)
-expect toRgb 55 == (95, 0, 175)
-expect toRgb 240 == (88, 88, 88)
+expect to_rgb(8) == (128, 128, 128)
+expect to_rgb(55) == (95, 0, 175)
+expect to_rgb(240) == (88, 88, 88)
 
 # TODO: toC16 : C256 -> C16
