@@ -153,7 +153,7 @@ get_terminal_size! = |{}|
     # Read the cursor position
     Stdin.bytes!({})
     |> Result.map_ok(ANSI.parse_cursor)
-    |> Result.map_ok |{ row, col }| { width: col, height: row }
+    |> Result.map_ok(|{ row, col }| { width: col, height: row })
 
 home_screen : Model -> List ANSI.DrawFn
 home_screen = |model|
@@ -200,7 +200,7 @@ debug_screen = |state|
         state.inputs
         |> List.last
         |> Result.map_ok(ANSI.input_to_str)
-        |> Result.map_ok |str| "INPUT ${str}"
+        |> Result.map_ok(|str| "INPUT ${str}")
         |> Result.with_default("NO INPUT YET")
 
     [

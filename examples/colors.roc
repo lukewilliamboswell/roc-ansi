@@ -8,7 +8,7 @@ import ansi.ANSI
 
 main! = |_|
     [
-        "Default color" |> ANSI.color({ fg: Default, bg: Default }),
+        ANSI.color("Default color", { fg: Default, bg: Default }),
         "Ansi 16 colors",
         "Standard Red   fg" |> ANSI.color({ fg: Standard(Red) }),
         "Standard Green fg" |> ANSI.color({ fg: Standard(Green) }),

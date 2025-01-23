@@ -141,7 +141,7 @@ draw_view_port = |{ lines, line_offset, width, height, position }|
                         Ok({ char: "¶", fg: Standard(Cyan), bg: Default, styles: [] })
                     else
                         char : Grapheme
-                        char = List.get(line, char_index) |> Result.with_default (" ")
+                        char = List.get(line, char_index) |> Result.with_default(" ")
                         Ok({ char, fg: Default, bg: Default, styles: [] })
 
 main! = |args|
@@ -200,7 +200,7 @@ read_arg_file_path = |args|
             |> Path.from_str
             |> Ok
 
-        _ -> Err(FailedToReadArgs ("expected file argument e.g. 'roc run text-editor.roc -- file.txt'"))
+        _ -> Err(FailedToReadArgs("expected file argument e.g. 'roc run text-editor.roc -- file.txt'"))
 
 # UI Loop command->update->render
 run_ui_loop! : Model => Result Model []_
