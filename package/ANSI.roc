@@ -583,13 +583,13 @@ draw_box = |{ r, c, w, h, fg ?? Default, bg ?? Default, char ?? "#", styles ?? [
         start_col = c
         end_col = (c + w)
 
-        if row == r && (col >= start_col && col < end_col) then
+        if row == r and (col >= start_col and col < end_col) then
             Ok({ char, fg, bg, styles }) # TOP BORDER
-        else if row == (r + h - 1) && (col >= start_col && col < end_col) then
+        else if row == (r + h - 1) and (col >= start_col and col < end_col) then
             Ok({ char, fg, bg, styles }) # BOTTOM BORDER
-        else if col == c && (row >= start_row && row < end_row) then
+        else if col == c and (row >= start_row and row < end_row) then
             Ok({ char, fg, bg, styles }) # LEFT BORDER
-        else if col == (c + w - 1) && (row >= start_row && row < end_row) then
+        else if col == (c + w - 1) and (row >= start_row and row < end_row) then
             Ok({ char, fg, bg, styles }) # RIGHT BORDER
         else
             Err({})
@@ -597,7 +597,7 @@ draw_box = |{ r, c, w, h, fg ?? Default, bg ?? Default, char ?? "#", styles ?? [
 draw_v_line : { r : U16, c : U16, len : U16, fg ?? Color, bg ?? Color, char ?? Str, styles ?? List Style } -> DrawFn
 draw_v_line = |{ r, c, len, fg ?? Default, bg ?? Default, char ?? "|", styles ?? [] }|
     |_, { row, col }|
-        if col == c && (row >= r && row < (r + len)) then
+        if col == c and (row >= r and row < (r + len)) then
             Ok({ char, fg, bg, styles })
         else
             Err({})
@@ -605,7 +605,7 @@ draw_v_line = |{ r, c, len, fg ?? Default, bg ?? Default, char ?? "|", styles ??
 draw_h_line : { r : U16, c : U16, len : U16, fg ?? Color, bg ?? Color, char ?? Str, styles ?? List Style } -> DrawFn
 draw_h_line = |{ r, c, len, fg ?? Default, bg ?? Default, char ?? "-", styles ?? [] }|
     |_, { row, col }|
-        if row == r && (col >= c && col < (c + len)) then
+        if row == r and (col >= c and col < (c + len)) then
             Ok({ char, fg, bg, styles })
         else
             Err({})
@@ -613,7 +613,7 @@ draw_h_line = |{ r, c, len, fg ?? Default, bg ?? Default, char ?? "-", styles ??
 draw_cursor : { fg ?? Color, bg ?? Color, char ?? Str, styles ?? List Style } -> DrawFn
 draw_cursor = |{ fg ?? Default, bg ?? Default, char ?? " ", styles ?? [] }|
     |cursor, { row, col }|
-        if (row == cursor.row) && (col == cursor.col) then
+        if (row == cursor.row) and (col == cursor.col) then
             Ok({ char, fg, bg, styles })
         else
             Err({})
@@ -623,11 +623,11 @@ draw_text = |text, { r, c, fg ?? Default, bg ?? Default, styles ?? [] }|
     |_, pixel|
         bytes = Str.to_utf8(text)
         len = text |> Str.to_utf8 |> List.len |> Num.to_u16
-        if pixel.row == r && pixel.col >= c && pixel.col < (c + len) then
+        if pixel.row == r and pixel.col >= c and pixel.col < (c + len) then
             bytes
             |> List.get(Num.int_cast((pixel.col - c)))
             |> Result.try(|b| Str.from_utf8([b]))
-            |> Result.map_ok|char| { char, fg, bg, styles }
+            |> Result.map_ok |char| { char, fg, bg, styles }
             |> Result.map_err(|_| {})
         else
             Err({})

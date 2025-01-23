@@ -122,7 +122,7 @@ draw_view_port :
     -> ANSI.DrawFn
 draw_view_port = |{ lines, line_offset, width, height, position }|
     |_, { row, col }|
-        if row < position.row || row >= (position.row + height) || col < position.col || col >= (position.col + width) then
+        if row < position.row or row >= (position.row + height) or col < position.col or col >= (position.col + width) then
             Err({}) # only draw pixels within this viewport
         else
             line_index : U64
@@ -348,13 +348,13 @@ run_ui_loop! = |prev_model|
             # We dont want the cursor to wrap around the screen,
             # instead move the lineOffset for the viewPort
             model3 =
-                if model2.cursor.row == 0 && direction == Up then
+                if model2.cursor.row == 0 and direction == Up then
                     { model2 & line_offset: Num.sub_saturated(model2.line_offset, 1) }
-                else if model2.cursor.row == (model2.screen.height - 2) && direction == Down then
+                else if model2.cursor.row == (model2.screen.height - 2) and direction == Down then
                     { model2 & line_offset: Num.add_saturated(model2.line_offset, 1) }
-                else if model2.cursor.col == 0 && direction == Left then
+                else if model2.cursor.col == 0 and direction == Left then
                     model2
-                else if model2.cursor.col == model2.screen.width - 1 && direction == Right then
+                else if model2.cursor.col == model2.screen.width - 1 and direction == Right then
                     model2
                 else
                     ANSI.update_cursor(model2, direction)
@@ -405,7 +405,7 @@ split_into_lines = |chars, line, lines|
     when chars is
         [] if List.is_empty(line) -> lines
         [] -> List.append(lines, line)
-        [a, .. as rest] if a == "\r\n" || a == "\n" -> split_into_lines(rest, [], List.append(lines, line))
+        [a, .. as rest] if a == "\r\n" or a == "\n" -> split_into_lines(rest, [], List.append(lines, line))
         [a, .. as rest] -> split_into_lines(rest, List.append(line, a), lines)
 
 expect split_into_lines([], [], []) == []

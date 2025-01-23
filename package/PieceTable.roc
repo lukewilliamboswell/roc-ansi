@@ -56,7 +56,7 @@ insert_help = |in, { index, span }, out|
             len_before = index
             len_after = current.len - len_before
 
-            if len_before > 0 && len_after > 0 then
+            if len_before > 0 and len_after > 0 then
                 # three spans
                 new_spans = [
                     Add({ start: current.start, len: len_before }),
@@ -92,7 +92,7 @@ insert_help = |in, { index, span }, out|
             len_before = index
             len_after = current.len - len_before
 
-            if len_before > 0 && len_after > 0 then
+            if len_before > 0 and len_after > 0 then
                 # three spans
                 new_spans = [
                     Original({ start: current.start, len: len_before }),
