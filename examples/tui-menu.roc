@@ -1,6 +1,5 @@
 app [main!] {
-    # cli: platform "https://github.com/roc-lang/basic-cli/releases/download/0.18.0/0APbwVN1_p1mJ96tXjaoiUCr8NBGamr8G8Ac_DrXR-o.tar.br",
-    cli: platform "../../basic-cli/platform/main.roc",
+    cli: platform "https://github.com/roc-lang/basic-cli/releases/download/0.19.0/bi5zubJ-_Hva9vxxPq4kNx4WHX6oFs8OP6Ad0tCYlrY.tar.br",
     ansi: "../package/main.roc",
 }
 
