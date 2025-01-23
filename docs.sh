@@ -24,7 +24,7 @@ VERSION=$1
 validate_version "$VERSION"
 
 # Run roc docs with validated version
-roc docs --root-dir "/roc-json/$VERSION/" package/main.roc
+roc docs --root-dir "/roc-ansi/$VERSION/" package/main.roc
 
 # Create new version directory in www/
 mkdir www/$VERSION
