@@ -5,7 +5,7 @@ module [
     mean,
     median,
     variance,
-    standardDeviation,
+    standard_deviation,
 ]
 
 linear_interpolation = |a, b|
@@ -22,43 +22,43 @@ manhattan_distance = |point1, point2|
     |> List.map(Num.abs)
     |> List.walk(0, Num.add)
 
-expect manhattanDistance [1, 2, 3] [4, 6, 8] == 12
+expect manhattan_distance [1, 2, 3] [4, 6, 8] == 12
 
 mean : List (Frac a) -> Frac a
-mean = \xs -> xs |> List.walk 0 Num.add |> Num.div (List.len xs |> Num.toFrac)
+mean = |xs| xs |> List.walk 0 Num.add |> Num.div (List.len xs |> Num.to_frac)
 
 expect
     actual = mean [6, 7]
     expected = 6.5
-    Num.isApproxEq actual expected { atol: 0 }
+    Num.is_approx_eq actual expected { atol: 0 }
 
 variance : List (Frac a) -> Frac a
-variance = \xs ->
-    squaredDiffs = List.map xs (\x -> x |> Num.sub (mean xs) |> Num.pow 2)
-    mean squaredDiffs
+variance = |xs|
+    squared_diffs = List.map xs (|x| x |> Num.sub (mean xs) |> Num.pow 2)
+    mean squared_diffs
 
-standardDeviation : List (Frac a) -> Frac a
-standardDeviation = \xs ->
+standard_deviation : List (Frac a) -> Frac a
+standard_deviation = |xs|
     variance xs |> Num.pow 0.5 # Num.sqrt not working
 
-testData1 = [10, 12, 23, 23, 16, 23, 21, 16]
+test_data_1 = [10, 12, 23, 23, 16, 23, 21, 16]
 
-expect mean testData1 == 18
-expect variance testData1 == 24
-expect Num.isApproxEq (standardDeviation testData1) 4.8989794855664 { atol: 0 }
+expect mean test_data_1 == 18
+expect variance test_data_1 == 24
+expect Num.is_approx_eq (standard_deviation test_data_1) 4.8989794855664 { atol: 0 }
 
-testData2 = [9, 11, 8, 63, 5, 13, 10]
+test_data_2 = [9, 11, 8, 63, 5, 13, 10]
 
-expect mean testData2 == 17
-expect variance testData2 == 358
-expect standardDeviation testData2 |> Num.isApproxEq 18.920887928425 { atol: 0 }
+expect mean test_data_2 == 17
+expect variance test_data_2 == 358
+expect standard_deviation test_data_2 |> Num.is_approx_eq 18.920887928425 { atol: 0 }
 
 median : List (Frac a) -> [Err [Empty, OutOfBounds], Ok (Frac a)]
-median = \xs ->
-    if List.isEmpty xs then
+median = |xs|
+    if List.is_empty xs then
         Err Empty
     else
-        sorted = List.sortAsc xs
+        sorted = List.sort_asc xs
         len = List.len sorted
         indices = (
             if len % 2 == 1 then
@@ -68,9 +68,9 @@ median = \xs ->
                 # Even number of elements, take the average of the two middle ones
                 [len // 2 - 1, len // 2]
         )
-        middle = indices |> List.mapTry (\a -> sorted |> List.get a)
+        middle = indices |> List.map_try (|a| sorted |> List.get a)
         when middle is
             Ok a -> Ok (List.walk a 0 Num.add)
             Err e -> Err e
 
-expect median testData2 == Ok 10
+expect median test_data_2 == Ok 10
