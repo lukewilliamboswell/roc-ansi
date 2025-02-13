@@ -1,10 +1,7 @@
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    roc = {
-      url = "github:roc-lang/roc";
-      # inputs.nixpkgs.follows = "nixpkgs";
-    };
+    roc.url = "github:roc-lang/roc";
   };
   outputs = {
     nixpkgs,
@@ -24,9 +21,10 @@
       rocPkgs = roc.packages.${system};
     in {
       default = pkgs.mkShell {
-        buildInputs = with pkgs; [
-          (with rocPkgs; [full])
-        ];
+        buildInputs = builtins.attrValues {
+          inherit (pkgs) nixd nil alejandra;
+          inherit (rocPkgs) full;
+        };
       };
     });
   };
