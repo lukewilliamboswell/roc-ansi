@@ -1,4 +1,4 @@
-module [drawGrid]
+module [draw_grid]
 
 import Utils
 import Spacing
@@ -18,24 +18,24 @@ import Spacing
 
 LineFill a : { start : a, base : a, end : a, sep : a }
 
-squaredBorder : LineFill (LineFill Str)
-squaredBorder = {
+squared_border : LineFill (LineFill Str)
+squared_border = {
     start: { start: "┌", base: "─", sep: "┬", end: "┐" },
     base: { start: "│", base: " ", sep: "│", end: "│" },
     sep: { start: "├", base: "─", sep: "┼", end: "┤" },
     end: { start: "└", base: "─", sep: "┴", end: "┘" },
 }
 
-roundedBorder : LineFill (LineFill Str)
-roundedBorder = {
+rounded_border : LineFill (LineFill Str)
+rounded_border = {
     start: { start: "╭", base: "─", sep: "┬", end: "╮" },
     base: { start: "│", base: " ", sep: "│", end: "│" },
     sep: { start: "├", base: "─", sep: "┼", end: "┤" },
     end: { start: "╰", base: "─", sep: "┴", end: "╯" },
 }
 
-prettyBorder : LineFill (LineFill Str)
-prettyBorder = {
+pretty_border : LineFill (LineFill Str)
+pretty_border = {
     start: { start: "╭", base: "─", sep: "─", end: "╮" },
     base: { start: "│", base: " ", sep: " ", end: "│" },
     sep: { start: "│", base: "─", sep: " ", end: "│" },
@@ -44,9 +44,9 @@ prettyBorder = {
 
 # Display strategies
 
-testData = ["ProductID", "ProductName", "Category", "Price", "StockQuantity", "SupplierID", "101", "Laptop", "Electronics", "1200", "50", "2001", "102", "Smartphone", "Electronics", "800", "150", "2002", "103", "Office Chair", "Furniture", "150", "300", "2003", "104", "Coffee Maker", "Appliances", "100", "200", "2004", "105", "Desk Lamp", "Lighting", "50", "500", "2005", "106", "Microwave", "Appliances", "150", "250", "2004"]
+test_data = ["ProductID", "ProductName", "Category", "Price", "StockQuantity", "SupplierID", "101", "Laptop", "Electronics", "1200", "50", "2001", "102", "Smartphone", "Electronics", "800", "150", "2002", "103", "Office Chair", "Furniture", "150", "300", "2003", "104", "Coffee Maker", "Appliances", "100", "200", "2004", "105", "Desk Lamp", "Lighting", "50", "500", "2005", "106", "Microwave", "Appliances", "150", "250", "2004"]
 
-dataToRows = |data, (rows, cols)|
+data_to_rows = |data, (rows, cols)|
     List.range { start: At 0, end: Before rows }
     |> List.map_try |rowIndex|
         List.range { start: At 0, end: Before cols }
@@ -54,7 +54,7 @@ dataToRows = |data, (rows, cols)|
             List.get data (rowIndex * cols + colIndex)
 
 expect
-    actual = dataToRows testData (7, 6) |> Result.with_default []
+    actual = data_to_rows test_data (7, 6) |> Result.with_default []
     expected = [
         ["ProductID", "ProductName", "Category", "Price", "StockQuantity", "SupplierID"],
         ["101", "Laptop", "Electronics", "1200", "50", "2001"],
@@ -66,8 +66,8 @@ expect
     ]
     actual == expected
 
-dataToColumns : List a, (U64, U64) -> Result (List (List a)) [OutOfBounds]
-dataToColumns = |data, (rows, cols)|
+data_to_columns : List a, (U64, U64) -> Result (List (List a)) [OutOfBounds]
+data_to_columns = |data, (rows, cols)|
     List.range { start: At 0, end: Before cols }
     |> List.map_try |colIndex|
         List.range { start: At 0, end: Before rows }
@@ -75,7 +75,7 @@ dataToColumns = |data, (rows, cols)|
             List.get data (rowIndex * cols + colIndex)
 
 expect
-    actual = dataToColumns testData (7, 6) |> Result.with_default []
+    actual = data_to_columns test_data (7, 6) |> Result.with_default []
     expected = [
         ["ProductID", "101", "102", "103", "104", "105", "106"],
         ["ProductName", "Laptop", "Smartphone", "Office Chair", "Coffee Maker", "Desk Lamp", "Microwave"],
@@ -86,15 +86,15 @@ expect
     ]
     expected == actual
 
-testRows = dataToRows testData (7, 6) |> Result.with_default []
-testHeader = testRows |> List.get 0 |> Result.with_default []
+test_rows = data_to_rows test_data (7, 6) |> Result.with_default []
+test_header = test_rows |> List.get 0 |> Result.with_default []
 
 ## Truncates or pads a string to fit a specified size.
 ## It only works for left-to-right writing.
 ## It only truncates for single line words (horizontal size only). TODO: Add multiline support (breakdown words, add hyphen)?
 ## It only pads to the right. TODO: Add word alignment support?
-truncOrPad : Str, Str -> (Str, U64 -> Str)
-truncOrPad = |truncChar, fillChar|
+trunc_or_pad : Str, Str -> (Str, U64 -> Str)
+trunc_or_pad = |truncChar, fillChar|
     |str, size|
         if size == 0 then
             ""
@@ -114,8 +114,8 @@ truncOrPad = |truncChar, fillChar|
                 str
 
 # This should draw a list of Nodes, not a list of Str?
-drawRow : List Str, List U64, LineFill Str, { mx ?? (Num *, Num *)a, px ?? (Num *, Num *)a }* -> Str
-drawRow = |data, sizes, border, { px ?? (0, 0), mx ?? (0, 0) }|
+draw_row : List Str, List U64, LineFill Str, { mx ?? (Num *, Num *)a, px ?? (Num *, Num *)a }* -> Str
+draw_row = |data, sizes, border, { px ?? (0, 0), mx ?? (0, 0) }|
     fill = |elem, size| List.range { start: At 0, end: Before size } |> List.map (|_| elem)
     block =
         (
@@ -123,7 +123,7 @@ drawRow = |data, sizes, border, { px ?? (0, 0), mx ?? (0, 0) }|
                 [] -> List.map sizes |_| ""
                 d -> d
         )
-        |> List.map2 sizes (truncOrPad "…" border.base)
+        |> List.map2 sizes (trunc_or_pad "…" border.base)
 
     blocks =
         List.map
@@ -150,52 +150,52 @@ drawRow = |data, sizes, border, { px ?? (0, 0), mx ?? (0, 0) }|
     |> List.join
     |> Str.join_with ""
 
-expect drawRow testHeader [0, 1, 2, 3, 4] squaredBorder.base {} == "││…│C…│Pr…│Sto…│"
-expect drawRow testHeader [5, 6, 7, 8, 9, 10, 11] squaredBorder.base {} == "│Prod…│Produ…│Catego…│Price   │StockQua…│SupplierID│"
+expect draw_row test_header [0, 1, 2, 3, 4] squared_border.base {} == "││…│C…│Pr…│Sto…│"
+expect draw_row test_header [5, 6, 7, 8, 9, 10, 11] squared_border.base {} == "│Prod…│Produ…│Catego…│Price   │StockQua…│SupplierID│"
 
-expect drawRow [] [1, 0] squaredBorder.start {} == "┌─┬┐"
-expect drawRow [] [1, 0] squaredBorder.sep {} == "├─┼┤"
-expect drawRow [] [1, 0] squaredBorder.base {} == "│ ││"
-expect drawRow [] [1, 0] squaredBorder.end {} == "└─┴┘"
-expect drawRow [] [1, 0] roundedBorder.start {} == "╭─┬╮"
-expect drawRow [] [1, 0] roundedBorder.sep {} == "├─┼┤"
-expect drawRow [] [1, 0] roundedBorder.base {} == "│ ││"
-expect drawRow [] [1, 0] roundedBorder.end {} == "╰─┴╯"
+expect draw_row [] [1, 0] squared_border.start {} == "┌─┬┐"
+expect draw_row [] [1, 0] squared_border.sep {} == "├─┼┤"
+expect draw_row [] [1, 0] squared_border.base {} == "│ ││"
+expect draw_row [] [1, 0] squared_border.end {} == "└─┴┘"
+expect draw_row [] [1, 0] rounded_border.start {} == "╭─┬╮"
+expect draw_row [] [1, 0] rounded_border.sep {} == "├─┼┤"
+expect draw_row [] [1, 0] rounded_border.base {} == "│ ││"
+expect draw_row [] [1, 0] rounded_border.end {} == "╰─┴╯"
 
-testColumns = dataToColumns testData (7, 6) |> Result.with_default []
-testColumn = testColumns |> List.get 0 |> Result.with_default []
+test_columns = data_to_columns test_data (7, 6) |> Result.with_default []
+test_column = test_columns |> List.get 0 |> Result.with_default []
 
-getDataLength = |a| a |> Str.to_utf8 |> List.len |> Num.to_frac
+get_data_length = |a| a |> Str.to_utf8 |> List.len |> Num.to_frac
 
-expect testColumn |> List.map getDataLength == [9, 3, 3, 3, 3, 3, 3]
+expect test_column |> List.map get_data_length == [9, 3, 3, 3, 3, 3, 3]
 
 # NOTE: This is an ARBITRARY function
 # When a value in the list is outside the standard deviation
 # it replaces it with another value (in this case I chose the mean as the replacer)
-fixAnomalies = |xs, k|
+fix_anomalies = |xs, k|
     mean = Utils.mean xs
-    stdDev = Utils.standard_deviation xs
-    t = Num.mul stdDev k
-    replaceFn = |threshold, average, replacer|
+    std_dev = Utils.standard_deviation xs
+    t = Num.mul std_dev k
+    replace_fn = |threshold, average, replacer|
         |elem|
             if Num.abs_diff elem average > threshold then
                 replacer
             else
                 elem
-    xs |> List.map (replaceFn t mean mean) |> List.map Num.floor
+    xs |> List.map (replace_fn t mean mean) |> List.map Num.floor
 
 # Estimate the sizes when the user doesn't provide them
-autoSize = |xs| fixAnomalies xs 2 |> List.walk 0 Num.max
+auto_size = |xs| fix_anomalies xs 2 |> List.walk 0 Num.max
 
-testSizes = testColumns |> List.map (|x| x |> List.map getDataLength |> autoSize)
+test_sizes = test_columns |> List.map (|x| x |> List.map get_data_length |> auto_size)
 
 expect
-    actual = testSizes
+    actual = test_sizes
     expected = [3, 12, 11, 5, 4, 4]
     actual == expected
 
 # TODO: How to make borders optional?
-drawGrid :
+draw_grid :
     List (List Str),
     List U64,
     LineFill (LineFill Str),
@@ -206,31 +206,30 @@ drawGrid :
         py ?? (Int *, Int *),
     }
     -> Str
-drawGrid = |grid, sizes, border, { mx ?? (0, 0), my ?? (0, 0), px ?? (0, 0), py ?? (0, 0) }|
-    paddingFill = ([], { base: "░", sep: border.base.sep, start: border.base.start, end: border.base.end }) # This should only be blank space, Spacing.xw?
-    marginFill = ([], { base: "░", sep: "░", start: "░", end: "░" }) # This should only be blank space, Spacing.xw?
+draw_grid = |grid, sizes, border, { mx ?? (0, 0), my ?? (0, 0), px ?? (0, 0), py ?? (0, 0) }|
+    padding_fill = ([], { base: "░", sep: border.base.sep, start: border.base.start, end: border.base.end }) # This should only be blank space, Spacing.xw?
+    margin_fill = ([], { base: "░", sep: "░", start: "░", end: "░" }) # This should only be blank space, Spacing.xw?
     fill = |elem, size| List.range { start: At 0, end: Before size } |> List.map (|_| elem)
-    x = List.map
+    List.map
         grid
         (|row|
             [
-                fill paddingFill py.0, # Padding top
+                fill padding_fill py.0, # Padding top
                 [(row, border.base)], # Content
-                fill paddingFill py.1, # Padding bottom
+                fill padding_fill py.1, # Padding bottom
             ]
             |> List.join)
-    x
     |> List.intersperse (fill ([], border.sep) 1) # Border between
     |> List.prepend (fill ([], border.start) 1) # Border top
-    |> List.prepend (fill marginFill my.0) # Margin top
+    |> List.prepend (fill margin_fill my.0) # Margin top
     |> List.append (fill ([], border.end) 1) # Border bottom
-    |> List.append (fill marginFill my.1) # Margin bottom
+    |> List.append (fill margin_fill my.1) # Margin bottom
     |> List.join
-    |> List.map (|(d, b)| drawRow d sizes b { px, mx })
+    |> List.map (|(d, b)| draw_row d sizes b { px, mx })
     |> Str.join_with Spacing.yw
 
 expect
-    actual = drawGrid [["Apple", "Banana", "Cat"], ["Dog", "Elephant", "Fish"]] [2, 2, 2] squaredBorder {}
+    actual = draw_grid [["Apple", "Banana", "Cat"], ["Dog", "Elephant", "Fish"]] [2, 2, 2] squared_border {}
     expected =
         """
         ┌──┬──┬──┐
@@ -242,7 +241,7 @@ expect
     actual == expected
 
 expect
-    actual = drawGrid [["Apple", "Banana", "Cat"], ["Dog", "Elephant", "Fish"]] [2, 2, 2] squaredBorder { mx: (1, 2), my: (1, 2) }
+    actual = draw_grid [["Apple", "Banana", "Cat"], ["Dog", "Elephant", "Fish"]] [2, 2, 2] squared_border { mx: (1, 2), my: (1, 2) }
     expected =
         """
         ░░░░░░░░░░░░░
@@ -257,7 +256,7 @@ expect
     actual == expected
 
 expect
-    actual = drawGrid [["Apple", "Banana", "Cat"], ["Dog", "Elephant", "Fish"]] [2, 2, 2] squaredBorder { px: (1, 2), py: (1, 2) }
+    actual = draw_grid [["Apple", "Banana", "Cat"], ["Dog", "Elephant", "Fish"]] [2, 2, 2] squared_border { px: (1, 2), py: (1, 2) }
     expected =
         """
         ┌░──░░┬░──░░┬░──░░┐
@@ -277,21 +276,21 @@ expect
 # TODO:
 # Maybe sizes should be a struct that has { width: U16, height: U16, flex ? U16 } instead of a single list of U16
 # Maybe headers should be data
-# It should derive from the drawGrid function!
-drawTable : List (List Str), List U64, LineFill (LineFill Str) -> Str
-drawTable = |rows, sizes, border|
+# It should derive from the draw_grid function!
+draw_table : List (List Str), List U64, LineFill (LineFill Str) -> Str
+draw_table = |rows, sizes, border|
     when rows is
         [] -> ""
         [head, .. as tail] ->
-            t = drawRow [] sizes border.start {}
-            h = drawRow head sizes border.base {}
-            m = drawRow [] sizes border.sep {}
-            d = tail |> List.map (|a| drawRow a sizes border.base {}) |> Str.join_with Spacing.yw
-            b = drawRow [] sizes border.end {}
+            t = draw_row [] sizes border.start {}
+            h = draw_row head sizes border.base {}
+            m = draw_row [] sizes border.sep {}
+            d = tail |> List.map (|a| draw_row a sizes border.base {}) |> Str.join_with Spacing.yw
+            b = draw_row [] sizes border.end {}
             [t, h, m, d, b] |> Str.join_with Spacing.yw
 
 expect
-    actual = drawTable testRows testSizes prettyBorder
+    actual = draw_table test_rows test_sizes pretty_border
     expected =
         """
         ╭────────────────────────────────────────────╮
