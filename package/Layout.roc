@@ -3,7 +3,8 @@ module [drawGrid]
 import Utils
 import Spacing
 
-# Taken from MDN
+# [Dir](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir)
+# [Direction](https://developer.mozilla.org/en-US/docs/Web/CSS/direction)
 # dir An enumerated attribute indicating the directionality of the element's text. It can have the following values:
 # ltr, which means left to right and is to be used for languages that are written from the left to the right (like English);
 # rtl, which means right to left and is to be used for languages that are written from the right to the left (like Arabic);
