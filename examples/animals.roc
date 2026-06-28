@@ -1,20 +1,24 @@
 app [main!] {
-    cli: platform "https://github.com/roc-lang/basic-cli/releases/download/0.19.0/Hj-J_zxz7V9YurCSTFcFdu6cQJie4guzsPMUi5kBYUk.tar.br",
-    ansi: "../package/main.roc",
+	pf: platform "https://github.com/lukewilliamboswell/roc-platform-template-zig/releases/download/0.9/8GdFEvQYS3TeAZxKvTzCLVdQiomweGtXcdZkXNDEeABq.tar.zst",
+	ansi: "../package/main.roc",
 }
 
-import cli.Stdout
+import pf.Stdout
 import ansi.ANSI
+import ansi.C16
+import ansi.Color
 
-main! = |_|
-    [
-        "The ",
-        "GREEN" |> ANSI.color({ fg: Standard(Green) }),
-        " frog, the ",
-        "BLUE" |> ANSI.color({ fg: Standard(Blue) }),
-        " bird, and the ",
-        "RED" |> ANSI.color({ fg: Standard(Red) }),
-        " ant shared a leaf.",
-    ]
-    |> Str.join_with("")
-    |> Stdout.line!
+main! = |_args| {
+	parts = [
+		"The ",
+		ANSI.color("GREEN", { fg: Color.Standard(C16.Name.Green), bg: Color.Default }),
+		" frog, the ",
+		ANSI.color("BLUE", { fg: Color.Standard(C16.Name.Blue), bg: Color.Default }),
+		" bird, and the ",
+		ANSI.color("RED", { fg: Color.Standard(C16.Name.Red), bg: Color.Default }),
+		" ant shared a leaf.",
+	]
+
+	Stdout.line!(Str.join_with(parts, ""))
+	Ok({})
+}

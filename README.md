@@ -1,6 +1,6 @@
 # Roc ANSI
 
-Helpers for working with the terminal
+Helpers for working with ANSI terminal control sequences in Roc.
 
 ## Example - Colors
 
@@ -12,16 +12,16 @@ Run with `roc examples/colors.roc`
 
 Run with `roc examples/tui-menu.roc`
 
-![example output showing colors](examples/tui-menu.gif)
+Prints a styled menu preview using the ANSI color and style helpers.
 
-## Example - Text Editor
+## Example - Piece Table
 
-Run with `roc examples/text-editor.roc -- file_to_edit.txt`
+Run with `roc examples/text-editor.roc`
 
-![example output showing the text editor demo](examples/text-editor.gif)
+Prints a small piece table edit preview.
 
 ## Documentation
 
 See [https://lukewilliamboswell.github.io/roc-ansi/](https://lukewilliamboswell.github.io/roc-ansi/)
 
-To generate locally use `roc docs package/main.roc`
+To generate locally use `roc docs package/main.roc --output=www`.

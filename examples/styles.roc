@@ -1,22 +1,24 @@
 app [main!] {
-    cli: platform "https://github.com/roc-lang/basic-cli/releases/download/0.19.0/Hj-J_zxz7V9YurCSTFcFdu6cQJie4guzsPMUi5kBYUk.tar.br",
-    ansi: "../package/main.roc",
+	pf: platform "https://github.com/lukewilliamboswell/roc-platform-template-zig/releases/download/0.9/8GdFEvQYS3TeAZxKvTzCLVdQiomweGtXcdZkXNDEeABq.tar.zst",
+	ansi: "../package/main.roc",
 }
 
-import cli.Stdout
+import pf.Stdout
 import ansi.ANSI
+import ansi.Style
 
-main! = |_|
-    [
-        "Bold On" |> ANSI.style([Bold(On)]) |> ANSI.style([Default]),
-        "Faint On" |> ANSI.style([Faint(On)]) |> ANSI.style([Default]),
-        "Italic On" |> ANSI.style([Italic(On)]) |> ANSI.style([Default]),
-        "Strikethrough On" |> ANSI.style([Strikethrough(On)]) |> ANSI.style([Default]),
-        "Underline On" |> ANSI.style([Underline(On)]) |> ANSI.style([Default]),
-        "Invert On" |> ANSI.style([Invert(On)]) |> ANSI.style([Default]),
-        "Combination" |> ANSI.style([Bold(On), Italic(On), Strikethrough(On), Underline(On)]),
-        "This should have the last style",
-        "This shouldn't have any style" |> ANSI.style([Default]),
-    ]
-    |> Str.join_with("\n")
-    |> Stdout.line!
+main! = |_args| {
+	lines = [
+		ANSI.style("Bold On", [Style.Bold(On), Style.Default]),
+		ANSI.style("Faint On", [Style.Faint(On), Style.Default]),
+		ANSI.style("Italic On", [Style.Italic(On), Style.Default]),
+		ANSI.style("Strikethrough On", [Style.Strikethrough(On), Style.Default]),
+		ANSI.style("Underline On", [Style.Underline(On), Style.Default]),
+		ANSI.style("Invert On", [Style.Invert(On), Style.Default]),
+		ANSI.style("Combination", [Style.Bold(On), Style.Italic(On), Style.Strikethrough(On), Style.Underline(On), Style.Default]),
+		"This should not have any style",
+	]
+
+	Stdout.line!(Str.join_with(lines, "\n"))
+	Ok({})
+}

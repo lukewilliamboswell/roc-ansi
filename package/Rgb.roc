@@ -1,18 +1,27 @@
-module [Rgb, Hex, from_hex]
+Rgb := (U8, U8, U8).{
+	Hex : U32
 
-import Utils
+	from_hex : Hex -> (U8, U8, U8)
+	from_hex = |hex| {
+		u24 = clamp(0x000000, 0xFFFFFF, hex)
+		c = |a| {
+			shift = match a {
+				0 => 16
+				1 => 8
+				_ => 0
+			}
 
-Rgb : (U8, U8, U8)
+			U32.to_u8_wrap(U32.bitwise_and(U32.shift_right_by(u24, shift), 0xFF))
+		}
 
-Hex : U32
+		(c(0), c(1), c(2))
+	}
+}
 
-from_hex : Hex -> Rgb
-from_hex = |hex|
-    u24 = (Utils.clamp(0x000000, 0xFFFFFF))(hex)
-    c = |a| u24 |> Num.shift_right_by(Num.mul(8, (2 - a))) |> Num.bitwise_and(0xFF) |> Num.to_u8
-    (c(0), c(1), c(2))
+clamp : U32, U32, U32 -> U32
+clamp = |min_value, max_value, value| value.min(max_value).max(min_value)
 
-expect from_hex(0xFF0000) == (255, 0, 0)
-expect from_hex(0x00FF00) == (0, 255, 0)
-expect from_hex(0x0000FF) == (0, 0, 255)
-expect from_hex(0xFFFFFFFF) == (255, 255, 255)
+expect Rgb.from_hex(0xFF0000) == (255, 0, 0)
+expect Rgb.from_hex(0x00FF00) == (0, 255, 0)
+expect Rgb.from_hex(0x0000FF) == (0, 0, 255)
+expect Rgb.from_hex(0xFFFFFFFF) == (255, 255, 255)
