@@ -5,7 +5,9 @@ package
 		C256,
 		Color,
 		Control,
+		Layout,
 		Rgb,
+		Spacing,
 		Style,
 		PieceTable,
 	]

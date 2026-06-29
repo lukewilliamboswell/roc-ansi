@@ -14,6 +14,100 @@ Utils := [].{
 		List.map2(point1, point2, |a, b| (a - b).abs())
 			.fold(0, |acc, value| acc + value)
 	}
+
+	mean : List(F64) -> F64
+	mean = |values| {
+		if values.is_empty() {
+			0
+		} else {
+			values.fold(0, |acc, value| acc + value) / U64.to_f64(values.len())
+		}
+	}
+
+	variance : List(F64) -> F64
+	variance = |values| {
+		average = Utils.mean(values)
+		squared_diffs = values.map(
+			|value| {
+				diff = value - average
+				diff * diff
+			},
+		)
+
+		Utils.mean(squared_diffs)
+	}
+
+	standard_deviation : List(F64) -> F64
+	standard_deviation = |values| sqrt(Utils.variance(values))
+
+	median : List(F64) -> Try(F64, [Empty])
+	median = |values| {
+		if values.is_empty() {
+			Err(Empty)
+		} else {
+			sorted = sort_f64(values)
+			len = sorted.len()
+
+			if len % 2 == 1 {
+				middle = (len - 1) // 2
+
+				match sorted.get(middle) {
+					Ok(value) => Ok(value)
+					Err(_) => Err(Empty)
+				}
+			} else {
+				right = len // 2
+				left = right - 1
+
+				match (sorted.get(left), sorted.get(right)) {
+					(Ok(left_value), Ok(right_value)) => Ok((left_value + right_value) / 2)
+					_ => Err(Empty)
+				}
+			}
+		}
+	}
 }
 
 expect Utils.manhattan_distance([1, 2, 3], [4, 6, 8]) == 12
+expect Utils.mean([6, 7]) == 6.5
+expect Utils.mean([]) == 0
+expect Utils.variance([10, 12, 23, 23, 16, 23, 21, 16]) == 24
+expect (Utils.standard_deviation([10, 12, 23, 23, 16, 23, 21, 16]) - 4.8989794855664).abs() < 0.000001
+expect Utils.median([9, 11, 8, 63, 5, 13, 10]) == Ok(10)
+expect Utils.median([6, 7]) == Ok(6.5)
+expect Utils.median([]) == Err(Empty)
+
+sqrt : F64 -> F64
+sqrt = |value| {
+	if value <= 0 {
+		0
+	} else {
+		initial_guess = if value < 1 {
+			1
+		} else {
+			value / 2
+		}
+		sqrt_step(value, initial_guess, 16)
+	}
+}
+
+sqrt_step : F64, F64, U8 -> F64
+sqrt_step = |value, guess, remaining| {
+	if remaining == 0 {
+		guess
+	} else {
+		sqrt_step(value, (guess + value / guess) / 2, remaining - 1)
+	}
+}
+
+sort_f64 : List(F64) -> List(F64)
+sort_f64 = |values| values.fold([], insert_sorted_f64)
+
+insert_sorted_f64 : List(F64), F64 -> List(F64)
+insert_sorted_f64 = |sorted, value| {
+	match sorted {
+		[] => [value]
+		[first, ..] if value <= first => [value].concat(sorted)
+		[first, .. as rest] => [first].concat(insert_sorted_f64(rest, value))
+	}
+}

@@ -8,8 +8,10 @@ import ansi.ANSI
 import ansi.C16
 import ansi.C256
 import ansi.Color
+import ansi.Layout
 import ansi.PieceTable
 import ansi.Rgb
+import ansi.Spacing
 
 main! = |_args| {
 	Stdout.line!("Run `roc test examples/tests.roc` to exercise the roc-ansi package examples.")
@@ -32,3 +34,16 @@ base_table = {
 }
 
 expect PieceTable.to_list(PieceTable.insert(base_table, { values: Str.to_utf8("X"), index: 1 })) == Str.to_utf8("aXbc")
+
+expect Spacing.apply(Spacing.Padding(Spacing.Side.Left, 2))("Hi") == "  Hi"
+
+expect Layout.draw_grid([["A", "B"], ["C", "D"]], [1, 1], Layout.squared_border, Layout.default_spacing) == Str.join_with(
+	[
+		"┌─┬─┐",
+		"│A│B│",
+		"├─┼─┤",
+		"│C│D│",
+		"└─┴─┘",
+	],
+	"\n",
+)
