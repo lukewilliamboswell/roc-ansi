@@ -9,11 +9,14 @@ import ansi.C16
 import ansi.Color
 import ansi.Style
 
+with_style : Str, List(ANSI.Style) -> Str
+with_style = |text, styles| Str.concat(ANSI.style(text, styles), ANSI.style("", [Style.Default]))
+
 menu_line : Str, Bool -> Str
 menu_line = |label, selected| {
 	if selected {
 		ANSI.color(
-			ANSI.style("> ${label}", [Style.Bold(On), Style.Default]),
+			ANSI.style("> ${label}", [Style.Bold(On)]),
 			{ fg: Color.Standard(C16.Name.Green), bg: Color.Default },
 		)
 	} else {
@@ -23,7 +26,7 @@ menu_line = |label, selected| {
 
 main! = |_args| {
 	lines = [
-		ANSI.style("Choose a task", [Style.Bold(On), Style.Default]),
+		with_style("Choose a task", [Style.Bold(On)]),
 		"",
 		menu_line("Generate report", True),
 		menu_line("Sync cache", False),

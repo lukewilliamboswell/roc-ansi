@@ -7,15 +7,18 @@ import pf.Stdout
 import ansi.ANSI
 import ansi.Style
 
+with_style : Str, List(ANSI.Style) -> Str
+with_style = |text, styles| Str.concat(ANSI.style(text, styles), ANSI.style("", [Style.Default]))
+
 main! = |_args| {
 	lines = [
-		ANSI.style("Bold On", [Style.Bold(On), Style.Default]),
-		ANSI.style("Faint On", [Style.Faint(On), Style.Default]),
-		ANSI.style("Italic On", [Style.Italic(On), Style.Default]),
-		ANSI.style("Strikethrough On", [Style.Strikethrough(On), Style.Default]),
-		ANSI.style("Underline On", [Style.Underline(On), Style.Default]),
-		ANSI.style("Invert On", [Style.Invert(On), Style.Default]),
-		ANSI.style("Combination", [Style.Bold(On), Style.Italic(On), Style.Strikethrough(On), Style.Underline(On), Style.Default]),
+		with_style("Bold On", [Style.Bold(On)]),
+		with_style("Faint On", [Style.Faint(On)]),
+		with_style("Italic On", [Style.Italic(On)]),
+		with_style("Strikethrough On", [Style.Strikethrough(On)]),
+		with_style("Underline On", [Style.Underline(On)]),
+		with_style("Invert On", [Style.Invert(On)]),
+		with_style("Combination", [Style.Bold(On), Style.Italic(On), Style.Strikethrough(On), Style.Underline(On)]),
 		"This should not have any style",
 	]
 
