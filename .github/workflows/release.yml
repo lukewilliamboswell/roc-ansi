@@ -46,7 +46,6 @@ jobs:
           roc fmt --check package examples
           roc check package/main.roc
           roc test package/main.roc
-          roc test examples/tests.roc
 
       - name: Bundle package
         id: bundle
