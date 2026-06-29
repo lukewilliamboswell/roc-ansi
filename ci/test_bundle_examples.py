@@ -75,11 +75,11 @@ def copy_examples_with_bundle_url(examples_dir: Path, bundle_url: str) -> list[P
 
     examples = sorted(target_dir.glob("*.roc"))
     for example in examples:
-        source = example.read_text()
+        source = example.read_text(encoding="utf-8")
         if LOCAL_PACKAGE not in source:
             raise SystemExit(f"{example.name} does not use the expected local package dependency")
 
-        example.write_text(source.replace(LOCAL_PACKAGE, f'ansi: "{bundle_url}"'))
+        example.write_text(source.replace(LOCAL_PACKAGE, f'ansi: "{bundle_url}"'), encoding="utf-8")
 
     return examples
 
