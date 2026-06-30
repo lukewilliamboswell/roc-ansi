@@ -4,35 +4,31 @@ app [main!] {
 }
 
 import pf.Stdout
-import ansi.ANSI
-import ansi.C16
-import ansi.Color
-import ansi.Style
 
-with_style : Str, List(ANSI.Style) -> Str
-with_style = |text, styles| Str.concat(ANSI.style(text, styles), ANSI.style("", [Style.Default]))
+with_style : Str, Str -> Str
+with_style = |text, code| "\u(001b)[${code}m${text}\u(001b)[0m"
+
+with_color : Str, Str, Str -> Str
+with_color = |text, fg, bg| "\u(001b)[${fg}m\u(001b)[${bg}m${text}\u(001b)[0m"
 
 menu_line : Str, Bool -> Str
 menu_line = |label, selected| {
 	if selected {
-		ANSI.color(
-			ANSI.style("> ${label}", [Style.Bold(On)]),
-			{ fg: Color.Standard(C16.Name.Green), bg: Color.Default },
-		)
+		with_color(with_style("> ${label}", "1"), "32", "49")
 	} else {
-		ANSI.color("- ${label}", { fg: Color.Standard(C16.Name.White), bg: Color.Default })
+		with_color("- ${label}", "37", "49")
 	}
 }
 
 main! = |_args| {
 	lines = [
-		with_style("Choose a task", [Style.Bold(On)]),
+		with_style("Choose a task", "1"),
 		"",
 		menu_line("Generate report", True),
 		menu_line("Sync cache", False),
 		menu_line("Publish bundle", False),
 		"",
-		ANSI.color("ENTER to run, ESC to quit", { fg: Color.Standard(C16.Name.Blue), bg: Color.Default }),
+		with_color("ENTER to run, ESC to quit", "34", "49"),
 	]
 
 	Stdout.line!(Str.join_with(lines, "\n"))

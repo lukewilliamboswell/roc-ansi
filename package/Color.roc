@@ -9,8 +9,7 @@ Color := [
 	C16(C16.C16),
 	C256(U8),
 	Rgb((U8, U8, U8)),
-	# Convenient to have
-	Hex(Rgb.Hex),
+	Hex(U32),
 	Standard(C16.Name),
 	Bright(C16.Name),
 ].{

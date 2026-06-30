@@ -4,28 +4,28 @@ app [main!] {
 }
 
 import pf.Stdout
-import ansi.ANSI
-import ansi.C16
-import ansi.Color
+
+with_color : Str, Str, Str -> Str
+with_color = |text, fg, bg| "\u(001b)[${fg}m\u(001b)[${bg}m${text}\u(001b)[0m"
 
 main! = |_args| {
 	lines = [
-		ANSI.color("Default color", { fg: Color.Default, bg: Color.Default }),
+		with_color("Default color", "39", "49"),
 		"ANSI 16 colors",
-		ANSI.color("Standard Red   fg", { fg: Color.Standard(C16.Name.Red), bg: Color.Default }),
-		ANSI.color("Standard Green fg", { fg: Color.Standard(C16.Name.Green), bg: Color.Default }),
-		ANSI.color("Standard Blue  fg", { fg: Color.Standard(C16.Name.Blue), bg: Color.Default }),
-		ANSI.color("Bright   Red   bg", { fg: Color.Default, bg: Color.Bright(C16.Name.Red) }),
-		ANSI.color("Bright   Green bg", { fg: Color.Default, bg: Color.Bright(C16.Name.Green) }),
-		ANSI.color("Bright   Blue  bg", { fg: Color.Default, bg: Color.Bright(C16.Name.Blue) }),
-		ANSI.color("{ fg: Bright Red, bg: Standard Black }", { fg: Color.Bright(C16.Name.Red), bg: Color.Standard(C16.Name.Black) }),
-		ANSI.color("{ fg: Standard Green, bg: Standard Red }", { fg: Color.Standard(C16.Name.Green), bg: Color.Standard(C16.Name.Red) }),
-		ANSI.color("ANSI 256 colors", { fg: Color.C256(247), bg: Color.C256(51) }),
-		ANSI.color("{ fg: DarkGray, bg: Orange }", { fg: Color.C256(236), bg: Color.C256(208) }),
+		with_color("Standard Red   fg", "31", "49"),
+		with_color("Standard Green fg", "32", "49"),
+		with_color("Standard Blue  fg", "34", "49"),
+		with_color("Bright   Red   bg", "39", "101"),
+		with_color("Bright   Green bg", "39", "102"),
+		with_color("Bright   Blue  bg", "39", "104"),
+		with_color("{ fg: Bright Red, bg: Standard Black }", "91", "40"),
+		with_color("{ fg: Standard Green, bg: Standard Red }", "32", "41"),
+		with_color("ANSI 256 colors", "38;5;247", "48;5;51"),
+		with_color("{ fg: DarkGray, bg: Orange }", "38;5;236", "48;5;208"),
 		"RGB colors, these are not supported in all terminals",
-		ANSI.color("{ fg: DarkTeal, bg: MintGreen }", { fg: Color.Hex(0x008080), bg: Color.Hex(0x98FF98) }),
-		ANSI.color("{ fg: CoralPink, bg: RoyalBlue }", { fg: Color.Rgb((255, 102, 102)), bg: Color.Rgb((65, 105, 225)) }),
-		ANSI.color("{ fg: ElectricPurple, bg: Tangerine }", { fg: Color.Rgb((153, 50, 204)), bg: Color.Rgb((255, 165, 0)) }),
+		with_color("{ fg: DarkTeal, bg: MintGreen }", "38;2;0;128;128", "48;2;152;255;152"),
+		with_color("{ fg: CoralPink, bg: RoyalBlue }", "38;2;255;102;102", "48;2;65;105;225"),
+		with_color("{ fg: ElectricPurple, bg: Tangerine }", "38;2;153;50;204", "48;2;255;165;0"),
 	]
 
 	Stdout.line!(Str.join_with(lines, "\n"))

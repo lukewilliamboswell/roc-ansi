@@ -1,7 +1,5 @@
 Rgb := (U8, U8, U8).{
-	Hex : U32
-
-	from_hex : Hex -> (U8, U8, U8)
+	from_hex : U32 -> (U8, U8, U8)
 	from_hex = |hex| {
 		u24 = clamp(0x000000, 0xFFFFFF, hex)
 		c = |a| {

@@ -4,21 +4,19 @@ app [main!] {
 }
 
 import pf.Stdout
-import ansi.ANSI
-import ansi.Style
 
-with_style : Str, List(ANSI.Style) -> Str
-with_style = |text, styles| Str.concat(ANSI.style(text, styles), ANSI.style("", [Style.Default]))
+with_style : Str, Str -> Str
+with_style = |text, code| "\u(001b)[${code}m${text}\u(001b)[0m"
 
 main! = |_args| {
 	lines = [
-		with_style("Bold On", [Style.Bold(On)]),
-		with_style("Faint On", [Style.Faint(On)]),
-		with_style("Italic On", [Style.Italic(On)]),
-		with_style("Strikethrough On", [Style.Strikethrough(On)]),
-		with_style("Underline On", [Style.Underline(On)]),
-		with_style("Invert On", [Style.Invert(On)]),
-		with_style("Combination", [Style.Bold(On), Style.Italic(On), Style.Strikethrough(On), Style.Underline(On)]),
+		with_style("Bold On", "1"),
+		with_style("Faint On", "2"),
+		with_style("Italic On", "3"),
+		with_style("Strikethrough On", "9"),
+		with_style("Underline On", "4"),
+		with_style("Invert On", "7"),
+		with_style("Combination", "1;3;9;4"),
 		"This should not have any style",
 	]
 

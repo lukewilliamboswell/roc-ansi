@@ -4,10 +4,6 @@ import Style as StylePkg
 
 ANSI := [].{
 	# ANSI
-	Color : ColorPkg.Color
-	Style : StylePkg.Style
-	Control : ControlPkg.Control
-
 	Escape := [
 		Reset,
 		Control(ControlPkg.Control),
@@ -24,14 +20,11 @@ ANSI := [].{
 		)
 
 	## Add styles to a string.
-	style : Str, List(Style) -> Str
-	style = |str, styles| {
-		codes = styles.map(|style_value| ANSI.to_str(Control(Style(style_value))))
-		Str.join_with(codes.append(str), "")
-	}
+	style : Str, List(StylePkg.Style) -> Str
+	style = |str, styles| style_help(str, styles, "")
 
 	## Add color styles to a string and then reset to default.
-	color : Str, { fg : Color, bg : Color } -> Str
+	color : Str, { fg : ColorPkg.Color, bg : ColorPkg.Color } -> Str
 	color = |str, { fg, bg }| {
 		styled = ANSI.style(str, [Foreground(fg), Background(bg)])
 		Str.concat(styled, reset_style)
@@ -345,7 +338,7 @@ ANSI := [].{
 
 	ScreenSize : { width : U16, height : U16 }
 	CursorPosition : { row : U16, col : U16 }
-	Pixel : { char : Str, fg : Color, bg : Color, styles : List(Style) }
+	Pixel : { char : Str, fg : ColorPkg.Color, bg : ColorPkg.Color, styles : List(StylePkg.Style) }
 	DrawFn : CursorPosition, CursorPosition -> Try(Pixel, {})
 
 	parse_cursor : List(U8) -> CursorPosition
@@ -401,7 +394,7 @@ ANSI := [].{
 		join_all_pixels(rows)
 	}
 
-	draw_box : { r : U16, c : U16, w : U16, h : U16, fg : Color, bg : Color, char : Str, styles : List(Style) } -> DrawFn
+	draw_box : { r : U16, c : U16, w : U16, h : U16, fg : ColorPkg.Color, bg : ColorPkg.Color, char : Str, styles : List(StylePkg.Style) } -> DrawFn
 	draw_box = |{ r, c, w, h, fg, bg, char, styles }| {
 		|_, { row, col }| {
 			start_row = r
@@ -423,7 +416,7 @@ ANSI := [].{
 		}
 	}
 
-	draw_v_line : { r : U16, c : U16, len : U16, fg : Color, bg : Color, char : Str, styles : List(Style) } -> DrawFn
+	draw_v_line : { r : U16, c : U16, len : U16, fg : ColorPkg.Color, bg : ColorPkg.Color, char : Str, styles : List(StylePkg.Style) } -> DrawFn
 	draw_v_line = |{ r, c, len, fg, bg, char, styles }| {
 		|_, { row, col }|
 			if col == c and (row >= r and row < (r + len)) {
@@ -433,7 +426,7 @@ ANSI := [].{
 			}
 	}
 
-	draw_h_line : { r : U16, c : U16, len : U16, fg : Color, bg : Color, char : Str, styles : List(Style) } -> DrawFn
+	draw_h_line : { r : U16, c : U16, len : U16, fg : ColorPkg.Color, bg : ColorPkg.Color, char : Str, styles : List(StylePkg.Style) } -> DrawFn
 	draw_h_line = |{ r, c, len, fg, bg, char, styles }| {
 		|_, { row, col }|
 			if row == r and (col >= c and col < (c + len)) {
@@ -443,7 +436,7 @@ ANSI := [].{
 			}
 	}
 
-	draw_cursor : { fg : Color, bg : Color, char : Str, styles : List(Style) } -> DrawFn
+	draw_cursor : { fg : ColorPkg.Color, bg : ColorPkg.Color, char : Str, styles : List(StylePkg.Style) } -> DrawFn
 	draw_cursor = |{ fg, bg, char, styles }| {
 		|cursor, { row, col }|
 			if row == cursor.row and col == cursor.col {
@@ -453,7 +446,7 @@ ANSI := [].{
 			}
 	}
 
-	draw_text : Str, { r : U16, c : U16, fg : Color, bg : Color, styles : List(Style) } -> DrawFn
+	draw_text : Str, { r : U16, c : U16, fg : ColorPkg.Color, bg : ColorPkg.Color, styles : List(StylePkg.Style) } -> DrawFn
 	draw_text = |text, { r, c, fg, bg, styles }| {
 		|_, pixel| {
 			bytes = Str.to_utf8(text)
@@ -476,8 +469,28 @@ ANSI := [].{
 	}
 }
 
+style_help : Str, List(StylePkg.Style), Str -> Str
+style_help = |str, styles, out|
+	match styles {
+		[] => Str.concat(out, str)
+		[style_value, .. as rest] => style_help(str, rest, Str.concat(out, style_escape(style_value)))
+	}
+
+style_escape : StylePkg.Style -> Str
+style_escape = |style_value| Str.concat(Str.concat("\u(001b)[", style_code_str(StylePkg.to_code(style_value))), "m")
+
+style_code_str : List(U8) -> Str
+style_code_str = |codes| Str.join_with(style_code_parts(codes, List.with_capacity(codes.len())), ";")
+
+style_code_parts : List(U8), List(Str) -> List(Str)
+style_code_parts = |codes, out|
+	match codes {
+		[] => out
+		[code, .. as rest] => style_code_parts(rest, out.append(code.to_str()))
+	}
+
 reset_style : Str
-reset_style = ANSI.style("", [Default])
+reset_style = "\u(001b)[0m"
 
 expect ANSI.parse_raw_stdin([27, 91, 65]) == Arrow(Up)
 expect ANSI.parse_raw_stdin([27]) == Action(Escape)
@@ -611,9 +624,9 @@ join_all_pixels = |rows| {
 }
 
 join_pixel_row :
-	{ char : Str, fg : ANSI.Color, bg : ANSI.Color, lines : List(Str), styles : List(ANSI.Style) },
+	{ char : Str, fg : ColorPkg.Color, bg : ColorPkg.Color, lines : List(Str), styles : List(StylePkg.Style) },
 	List(ANSI.Pixel),
-	U64 -> { char : Str, fg : ANSI.Color, bg : ANSI.Color, lines : List(Str), styles : List(ANSI.Style) }
+	U64 -> { char : Str, fg : ColorPkg.Color, bg : ColorPkg.Color, lines : List(Str), styles : List(StylePkg.Style) }
 join_pixel_row = |{ char, fg, bg, lines, styles }, pixel_row, row| {
 	folded = {
 		pixel_row.fold(
@@ -623,10 +636,11 @@ join_pixel_row = |{ char, fg, bg, lines, styles }, pixel_row, row| {
 	}
 	row_strs = folded.row_strs
 	prev = folded.prev
+	row_number = U64.to_u16_wrap(row + 1)
 
 	line = Str.with_prefix(
 		Str.join_with(row_strs, ""),
-		ANSI.to_str(Control(Cursor(Abs({ row: U64.to_u16_wrap(row + 1), col: 0 })))),
+		ANSI.to_str(Control(Cursor(Abs({ row: row_number, col: 0 })))),
 	)
 
 	{ char: " ", fg: prev.fg, bg: prev.bg, lines: lines.append(line), styles: prev.styles }
