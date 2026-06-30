@@ -16,7 +16,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-LOCAL_PACKAGE = 'ansi: "../package/main.roc"'
+PACKAGE_DEPENDENCY_RE = re.compile(r'(?m)^(\s*ansi:\s*)"[^"]+"')
 ROC = os.environ.get("ROC", "roc")
 
 
@@ -76,10 +76,15 @@ def copy_examples_with_bundle_url(examples_dir: Path, bundle_url: str) -> list[P
     examples = sorted(target_dir.glob("*.roc"))
     for example in examples:
         source = example.read_text(encoding="utf-8")
-        if LOCAL_PACKAGE not in source:
-            raise SystemExit(f"{example.name} does not use the expected local package dependency")
+        rewritten, count = PACKAGE_DEPENDENCY_RE.subn(
+            lambda match: f'{match.group(1)}"{bundle_url}"',
+            source,
+            count=1,
+        )
+        if count != 1:
+            raise SystemExit(f"{example.name} does not declare the expected ansi package dependency")
 
-        example.write_text(source.replace(LOCAL_PACKAGE, f'ansi: "{bundle_url}"'), encoding="utf-8")
+        example.write_text(rewritten, encoding="utf-8")
 
     return examples
 
