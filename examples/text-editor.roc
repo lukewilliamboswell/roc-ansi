@@ -1,5 +1,5 @@
 app [main!] {
-	pf: platform "https://github.com/lukewilliamboswell/roc-platform-template-zig/releases/download/0.9/8GdFEvQYS3TeAZxKvTzCLVdQiomweGtXcdZkXNDEeABq.tar.zst",
+	pf: platform "https://github.com/lukewilliamboswell/roc-platform-template-zig/releases/download/1.0.0/AnZoxzoGPtSGQ15EQh6pBeeaHJ7aizP9MQhK81dES3Uq.tar.zst",
 	ansi: "https://github.com/lukewilliamboswell/roc-ansi/releases/download/0.9.0/C2RG1B9Caohfb8dfqrKu3Wu9TDQNq4zfixxAvLnMFVEL.tar.zst",
 }
 
@@ -13,6 +13,7 @@ to_str = |table|
 		Err(_) => "<invalid utf8>"
 	}
 
+main! : List(Str) => Try({}, [Exit(I32), StdoutErr(Str), ..])
 main! = |_args| {
 	original = Str.to_utf8("hello terminal")
 	table0 : PieceTable.PieceTable(U8)
@@ -25,6 +26,6 @@ main! = |_args| {
 	table1 = PieceTable.insert(table0, { values: Str.to_utf8(" colorful"), index: 5 })
 	table2 = PieceTable.delete(table1, { index: 0 })
 
-	Stdout.line!("Piece table preview: ${to_str(table2)}")
+	Stdout.line!("Piece table preview: ${to_str(table2)}")?
 	Ok({})
 }

@@ -19,7 +19,14 @@ Rgb := (U8, U8, U8).{
 clamp : U32, U32, U32 -> U32
 clamp = |min_value, max_value, value| value.min(max_value).max(min_value)
 
+## Red hex values decode to red RGB channels.
 expect Rgb.from_hex(0xFF0000) == (255, 0, 0)
+
+## Green hex values decode to green RGB channels.
 expect Rgb.from_hex(0x00FF00) == (0, 255, 0)
+
+## Blue hex values decode to blue RGB channels.
 expect Rgb.from_hex(0x0000FF) == (0, 0, 255)
+
+## Out-of-range hex values clamp to white.
 expect Rgb.from_hex(0xFFFFFFFF) == (255, 255, 255)

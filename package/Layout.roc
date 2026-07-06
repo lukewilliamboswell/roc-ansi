@@ -356,26 +356,38 @@ test_rows = [
 	["106", "Microwave", "Appliances", "150", "250", "2004"],
 ]
 
-expect Layout.data_to_rows(test_data, (7, 6)) == Ok(test_rows)
+## Flat data converts into row-major table rows.
+expect {
+	rows = Layout.data_to_rows(test_data, (7, 6))?
+	rows == test_rows
+}
 
-expect Layout.data_to_columns(test_data, (7, 6)) == Ok(
-	[
+## Flat data converts into column-major table columns.
+expect {
+	columns = Layout.data_to_columns(test_data, (7, 6))?
+	columns == [
 		["ProductID", "101", "102", "103", "104", "105", "106"],
 		["ProductName", "Laptop", "Smartphone", "Office Chair", "Coffee Maker", "Desk Lamp", "Microwave"],
 		["Category", "Electronics", "Electronics", "Furniture", "Appliances", "Lighting", "Appliances"],
 		["Price", "1200", "800", "150", "100", "50", "150"],
 		["StockQuantity", "50", "150", "300", "200", "500", "250"],
 		["SupplierID", "2001", "2002", "2003", "2004", "2005", "2004"],
-	],
-)
+	]
+}
 
+## Row drawing truncates cells to the requested widths.
 expect Layout.draw_row(["ProductID", "ProductName", "Category", "Price", "StockQuantity"], [0, 1, 2, 3, 4], Layout.squared_border.base, Layout.default_row_spacing) == "││…│C…│Pr…│Sto…│"
 
+## Squared border rows use square corner glyphs.
 expect Layout.draw_row([], [1, 0], Layout.squared_border.start, Layout.default_row_spacing) == "┌─┬┐"
+
+## Rounded border rows use rounded corner glyphs.
 expect Layout.draw_row([], [1, 0], Layout.rounded_border.end, Layout.default_row_spacing) == "╰─┴╯"
 
+## Auto sizing estimates widths from table content.
 expect Layout.auto_sizes(test_rows) == [3, 12, 11, 5, 4, 4]
 
+## Grid drawing renders rows with squared borders.
 expect Layout.draw_grid([["Apple", "Banana", "Cat"], ["Dog", "Elephant", "Fish"]], [2, 2, 2], Layout.squared_border, Layout.default_spacing) == Str.join_with(
 	[
 		"┌──┬──┬──┐",
@@ -387,6 +399,7 @@ expect Layout.draw_grid([["Apple", "Banana", "Cat"], ["Dog", "Elephant", "Fish"]
 	"\n",
 )
 
+## Grid drawing applies configured margins.
 expect Layout.draw_grid([["Apple", "Banana", "Cat"], ["Dog", "Elephant", "Fish"]], [2, 2, 2], Layout.squared_border, { mx: (1, 2), my: (1, 2), px: (0, 0), py: (0, 0) }) == Str.join_with(
 	[
 		"░░░░░░░░░░░░░",
@@ -401,6 +414,7 @@ expect Layout.draw_grid([["Apple", "Banana", "Cat"], ["Dog", "Elephant", "Fish"]
 	"\n",
 )
 
+## Table drawing includes header and body rows with the pretty border.
 expect Layout.draw_table(test_rows, Layout.auto_sizes(test_rows), Layout.pretty_border) == Str.join_with(
 	[
 		"╭────────────────────────────────────────────╮",
