@@ -176,10 +176,10 @@ to_list_help : PieceTable(a), List(a) -> List(a)
 to_list_help = |{ original, added, table }, acc|
 	match table {
 		[] => acc
-		[PieceTable.Entry.Add(span)] => acc.concat(List.sublist(added, span))
-		[PieceTable.Entry.Original(span)] => acc.concat(List.sublist(original, span))
-		[PieceTable.Entry.Add(span), .. as rest] => to_list_help({ original, added, table: rest }, acc.concat(List.sublist(added, span)))
-		[PieceTable.Entry.Original(span), .. as rest] => to_list_help({ original, added, table: rest }, acc.concat(List.sublist(original, span)))
+		[PieceTable.Entry.Add(span)] => acc.concat(added.sublist(span))
+		[PieceTable.Entry.Original(span)] => acc.concat(original.sublist(span))
+		[PieceTable.Entry.Add(span), .. as rest] => to_list_help({ original, added, table: rest }, acc.concat(added.sublist(span)))
+		[PieceTable.Entry.Original(span), .. as rest] => to_list_help({ original, added, table: rest }, acc.concat(original.sublist(span)))
 	}
 
 test_original : List(U8)
@@ -203,107 +203,107 @@ test_table = {
 table_to_str : PieceTable(U8) -> Try(Str, _)
 table_to_str = |table| Str.from_utf8(PieceTable.to_list(table))
 
-# should fuse buffers to get content
+## Fusing buffers returns the visible content.
 expect PieceTable.to_list(test_table) == Str.to_utf8("Lorem ipsum dolor sit amet")
 
-# insert in the middle of a Add span
+## Inserting in the middle of an added span preserves both sides.
 expect {
-	actual = table_to_str(PieceTable.insert(test_table, { values: ['f', 'o', 'o'], index: 5 }))
-	actual == Ok("Loremfoo ipsum dolor sit amet")
+	actual = table_to_str(PieceTable.insert(test_table, { values: ['f', 'o', 'o'], index: 5 }))?
+	actual == "Loremfoo ipsum dolor sit amet"
 }
 
-# insert at the start of a Add span
+## Inserting at the start of an added span prepends the new bytes.
 expect {
-	actual = table_to_str(PieceTable.insert(test_table, { values: ['f', 'o', 'o'], index: 0 }))
-	actual == Ok("fooLorem ipsum dolor sit amet")
+	actual = table_to_str(PieceTable.insert(test_table, { values: ['f', 'o', 'o'], index: 0 }))?
+	actual == "fooLorem ipsum dolor sit amet"
 }
 
-# insert at the start of a Original span
+## Inserting at the start of an original span keeps the original bytes after the insert.
 expect {
-	actual = table_to_str(PieceTable.insert(test_table, { values: ['f', 'o', 'o'], index: 6 }))
-	actual == Ok("Lorem fooipsum dolor sit amet")
+	actual = table_to_str(PieceTable.insert(test_table, { values: ['f', 'o', 'o'], index: 6 }))?
+	actual == "Lorem fooipsum dolor sit amet"
 }
 
-# insert in the middle of a Original span
+## Inserting in the middle of an original span splits that span.
 expect {
-	actual = table_to_str(PieceTable.insert(test_table, { values: ['f', 'o', 'o'], index: 8 }))
-	actual == Ok("Lorem ipfoosum dolor sit amet")
+	actual = table_to_str(PieceTable.insert(test_table, { values: ['f', 'o', 'o'], index: 8 }))?
+	actual == "Lorem ipfoosum dolor sit amet"
 }
 
-# insert at start of text
+## Inserting at the start of text prepends the new bytes.
 expect {
-	actual = table_to_str(PieceTable.insert(test_table, { values: ['f', 'o', 'o'], index: 0 }))
-	actual == Ok("fooLorem ipsum dolor sit amet")
+	actual = table_to_str(PieceTable.insert(test_table, { values: ['f', 'o', 'o'], index: 0 }))?
+	actual == "fooLorem ipsum dolor sit amet"
 }
 
-# insert at end of text
+## Inserting at the end of text appends the new bytes.
 expect {
-	actual = table_to_str(PieceTable.insert(test_table, { values: ['f', 'o', 'o'], index: PieceTable.length(test_table.table) }))
-	actual == Ok("Lorem ipsum dolor sit ametfoo")
+	actual = table_to_str(PieceTable.insert(test_table, { values: ['f', 'o', 'o'], index: PieceTable.length(test_table.table) }))?
+	actual == "Lorem ipsum dolor sit ametfoo"
 }
 
-# insert nothing does nothing
+## Inserting an empty list leaves the text unchanged.
 expect {
-	actual = table_to_str(PieceTable.insert(test_table, { values: [], index: 0 }))
-	actual == Ok("Lorem ipsum dolor sit amet")
+	actual = table_to_str(PieceTable.insert(test_table, { values: [], index: 0 }))?
+	actual == "Lorem ipsum dolor sit amet"
 }
 
-# insert at a range larger than current buffer
+## Inserting past the current buffer appends at the end.
 expect {
-	actual = table_to_str(PieceTable.insert(test_table, { values: ['X'], index: 999 }))
-	actual == Ok("Lorem ipsum dolor sit ametX")
+	actual = table_to_str(PieceTable.insert(test_table, { values: ['X'], index: 999 }))?
+	actual == "Lorem ipsum dolor sit ametX"
 }
 
-# delete at start of text
+## Deleting at the start of text removes the first byte.
 expect {
-	actual = table_to_str(PieceTable.delete(test_table, { index: 0 }))
-	actual == Ok("orem ipsum dolor sit amet")
+	actual = table_to_str(PieceTable.delete(test_table, { index: 0 }))?
+	actual == "orem ipsum dolor sit amet"
 }
 
-# delete at end of text, note the index starts from zero
+## Deleting at the final zero-based index removes the last byte.
 expect {
-	actual = table_to_str(PieceTable.delete(test_table, { index: PieceTable.length(test_table.table) - 1 }))
-	actual == Ok("Lorem ipsum dolor sit ame")
+	actual = table_to_str(PieceTable.delete(test_table, { index: PieceTable.length(test_table.table) - 1 }))?
+	actual == "Lorem ipsum dolor sit ame"
 }
 
-# delete at the end of an Add span
+## Deleting at the end of an added span joins the neighboring text.
 expect {
-	actual = table_to_str(PieceTable.delete(test_table, { index: 5 }))
-	actual == Ok("Loremipsum dolor sit amet")
+	actual = table_to_str(PieceTable.delete(test_table, { index: 5 }))?
+	actual == "Loremipsum dolor sit amet"
 }
 
-# delete at the start of a Add span
+## Deleting at the start of an added span removes its first byte.
 expect {
-	actual = table_to_str(PieceTable.delete(test_table, { index: 11 }))
-	actual == Ok("Lorem ipsumdolor sit amet")
+	actual = table_to_str(PieceTable.delete(test_table, { index: 11 }))?
+	actual == "Lorem ipsumdolor sit amet"
 }
 
-# delete in the middle of an Add span
+## Deleting in the middle of an added span splits that span.
 expect {
-	actual = table_to_str(PieceTable.delete(test_table, { index: 13 }))
-	actual == Ok("Lorem ipsum dlor sit amet")
+	actual = table_to_str(PieceTable.delete(test_table, { index: 13 }))?
+	actual == "Lorem ipsum dlor sit amet"
 }
 
-# delete at the start of a Original span
+## Deleting at the start of an original span removes its first byte.
 expect {
-	actual = table_to_str(PieceTable.delete(test_table, { index: 6 }))
-	actual == Ok("Lorem psum dolor sit amet")
+	actual = table_to_str(PieceTable.delete(test_table, { index: 6 }))?
+	actual == "Lorem psum dolor sit amet"
 }
 
-# delete at the end of a Original span
+## Deleting at the end of an original span removes its final byte.
 expect {
-	actual = table_to_str(PieceTable.delete(test_table, { index: 10 }))
-	actual == Ok("Lorem ipsu dolor sit amet")
+	actual = table_to_str(PieceTable.delete(test_table, { index: 10 }))?
+	actual == "Lorem ipsu dolor sit amet"
 }
 
-# delete in the middle of a Original span
+## Deleting in the middle of an original span splits that span.
 expect {
-	actual = table_to_str(PieceTable.delete(test_table, { index: 8 }))
-	actual == Ok("Lorem ipum dolor sit amet")
+	actual = table_to_str(PieceTable.delete(test_table, { index: 8 }))?
+	actual == "Lorem ipum dolor sit amet"
 }
 
-# delete out of range, does nothing
+## Deleting out of range leaves the text unchanged.
 expect {
-	actual = table_to_str(PieceTable.delete(test_table, { index: 9999 }))
-	actual == Ok("Lorem ipsum dolor sit amet")
+	actual = table_to_str(PieceTable.delete(test_table, { index: 9999 }))?
+	actual == "Lorem ipsum dolor sit amet"
 }

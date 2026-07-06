@@ -1,5 +1,5 @@
 app [main!] {
-	pf: platform "https://github.com/lukewilliamboswell/roc-platform-template-zig/releases/download/0.9/8GdFEvQYS3TeAZxKvTzCLVdQiomweGtXcdZkXNDEeABq.tar.zst",
+	pf: platform "https://github.com/lukewilliamboswell/roc-platform-template-zig/releases/download/1.0.0/AnZoxzoGPtSGQ15EQh6pBeeaHJ7aizP9MQhK81dES3Uq.tar.zst",
 	ansi: "https://github.com/lukewilliamboswell/roc-ansi/releases/download/0.9.0/C2RG1B9Caohfb8dfqrKu3Wu9TDQNq4zfixxAvLnMFVEL.tar.zst",
 }
 
@@ -8,6 +8,7 @@ import pf.Stdout
 with_style : Str, Str -> Str
 with_style = |text, code| "\u(001b)[${code}m${text}\u(001b)[0m"
 
+main! : List(Str) => Try({}, [Exit(I32), StdoutErr(Str), ..])
 main! = |_args| {
 	lines = [
 		with_style("Bold On", "1"),
@@ -20,6 +21,6 @@ main! = |_args| {
 		"This should not have any style",
 	]
 
-	Stdout.line!(Str.join_with(lines, "\n"))
+	Stdout.line!(Str.join_with(lines, "\n"))?
 	Ok({})
 }

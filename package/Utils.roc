@@ -11,7 +11,7 @@ Utils := [].{
 
 	manhattan_distance : List(I64), List(I64) -> I64
 	manhattan_distance = |point1, point2| {
-		List.map2(point1, point2, |a, b| (a - b).abs())
+		point1.map2(point2, |a, b| (a - b).abs())
 			.fold(0, |acc, value| acc + value)
 	}
 
@@ -68,13 +68,34 @@ Utils := [].{
 	}
 }
 
+## Manhattan distance sums absolute coordinate differences.
 expect Utils.manhattan_distance([1, 2, 3], [4, 6, 8]) == 12
+
+## Mean averages non-empty lists.
 expect Utils.mean([6, 7]) == 6.5
+
+## Mean returns zero at the empty-list boundary.
 expect Utils.mean([]) == 0
+
+## Variance averages squared differences from the mean.
 expect Utils.variance([10, 12, 23, 23, 16, 23, 21, 16]) == 24
+
+## Standard deviation is the square root of variance.
 expect (Utils.standard_deviation([10, 12, 23, 23, 16, 23, 21, 16]) - 4.8989794855664).abs() < 0.000001
-expect Utils.median([9, 11, 8, 63, 5, 13, 10]) == Ok(10)
-expect Utils.median([6, 7]) == Ok(6.5)
+
+## Median returns the middle value for odd-length lists.
+expect {
+	actual = Utils.median([9, 11, 8, 63, 5, 13, 10])?
+	actual == 10
+}
+
+## Median averages the two middle values for even-length lists.
+expect {
+	actual = Utils.median([6, 7])?
+	actual == 6.5
+}
+
+## Median reports empty input explicitly.
 expect Utils.median([]) == Err(Empty)
 
 sqrt : F64 -> F64

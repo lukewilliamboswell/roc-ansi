@@ -26,7 +26,14 @@ Spacing := [Padding(Side, U64)].{
 	}
 }
 
+## Top padding prepends newlines.
 expect Spacing.apply(Padding(Top, 3))("Hello") == "\n\n\nHello"
+
+## Right padding appends spaces.
 expect Spacing.apply(Padding(Right, 2))("Hello") == "Hello  "
+
+## Bottom padding appends newlines.
 expect Spacing.apply(Padding(Bottom, 3))("Hello") == "Hello\n\n\n"
+
+## Left padding prepends spaces.
 expect Spacing.apply(Padding(Left, 2))("Hello") == "  Hello"

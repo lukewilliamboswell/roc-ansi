@@ -343,12 +343,13 @@ ANSI := [].{
 
 	parse_cursor : List(U8) -> CursorPosition
 	parse_cursor = |bytes| {
-		{ val: row, rest: after_first } = take_number({ val: 0, rest: List.drop_first(bytes, 2) })
-		{ val: col, .. } = take_number({ val: 0, rest: List.drop_first(after_first, 1) })
+		{ val: row, rest: after_first } = take_number({ val: 0, rest: bytes.drop_first(2) })
+		{ val: col, .. } = take_number({ val: 0, rest: after_first.drop_first(1) })
 
 		{ row, col }
 	}
 
+	update_cursor : { cursor : CursorPosition, screen : ScreenSize }, Arrow -> { cursor : CursorPosition, screen : ScreenSize }
 	update_cursor = |state, direction|
 		match direction {
 			Up =>
@@ -389,6 +390,7 @@ ANSI := [].{
 			}
 
 	## Loop through each pixel in the screen and build up a single string to write to stdout.
+	draw_screen : { cursor : CursorPosition, screen : ScreenSize }, List(DrawFn) -> Str
 	draw_screen = |{ cursor, screen }, draw_fns| {
 		rows = draw_rows(cursor, screen, draw_fns, 0, List.with_capacity(U16.to_u64(screen.height)))
 		join_all_pixels(rows)
@@ -489,10 +491,12 @@ style_code_parts = |codes, out|
 		[code, .. as rest] => style_code_parts(rest, out.append(code.to_str()))
 	}
 
-reset_style : Str
 reset_style = "\u(001b)[0m"
 
+## Raw arrow-up bytes parse as an up arrow input.
 expect ANSI.parse_raw_stdin([27, 91, 65]) == Arrow(Up)
+
+## A bare escape byte parses as an escape action.
 expect ANSI.parse_raw_stdin([27]) == Action(Escape)
 
 ctrl_to_str : ANSI.Ctrl -> Str
@@ -563,6 +567,7 @@ number_to_str = |number|
 		N9 => "9"
 	}
 
+## Cursor-position escape bytes parse row and column numbers.
 expect ANSI.parse_cursor([27, 91, 51, 51, 59, 49, 82]) == { row: 33, col: 1 }
 
 draw_rows : ANSI.CursorPosition, ANSI.ScreenSize, List(ANSI.DrawFn), U16, List(List(ANSI.Pixel)) -> List(List(ANSI.Pixel))
@@ -606,8 +611,13 @@ take_number = |input|
 		_ => input
 	}
 
+## Number parsing leaves non-digit input untouched.
 expect take_number({ val: 0, rest: [27, 91, 51, 51, 59, 49, 82] }) == { val: 0, rest: [27, 91, 51, 51, 59, 49, 82] }
+
+## Number parsing consumes consecutive digit bytes.
 expect take_number({ val: 0, rest: [51, 51, 59, 49, 82] }) == { val: 33, rest: [59, 49, 82] }
+
+## Number parsing stops after the final digit.
 expect take_number({ val: 0, rest: [49, 82] }) == { val: 1, rest: [82] }
 
 join_all_pixels : List(List(ANSI.Pixel)) -> Str
@@ -620,7 +630,7 @@ join_all_pixels = |rows| {
 		styles: [],
 	}
 
-	Str.join_with(List.fold_with_index(rows, init, join_pixel_row).lines, "")
+	Str.join_with(rows.fold_with_index(init, join_pixel_row).lines, "")
 }
 
 join_pixel_row :
