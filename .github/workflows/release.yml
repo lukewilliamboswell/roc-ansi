@@ -3,149 +3,235 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
-      release_tag:
-        description: "Release tag, e.g. v0.1.0"
+      release_version:
+        description: "Release version, e.g. 0.9.0"
         required: true
         type: string
   pull_request:
 
-env:
-  ZIG_VERSION: "0.16.0"
+permissions:
+  contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.event_name == 'workflow_dispatch' && format('release-{0}', github.repository) || format('release-validate-{0}-{1}', github.repository, github.ref) }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
 
 jobs:
-  build-bundle:
-    name: Build package bundle
-    runs-on: ubuntu-24.04
+  build:
+    name: Build release bundle
+    runs-on: ubuntu-latest
     outputs:
-      bundle_filename: ${{ steps.bundle.outputs.bundle_filename }}
-    defaults:
-      run:
-        shell: bash
+      release_version: ${{ steps.validate.outputs.release_version }}
+      docs_version: ${{ steps.validate.outputs.docs_version }}
+      test_matrix: ${{ steps.bundles.outputs.test_matrix }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Install Zig
-        uses: mlugg/setup-zig@d1434d08867e3ee9daa34448df10607b98908d29 # 2.2.1
         with:
-          version: ${{ env.ZIG_VERSION }}
-          use-cache: false
+          fetch-depth: 0
 
       - name: Install Roc
         uses: roc-lang/setup-roc@bd311e2fb815a3d2255f7ee14a922f0b736e020b
         with:
           version: nightly-new-compiler
 
-      - name: Check format and package
-        run: |
-          roc fmt --check package examples
-          roc check package/main.roc
-          roc test package/main.roc
+      - name: Validate release request
+        id: validate
+        uses: roc-lang/release-package/actions/validate-release@e28a90a2ddeaa78a0da9ee91cc3e2d63fa770404
+        with:
+          release_version: ${{ github.event_name == 'workflow_dispatch' && inputs.release_version || '' }}
+          dry_run: ${{ github.event_name != 'workflow_dispatch' }}
+          github_token: ${{ github.token }}
+
+      - name: Validate package
+        run: ./ci/all_tests.sh
+
+      - name: Resolve previous release
+        if: github.event_name == 'workflow_dispatch'
+        id: previous
+        uses: roc-lang/release-package/actions/resolve-previous-release@e28a90a2ddeaa78a0da9ee91cc3e2d63fa770404
+        with:
+          github_token: ${{ github.token }}
+
+      - name: Check version bump
+        uses: roc-lang/release-package/actions/run-bump-check@e28a90a2ddeaa78a0da9ee91cc3e2d63fa770404
+        with:
+          release_version: ${{ steps.validate.outputs.release_version }}
+          dry_run: ${{ github.event_name != 'workflow_dispatch' }}
+          bump_check: require
+          bump_entrypoint: package/main.roc
+          previous_url: ${{ steps.previous.outputs.previous_url }}
 
       - name: Bundle package
-        id: bundle
-        run: |
-          BUNDLE_OUTPUT=$(scripts/bundle.sh --output-dir dist 2>&1)
-          echo "$BUNDLE_OUTPUT"
+        run: ./scripts/bundle.sh --output-dir dist
 
-          BUNDLE_PATH=$(echo "$BUNDLE_OUTPUT" | grep "^Created:" | awk '{print $2}')
-          BUNDLE_FILENAME=$(basename "$BUNDLE_PATH")
+      - name: Prepare release bundle metadata
+        id: bundles
+        uses: roc-lang/release-package/actions/prepare-bundles@e28a90a2ddeaa78a0da9ee91cc3e2d63fa770404
+        with:
+          bundle_glob: dist/*.tar.zst
+          test_os_json: '["ubuntu-latest","macos-15-intel","windows-2025"]'
 
-          if [ -z "$BUNDLE_FILENAME" ]; then
-            echo "Error: could not extract bundle filename from roc bundle output"
-            exit 1
-          fi
-
-          echo "bundle_filename=$BUNDLE_FILENAME" >> "$GITHUB_OUTPUT"
-
-      - name: Upload package bundle artifact
+      - name: Upload release bundles
         uses: actions/upload-artifact@v4
         with:
-          name: package-bundle
-          path: dist/${{ steps.bundle.outputs.bundle_filename }}
-          retention-days: 30
+          name: release-bundles
+          path: .release/bundles/*
+          if-no-files-found: error
+          retention-days: 7
 
-  test-bundle:
-    name: Test package bundle (${{ matrix.os }})
-    needs: build-bundle
+      - name: Upload release metadata
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-metadata
+          path: |
+            .release/bump-output.txt
+            .release/previous-url.txt
+            .release/release-bundles.json
+            .release/test-matrix.json
+          if-no-files-found: error
+          retention-days: 7
+
+  test-bundles:
+    name: Test ${{ matrix.bundle_name }} bundle (${{ matrix.os }})
+    needs: build
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - ubuntu-24.04
-          - macos-15-intel
-          - windows-2025
-    defaults:
-      run:
-        shell: bash
+        include: ${{ fromJson(needs.build.outputs.test_matrix) }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Install Zig
-        uses: mlugg/setup-zig@d1434d08867e3ee9daa34448df10607b98908d29 # 2.2.1
-        with:
-          version: ${{ env.ZIG_VERSION }}
-          use-cache: false
 
       - name: Install Roc
         uses: roc-lang/setup-roc@bd311e2fb815a3d2255f7ee14a922f0b736e020b
         with:
           version: nightly-new-compiler
 
-      - name: Download package bundle artifact
+      - name: Download release bundles
         uses: actions/download-artifact@v4
         with:
-          name: package-bundle
-          path: dist
+          name: release-bundles
+          path: .release/test-bundles
 
-      - name: Test examples against downloaded bundle
-        run: python3 ci/test_bundle_examples.py --bundle-path "dist/${{ needs.build-bundle.outputs.bundle_filename }}"
+      - name: Test release bundle
+        uses: roc-lang/release-package/actions/test-bundle@e28a90a2ddeaa78a0da9ee91cc3e2d63fa770404
+        with:
+          test_bundle_command: python3 ci/test_bundle_examples.py --bundle-path
+          bundle_path: .release/test-bundles/${{ matrix.artifact_file }}
+          bundle_name: ${{ matrix.bundle_name }}
+          release_version: ${{ needs.build.outputs.release_version }}
 
-  create-release:
-    name: Create GitHub release
+  publish-release:
+    name: Publish GitHub release
     needs:
-      - build-bundle
-      - test-bundle
-    runs-on: ubuntu-24.04
+      - build
+      - test-bundles
     if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
     permissions:
       contents: write
-    defaults:
-      run:
-        shell: bash
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Download package bundle artifact
+      - name: Download release bundles
         uses: actions/download-artifact@v4
         with:
-          name: package-bundle
-          path: dist
+          name: release-bundles
+          path: .release/bundles
+
+      - name: Download release metadata
+        uses: actions/download-artifact@v4
+        with:
+          name: release-metadata
+          path: .release
+
+      - name: Make release notes
+        uses: roc-lang/release-package/actions/make-release-notes@e28a90a2ddeaa78a0da9ee91cc3e2d63fa770404
+        with:
+          release_version: ${{ needs.build.outputs.release_version }}
+          docs_url: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${{ needs.build.outputs.docs_version }}/
+          github_token: ${{ github.token }}
+
+      - name: Publish release
+        uses: roc-lang/release-package/actions/publish-release@e28a90a2ddeaa78a0da9ee91cc3e2d63fa770404
+        with:
+          release_version: ${{ needs.build.outputs.release_version }}
+          github_token: ${{ github.token }}
+
+  publish-docs:
+    name: Publish versioned docs
+    needs:
+      - build
+      - publish-release
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Install Roc
         uses: roc-lang/setup-roc@bd311e2fb815a3d2255f7ee14a922f0b736e020b
         with:
           version: nightly-new-compiler
 
-      - name: Create release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          BUNDLE_FILE="dist/${{ needs.build-bundle.outputs.bundle_filename }}"
-          ROC_VERSION=$(roc version)
+      - name: Snapshot existing docs
+        uses: roc-lang/release-package/actions/docs-snapshot@e28a90a2ddeaa78a0da9ee91cc3e2d63fa770404
+        with:
+          docs_root: www
 
-          gh release create "${{ github.event.inputs.release_tag }}" \
-            "$BUNDLE_FILE" \
-            --title "${{ github.event.inputs.release_tag }}" \
-            --generate-notes \
-            --notes "ANSI package bundle built with Roc $ROC_VERSION."
+      - name: Generate docs
+        run: |
+          rm -rf "www/${{ needs.build.outputs.docs_version }}"
+          roc docs package/main.roc --output="www/${{ needs.build.outputs.docs_version }}"
+
+      - name: Update docs index
+        uses: roc-lang/release-package/actions/docs-index@e28a90a2ddeaa78a0da9ee91cc3e2d63fa770404
+        with:
+          docs_root: www
+          docs_version: ${{ needs.build.outputs.docs_version }}
+
+      - name: Validate docs
+        uses: roc-lang/release-package/actions/docs-validate@e28a90a2ddeaa78a0da9ee91cc3e2d63fa770404
+        with:
+          docs_root: www
+          docs_version: ${{ needs.build.outputs.docs_version }}
+
+      - name: Commit docs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add www
+          if git diff --cached --quiet -- www; then
+            echo "Docs did not change; skipping docs commit."
+          else
+            git commit -m "Update docs for ${{ needs.build.outputs.release_version }}"
+            git push origin "HEAD:${{ github.ref_name }}"
+          fi
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: www
+
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
