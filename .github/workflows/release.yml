@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.event_name == 'workflow_dispatch' && format('release-{0}', github.repository) || format('release-validate-{0}-{1}', github.repository, github.ref) }}
   cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
 
 jobs:
@@ -38,10 +38,10 @@ jobs:
 
       - name: Validate release request
         id: validate
-        uses: roc-lang/release-package/actions/validate-release@ffae84c03c7db6dae3457587dc47d20a445a5508
+        uses: roc-lang/release-package/actions/validate-release@e28a90a2ddeaa78a0da9ee91cc3e2d63fa770404
         with:
-          release_version: ${{ github.event_name == 'workflow_dispatch' && inputs.release_version || '999.999.999' }}
-          check_availability: ${{ github.event_name == 'workflow_dispatch' && 'true' || 'false' }}
+          release_version: ${{ github.event_name == 'workflow_dispatch' && inputs.release_version || '' }}
+          dry_run: ${{ github.event_name != 'workflow_dispatch' }}
           github_token: ${{ github.token }}
 
       - name: Validate package
@@ -50,15 +50,16 @@ jobs:
       - name: Resolve previous release
         if: github.event_name == 'workflow_dispatch'
         id: previous
-        uses: roc-lang/release-package/actions/resolve-previous-release@ffae84c03c7db6dae3457587dc47d20a445a5508
+        uses: roc-lang/release-package/actions/resolve-previous-release@e28a90a2ddeaa78a0da9ee91cc3e2d63fa770404
         with:
           github_token: ${{ github.token }}
 
       - name: Check version bump
-        uses: roc-lang/release-package/actions/run-bump-check@ffae84c03c7db6dae3457587dc47d20a445a5508
+        uses: roc-lang/release-package/actions/run-bump-check@e28a90a2ddeaa78a0da9ee91cc3e2d63fa770404
         with:
           release_version: ${{ steps.validate.outputs.release_version }}
-          bump_check: ${{ github.event_name == 'workflow_dispatch' && 'require' || 'off' }}
+          dry_run: ${{ github.event_name != 'workflow_dispatch' }}
+          bump_check: require
           bump_entrypoint: package/main.roc
           previous_url: ${{ steps.previous.outputs.previous_url }}
 
@@ -67,7 +68,7 @@ jobs:
 
       - name: Prepare release bundle metadata
         id: bundles
-        uses: roc-lang/release-package/actions/prepare-bundles@ffae84c03c7db6dae3457587dc47d20a445a5508
+        uses: roc-lang/release-package/actions/prepare-bundles@e28a90a2ddeaa78a0da9ee91cc3e2d63fa770404
         with:
           bundle_glob: dist/*.tar.zst
           test_os_json: '["ubuntu-latest","macos-15-intel","windows-2025"]'
@@ -117,7 +118,7 @@ jobs:
           path: .release/test-bundles
 
       - name: Test release bundle
-        uses: roc-lang/release-package/actions/test-bundle@ffae84c03c7db6dae3457587dc47d20a445a5508
+        uses: roc-lang/release-package/actions/test-bundle@e28a90a2ddeaa78a0da9ee91cc3e2d63fa770404
         with:
           test_bundle_command: python3 ci/test_bundle_examples.py --bundle-path
           bundle_path: .release/test-bundles/${{ matrix.artifact_file }}
@@ -153,13 +154,14 @@ jobs:
           path: .release
 
       - name: Make release notes
-        uses: roc-lang/release-package/actions/make-release-notes@ffae84c03c7db6dae3457587dc47d20a445a5508
+        uses: roc-lang/release-package/actions/make-release-notes@e28a90a2ddeaa78a0da9ee91cc3e2d63fa770404
         with:
           release_version: ${{ needs.build.outputs.release_version }}
+          docs_url: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${{ needs.build.outputs.docs_version }}/
           github_token: ${{ github.token }}
 
       - name: Publish release
-        uses: roc-lang/release-package/actions/publish-release@ffae84c03c7db6dae3457587dc47d20a445a5508
+        uses: roc-lang/release-package/actions/publish-release@e28a90a2ddeaa78a0da9ee91cc3e2d63fa770404
         with:
           release_version: ${{ needs.build.outputs.release_version }}
           github_token: ${{ github.token }}
@@ -189,7 +191,7 @@ jobs:
           version: nightly-new-compiler
 
       - name: Snapshot existing docs
-        uses: roc-lang/release-package/actions/docs-snapshot@ffae84c03c7db6dae3457587dc47d20a445a5508
+        uses: roc-lang/release-package/actions/docs-snapshot@e28a90a2ddeaa78a0da9ee91cc3e2d63fa770404
         with:
           docs_root: www
 
@@ -199,13 +201,13 @@ jobs:
           roc docs package/main.roc --output="www/${{ needs.build.outputs.docs_version }}"
 
       - name: Update docs index
-        uses: roc-lang/release-package/actions/docs-index@ffae84c03c7db6dae3457587dc47d20a445a5508
+        uses: roc-lang/release-package/actions/docs-index@e28a90a2ddeaa78a0da9ee91cc3e2d63fa770404
         with:
           docs_root: www
           docs_version: ${{ needs.build.outputs.docs_version }}
 
       - name: Validate docs
-        uses: roc-lang/release-package/actions/docs-validate@ffae84c03c7db6dae3457587dc47d20a445a5508
+        uses: roc-lang/release-package/actions/docs-validate@e28a90a2ddeaa78a0da9ee91cc3e2d63fa770404
         with:
           docs_root: www
           docs_version: ${{ needs.build.outputs.docs_version }}
