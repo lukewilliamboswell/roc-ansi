@@ -1,6 +1,6 @@
 app [main!] {
 	pf: platform "https://github.com/lukewilliamboswell/roc-platform-template-zig/releases/download/1.0.0/AnZoxzoGPtSGQ15EQh6pBeeaHJ7aizP9MQhK81dES3Uq.tar.zst",
-	ansi: "https://github.com/lukewilliamboswell/roc-ansi/releases/download/0.9.0/C2RG1B9Caohfb8dfqrKu3Wu9TDQNq4zfixxAvLnMFVEL.tar.zst",
+	ansi: "https://github.com/lukewilliamboswell/roc-ansi/releases/download/0.10.0/BFo7r3Lx4fuCj9ZoKagjcrkps2ceF8c1rmou1NCSos8B.tar.zst",
 }
 
 import pf.Stdout
