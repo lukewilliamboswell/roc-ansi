@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Utils Docs</title>
+    <meta name="viewport" content="width=device-width">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <link rel="stylesheet" href="../styles.css">
+    <script src="../search.js" defer></script>
+</head>
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <defs>
+    <symbol id="link-icon" viewBox="0 0 640 512">
+      <path d="M562.8 267.7c56.5-56.5 56.5-148 0-204.5c-50-50-128.8-56.5-186.3-15.4l-1.6 1.1c-14.4 10.3-17.7 30.3-7.4 44.6s30.3 17.7 44.6 7.4l1.6-1.1c32.1-22.9 76-19.3 103.8 8.6c31.5 31.5 31.5 82.5 0 114L405.3 334.8c-31.5 31.5-82.5 31.5-114 0c-27.9-27.9-31.5-71.8-8.6-103.8l1.1-1.6c10.3-14.4 6.9-34.4-7.4-44.6s-34.4-6.9-44.6 7.4l-1.1 1.6C189.5 251.2 196 330 246 380c56.5 56.5 148 56.5 204.5 0L562.8 267.7zM43.2 244.3c-56.5 56.5-56.5 148 0 204.5c50 50 128.8 56.5 186.3 15.4l1.6-1.1c14.4-10.3 17.7-30.3 7.4-44.6s-30.3-17.7-44.6-7.4l-1.6 1.1c-32.1 22.9-76 19.3-103.8-8.6C57 372 57 321 88.5 289.5L200.7 177.2c31.5-31.5 82.5-31.5 114 0c27.9 27.9 31.5 71.8 8.6 103.9l-1.1 1.6c-10.3 14.4-6.9 34.4 7.4 44.6s34.4 6.9 44.6-7.4l1.1-1.6C416.5 260.8 410 182 360 132c-56.5-56.5-148-56.5-204.5 0L43.2 244.3z"/>
+    </symbol>
+  </defs>
+</svg>
+    <nav id="sidebar-nav">
+        <div class="pkg-and-logo">
+            <a class="logo" href="../"><svg viewBox="0 -6 51 58" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="logo-link">
+    <title id="logo-link">Home</title>
+    <polygon role="presentation" points="0,0 23.8834,3.21052 37.2438,19.0101 45.9665,16.6324 50.5,22 45,22 44.0315,26.3689 26.4673,39.3424 27.4527,45.2132 17.655,53 23.6751,22.7086" />
+</svg></a>
+            <h1 class="pkg-full-name"><a href="../">package</a></h1>
+        </div>
+        <div class="module-links-container">
+            <ul class="module-links">
+                <li class="sidebar-entry">
+                    <a class="sidebar-module-link" data-module-name="ANSI" href="../ANSI/"><button class="entry-toggle"></button><span>ANSI</span></a>
+                    <ul class="sidebar-sub-entries">
+                        <li><a class="sidebar-value" href="../ANSI/#ANSI.to_str">to_str</a></li>
+                        <li><a class="sidebar-value" href="../ANSI/#ANSI.style">style</a></li>
+                        <li><a class="sidebar-value" href="../ANSI/#ANSI.color">color</a></li>
+                        <li><a class="sidebar-value" href="../ANSI/#ANSI.parse_raw_stdin">parse_raw_stdin</a></li>
+                        <li><a class="sidebar-value" href="../ANSI/#ANSI.input_to_str">input_to_str</a></li>
+                        <li><a class="sidebar-value" href="../ANSI/#ANSI.symbol_to_str">symbol_to_str</a></li>
+                        <li><a class="sidebar-value" href="../ANSI/#ANSI.upper_to_str">upper_to_str</a></li>
+                        <li><a class="sidebar-value" href="../ANSI/#ANSI.lower_to_str">lower_to_str</a></li>
+                        <li><a class="sidebar-value" href="../ANSI/#ANSI.parse_cursor">parse_cursor</a></li>
+                        <li><a class="sidebar-value" href="../ANSI/#ANSI.update_cursor">update_cursor</a></li>
+                        <li><a class="sidebar-value" href="../ANSI/#ANSI.draw_screen">draw_screen</a></li>
+                        <li><a class="sidebar-value" href="../ANSI/#ANSI.draw_box">draw_box</a></li>
+                        <li><a class="sidebar-value" href="../ANSI/#ANSI.draw_v_line">draw_v_line</a></li>
+                        <li><a class="sidebar-value" href="../ANSI/#ANSI.draw_h_line">draw_h_line</a></li>
+                        <li><a class="sidebar-value" href="../ANSI/#ANSI.draw_cursor">draw_cursor</a></li>
+                        <li><a class="sidebar-value" href="../ANSI/#ANSI.draw_text">draw_text</a></li>
+                        <li class="sidebar-type">
+                          <a class="sidebar-type-name" href="../ANSI/#ANSI.Escape">Escape</a>
+                        </li>
+                        <li class="sidebar-type">
+                          <a class="sidebar-type-name" href="../ANSI/#ANSI.Symbol">Symbol</a>
+                        </li>
+                        <li class="sidebar-type">
+                          <a class="sidebar-type-name" href="../ANSI/#ANSI.Ctrl">Ctrl</a>
+                        </li>
+                        <li class="sidebar-type">
+                          <a class="sidebar-type-name" href="../ANSI/#ANSI.Action">Action</a>
+                        </li>
+                        <li class="sidebar-type">
+                          <a class="sidebar-type-name" href="../ANSI/#ANSI.Arrow">Arrow</a>
+                        </li>
+                        <li class="sidebar-type">
+                          <a class="sidebar-type-name" href="../ANSI/#ANSI.Number">Number</a>
+                        </li>
+                        <li class="sidebar-type">
+                          <a class="sidebar-type-name" href="../ANSI/#ANSI.Letter">Letter</a>
+                        </li>
+                        <li class="sidebar-type">
+                          <a class="sidebar-type-name" href="../ANSI/#ANSI.Input">Input</a>
+                        </li>
+                        <li class="sidebar-type">
+                          <a class="sidebar-type-name" href="../ANSI/#ANSI.ScreenSize">ScreenSize</a>
+                        </li>
+                        <li class="sidebar-type">
+                          <a class="sidebar-type-name" href="../ANSI/#ANSI.CursorPosition">CursorPosition</a>
+                        </li>
+                        <li class="sidebar-type">
+                          <a class="sidebar-type-name" href="../ANSI/#ANSI.Pixel">Pixel</a>
+                        </li>
+                        <li class="sidebar-type">
+                          <a class="sidebar-type-name" href="../ANSI/#ANSI.DrawFn">DrawFn</a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="sidebar-entry">
+                    <a class="sidebar-module-link" data-module-name="C16" href="../C16/"><button class="entry-toggle"></button><span>C16</span></a>
+                    <ul class="sidebar-sub-entries">
+                        <li><a class="sidebar-value" href="../C16/#C16.name_to_code">name_to_code</a></li>
+                        <li><a class="sidebar-value" href="../C16/#C16.to_c256">to_c256</a></li>
+                        <li class="sidebar-type">
+                          <a class="sidebar-type-name" href="../C16/#C16.Name">Name</a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="sidebar-entry">
+                    <a class="sidebar-module-link" data-module-name="C256" href="../C256/"><button class="entry-toggle"></button><span>C256</span></a>
+                    <ul class="sidebar-sub-entries">
+                        <li><a class="sidebar-value" href="../C256/#C256.to_rgb">to_rgb</a></li>
+                    </ul>
+                </li>
+                <li class="sidebar-entry">
+                    <a class="sidebar-module-link" data-module-name="Color" href="../Color/"><button class="entry-toggle"></button><span>Color</span></a>
+                    <ul class="sidebar-sub-entries">
+                        <li><a class="sidebar-value" href="../Color/#Color.to_code">to_code</a></li>
+                    </ul>
+                </li>
+                <li class="sidebar-entry">
+                    <a class="sidebar-module-link" data-module-name="Control" href="../Control/"><button class="entry-toggle"></button><span>Control</span></a>
+                    <ul class="sidebar-sub-entries">
+                        <li><a class="sidebar-value" href="../Control/#Control.to_code">to_code</a></li>
+                    </ul>
+                </li>
+                <li class="sidebar-entry">
+                    <a class="sidebar-module-link" data-module-name="Layout" href="../Layout/"><button class="entry-toggle"></button><span>Layout</span></a>
+                    <ul class="sidebar-sub-entries">
+                        <li><a class="sidebar-value" href="../Layout/#Layout.squared_border">squared_border</a></li>
+                        <li><a class="sidebar-value" href="../Layout/#Layout.rounded_border">rounded_border</a></li>
+                        <li><a class="sidebar-value" href="../Layout/#Layout.pretty_border">pretty_border</a></li>
+                        <li><a class="sidebar-value" href="../Layout/#Layout.default_row_spacing">default_row_spacing</a></li>
+                        <li><a class="sidebar-value" href="../Layout/#Layout.default_spacing">default_spacing</a></li>
+                        <li><a class="sidebar-value" href="../Layout/#Layout.data_to_rows">data_to_rows</a></li>
+                        <li><a class="sidebar-value" href="../Layout/#Layout.data_to_columns">data_to_columns</a></li>
+                        <li><a class="sidebar-value" href="../Layout/#Layout.trunc_or_pad">trunc_or_pad</a></li>
+                        <li><a class="sidebar-value" href="../Layout/#Layout.draw_row">draw_row</a></li>
+                        <li><a class="sidebar-value" href="../Layout/#Layout.auto_sizes">auto_sizes</a></li>
+                        <li><a class="sidebar-value" href="../Layout/#Layout.draw_grid">draw_grid</a></li>
+                        <li><a class="sidebar-value" href="../Layout/#Layout.draw_table">draw_table</a></li>
+                        <li class="sidebar-type">
+                          <a class="sidebar-type-name" href="../Layout/#Layout.LineFill">LineFill</a>
+                        </li>
+                        <li class="sidebar-type">
+                          <a class="sidebar-type-name" href="../Layout/#Layout.RowSpacing">RowSpacing</a>
+                        </li>
+                        <li class="sidebar-type">
+                          <a class="sidebar-type-name" href="../Layout/#Layout.GridSpacing">GridSpacing</a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="sidebar-entry">
+                    <a class="sidebar-module-link" data-module-name="PieceTable" href="../PieceTable/"><button class="entry-toggle"></button><span>PieceTable</span></a>
+                    <ul class="sidebar-sub-entries">
+                        <li><a class="sidebar-value" href="../PieceTable/#PieceTable.insert">insert</a></li>
+                        <li><a class="sidebar-value" href="../PieceTable/#PieceTable.length">length</a></li>
+                        <li><a class="sidebar-value" href="../PieceTable/#PieceTable.delete">delete</a></li>
+                        <li><a class="sidebar-value" href="../PieceTable/#PieceTable.to_list">to_list</a></li>
+                        <li class="sidebar-type">
+                          <a class="sidebar-type-name" href="../PieceTable/#PieceTable.Span">Span</a>
+                        </li>
+                        <li class="sidebar-type">
+                          <a class="sidebar-type-name" href="../PieceTable/#PieceTable.Entry">Entry</a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="sidebar-entry">
+                    <a class="sidebar-module-link" data-module-name="Rgb" href="../Rgb/"><button class="entry-toggle"></button><span>Rgb</span></a>
+                    <ul class="sidebar-sub-entries">
+                        <li><a class="sidebar-value" href="../Rgb/#Rgb.from_hex">from_hex</a></li>
+                    </ul>
+                </li>
+                <li class="sidebar-entry">
+                    <a class="sidebar-module-link" data-module-name="Spacing" href="../Spacing/"><button class="entry-toggle"></button><span>Spacing</span></a>
+                    <ul class="sidebar-sub-entries">
+                        <li><a class="sidebar-value" href="../Spacing/#Spacing.xw">xw</a></li>
+                        <li><a class="sidebar-value" href="../Spacing/#Spacing.yw">yw</a></li>
+                        <li><a class="sidebar-value" href="../Spacing/#Spacing.padding">padding</a></li>
+                        <li><a class="sidebar-value" href="../Spacing/#Spacing.apply">apply</a></li>
+                        <li class="sidebar-type">
+                          <a class="sidebar-type-name" href="../Spacing/#Spacing.Side">Side</a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="sidebar-entry">
+                    <a class="sidebar-module-link" data-module-name="Style" href="../Style/"><button class="entry-toggle"></button><span>Style</span></a>
+                    <ul class="sidebar-sub-entries">
+                        <li><a class="sidebar-value" href="../Style/#Style.to_code">to_code</a></li>
+                    </ul>
+                </li>
+                <li class="sidebar-entry">
+                    <a class="sidebar-module-link active" data-module-name="Utils" href="../Utils/"><button class="entry-toggle"></button><span>Utils</span></a>
+                    <ul class="sidebar-sub-entries">
+                        <li><a class="sidebar-value" href="../Utils/#Utils.linear_interpolation">linear_interpolation</a></li>
+                        <li><a class="sidebar-value" href="../Utils/#Utils.clamp_u32">clamp_u32</a></li>
+                        <li><a class="sidebar-value" href="../Utils/#Utils.manhattan_distance">manhattan_distance</a></li>
+                        <li><a class="sidebar-value" href="../Utils/#Utils.mean">mean</a></li>
+                        <li><a class="sidebar-value" href="../Utils/#Utils.variance">variance</a></li>
+                        <li><a class="sidebar-value" href="../Utils/#Utils.standard_deviation">standard_deviation</a></li>
+                        <li><a class="sidebar-value" href="../Utils/#Utils.median">median</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <main>
+        <form id="module-search-form">
+            <input type="search" id="module-search" placeholder="Search Documentation" autocomplete="off" />
+            <input type="search" id="module-search-nojs" placeholder="Enable JavaScript to search" autocomplete="off" disabled aria-label="Search requires JavaScript" />
+            <noscript><style>#module-search{display:none}#module-search-nojs{display:block}</style></noscript>
+            <button class="menu-toggle" type="button" aria-label="Toggle sidebar"><svg viewBox="0 6 18 12" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0 6h18v2H0V6zm0 5h18v2H0v-2zm0 5h18v2H0v-2z"/>
+</svg></button>
+            <ul id="search-type-ahead" class="hidden">
+            <li class="hidden"><a class="type-ahead-link" href="../ANSI/#ANSI.to_str"><span class="type-ahead-module-name">ANSI</span>.<span class="type-ahead-def-name">to_str</span> <span class="type-ahead-signature">: <span class="type">Escape</span><span class="sig-arrow"> -&gt; </span><span class="type">Str</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../ANSI/#ANSI.style"><span class="type-ahead-module-name">ANSI</span>.<span class="type-ahead-def-name">style</span> <span class="type-ahead-signature">: <span class="type">Str</span>, <span class="type">List</span>(<span class="type">Style</span>)<span class="sig-arrow"> -&gt; </span><span class="type">Str</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../ANSI/#ANSI.color"><span class="type-ahead-module-name">ANSI</span>.<span class="type-ahead-def-name">color</span> <span class="type-ahead-signature">: <span class="type">Str</span>, { fg : <span class="type">Color</span>, bg : <span class="type">Color</span> }<span class="sig-arrow"> -&gt; </span><span class="type">Str</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../ANSI/#ANSI.parse_raw_stdin"><span class="type-ahead-module-name">ANSI</span>.<span class="type-ahead-def-name">parse_raw_stdin</span> <span class="type-ahead-signature">: <span class="type">List</span>(<span class="type">U8</span>)<span class="sig-arrow"> -&gt; </span><span class="type">Input</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../ANSI/#ANSI.input_to_str"><span class="type-ahead-module-name">ANSI</span>.<span class="type-ahead-def-name">input_to_str</span> <span class="type-ahead-signature">: <span class="type">Input</span><span class="sig-arrow"> -&gt; </span><span class="type">Str</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../ANSI/#ANSI.symbol_to_str"><span class="type-ahead-module-name">ANSI</span>.<span class="type-ahead-def-name">symbol_to_str</span> <span class="type-ahead-signature">: <span class="type">Symbol</span><span class="sig-arrow"> -&gt; </span><span class="type">Str</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../ANSI/#ANSI.upper_to_str"><span class="type-ahead-module-name">ANSI</span>.<span class="type-ahead-def-name">upper_to_str</span> <span class="type-ahead-signature">: <span class="type">Letter</span><span class="sig-arrow"> -&gt; </span><span class="type">Str</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../ANSI/#ANSI.lower_to_str"><span class="type-ahead-module-name">ANSI</span>.<span class="type-ahead-def-name">lower_to_str</span> <span class="type-ahead-signature">: <span class="type">Letter</span><span class="sig-arrow"> -&gt; </span><span class="type">Str</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../ANSI/#ANSI.parse_cursor"><span class="type-ahead-module-name">ANSI</span>.<span class="type-ahead-def-name">parse_cursor</span> <span class="type-ahead-signature">: <span class="type">List</span>(<span class="type">U8</span>)<span class="sig-arrow"> -&gt; </span><span class="type">CursorPosition</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../ANSI/#ANSI.update_cursor"><span class="type-ahead-module-name">ANSI</span>.<span class="type-ahead-def-name">update_cursor</span> <span class="type-ahead-signature">: { cursor : <span class="type">CursorPosition</span>, screen : <span class="type">ScreenSize</span> }, <span class="type">Arrow</span><span class="sig-arrow"> -&gt; </span>{ cursor : <span class="type">CursorPosition</span>, screen : <span class="type">ScreenSize</span> }</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../ANSI/#ANSI.draw_screen"><span class="type-ahead-module-name">ANSI</span>.<span class="type-ahead-def-name">draw_screen</span> <span class="type-ahead-signature">: { cursor : <span class="type">CursorPosition</span>, screen : <span class="type">ScreenSize</span> }, <span class="type">List</span>(<span class="type">DrawFn</span>)<span class="sig-arrow"> -&gt; </span><span class="type">Str</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../ANSI/#ANSI.draw_box"><span class="type-ahead-module-name">ANSI</span>.<span class="type-ahead-def-name">draw_box</span> <span class="type-ahead-signature">: { r : <span class="type">U16</span>, c : <span class="type">U16</span>, w : <span class="type">U16</span>, h : <span class="type">U16</span>, fg : <span class="type">Color</span>, bg : <span class="type">Color</span>, char : <span class="type">Str</span>, styles : <span class="type">List</span>(<span class="type">Style</span>) }<span class="sig-arrow"> -&gt; </span><span class="type">DrawFn</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../ANSI/#ANSI.draw_v_line"><span class="type-ahead-module-name">ANSI</span>.<span class="type-ahead-def-name">draw_v_line</span> <span class="type-ahead-signature">: { r : <span class="type">U16</span>, c : <span class="type">U16</span>, len : <span class="type">U16</span>, fg : <span class="type">Color</span>, bg : <span class="type">Color</span>, char : <span class="type">Str</span>, styles : <span class="type">List</span>(<span class="type">Style</span>) }<span class="sig-arrow"> -&gt; </span><span class="type">DrawFn</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../ANSI/#ANSI.draw_h_line"><span class="type-ahead-module-name">ANSI</span>.<span class="type-ahead-def-name">draw_h_line</span> <span class="type-ahead-signature">: { r : <span class="type">U16</span>, c : <span class="type">U16</span>, len : <span class="type">U16</span>, fg : <span class="type">Color</span>, bg : <span class="type">Color</span>, char : <span class="type">Str</span>, styles : <span class="type">List</span>(<span class="type">Style</span>) }<span class="sig-arrow"> -&gt; </span><span class="type">DrawFn</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../ANSI/#ANSI.draw_cursor"><span class="type-ahead-module-name">ANSI</span>.<span class="type-ahead-def-name">draw_cursor</span> <span class="type-ahead-signature">: { fg : <span class="type">Color</span>, bg : <span class="type">Color</span>, char : <span class="type">Str</span>, styles : <span class="type">List</span>(<span class="type">Style</span>) }<span class="sig-arrow"> -&gt; </span><span class="type">DrawFn</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../ANSI/#ANSI.draw_text"><span class="type-ahead-module-name">ANSI</span>.<span class="type-ahead-def-name">draw_text</span> <span class="type-ahead-signature">: <span class="type">Str</span>, { r : <span class="type">U16</span>, c : <span class="type">U16</span>, fg : <span class="type">Color</span>, bg : <span class="type">Color</span>, styles : <span class="type">List</span>(<span class="type">Style</span>) }<span class="sig-arrow"> -&gt; </span><span class="type">DrawFn</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../ANSI/#ANSI.Escape"><span class="type-ahead-module-name">ANSI</span>.<span class="type-ahead-def-name">Escape</span> <span class="type-ahead-signature">:= [<span class="type">Reset</span>, <span class="type">Control</span>(<span class="type">Control</span>)]</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../ANSI/#ANSI.Symbol"><span class="type-ahead-module-name">ANSI</span>.<span class="type-ahead-def-name">Symbol</span> <span class="type-ahead-signature">:= [<span class="type">ExclamationMark</span>, <span class="type">QuotationMark</span>, <span class="type">NumberSign</span>, <span class="type">DollarSign</span>, <span class="type">PercentSign</span>, <span class="type">Ampersand</span>, <span class="type">Apostrophe</span>, <span class="type">RoundOpenBracket</span>, <span class="type">RoundCloseBracket</span>, <span class="type">Asterisk</span>, <span class="type">PlusSign</span>, <span class="type">Comma</span>, <span class="type">Hyphen</span>, <span class="type">FullStop</span>, <span class="type">ForwardSlash</span>, <span class="type">Colon</span>, <span class="type">SemiColon</span>, <span class="type">LessThanSign</span>, <span class="type">EqualsSign</span>, <span class="type">GreaterThanSign</span>, <span class="type">QuestionMark</span>, <span class="type">AtSign</span>, <span class="type">SquareOpenBracket</span>, <span class="type">Backslash</span>, <span class="type">SquareCloseBracket</span>, <span class="type">Caret</span>, <span class="type">Underscore</span>, <span class="type">GraveAccent</span>, <span class="type">CurlyOpenBrace</span>, <span class="type">VerticalBar</span>, <span class="type">CurlyCloseBrace</span>, <span class="type">Tilde</span>]</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../ANSI/#ANSI.Ctrl"><span class="type-ahead-module-name">ANSI</span>.<span class="type-ahead-def-name">Ctrl</span> <span class="type-ahead-signature">:= [<span class="type">Space</span>, <span class="type">A</span>, <span class="type">B</span>, <span class="type">C</span>, <span class="type">D</span>, <span class="type">E</span>, <span class="type">F</span>, <span class="type">G</span>, <span class="type">H</span>, <span class="type">I</span>, <span class="type">J</span>, <span class="type">K</span>, <span class="type">L</span>, <span class="type">N</span>, <span class="type">O</span>, <span class="type">P</span>, <span class="type">Q</span>, <span class="type">R</span>, <span class="type">S</span>, <span class="type">T</span>, <span class="type">U</span>, <span class="type">V</span>, <span class="type">W</span>, <span class="type">X</span>, <span class="type">Y</span>, <span class="type">Z</span>, <span class="type">BackSlash</span>, <span class="type">SquareCloseBracket</span>, <span class="type">Caret</span>, <span class="type">Underscore</span>]</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../ANSI/#ANSI.Action"><span class="type-ahead-module-name">ANSI</span>.<span class="type-ahead-def-name">Action</span> <span class="type-ahead-signature">:= [<span class="type">Escape</span>, <span class="type">Enter</span>, <span class="type">Space</span>, <span class="type">Delete</span>]</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../ANSI/#ANSI.Arrow"><span class="type-ahead-module-name">ANSI</span>.<span class="type-ahead-def-name">Arrow</span> <span class="type-ahead-signature">:= [<span class="type">Up</span>, <span class="type">Down</span>, <span class="type">Left</span>, <span class="type">Right</span>]</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../ANSI/#ANSI.Number"><span class="type-ahead-module-name">ANSI</span>.<span class="type-ahead-def-name">Number</span> <span class="type-ahead-signature">:= [<span class="type">N0</span>, <span class="type">N1</span>, <span class="type">N2</span>, <span class="type">N3</span>, <span class="type">N4</span>, <span class="type">N5</span>, <span class="type">N6</span>, <span class="type">N7</span>, <span class="type">N8</span>, <span class="type">N9</span>]</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../ANSI/#ANSI.Letter"><span class="type-ahead-module-name">ANSI</span>.<span class="type-ahead-def-name">Letter</span> <span class="type-ahead-signature">:= [<span class="type">A</span>, <span class="type">B</span>, <span class="type">C</span>, <span class="type">D</span>, <span class="type">E</span>, <span class="type">F</span>, <span class="type">G</span>, <span class="type">H</span>, <span class="type">I</span>, <span class="type">J</span>, <span class="type">K</span>, <span class="type">L</span>, <span class="type">M</span>, <span class="type">N</span>, <span class="type">O</span>, <span class="type">P</span>, <span class="type">Q</span>, <span class="type">R</span>, <span class="type">S</span>, <span class="type">T</span>, <span class="type">U</span>, <span class="type">V</span>, <span class="type">W</span>, <span class="type">X</span>, <span class="type">Y</span>, <span class="type">Z</span>]</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../ANSI/#ANSI.Input"><span class="type-ahead-module-name">ANSI</span>.<span class="type-ahead-def-name">Input</span> <span class="type-ahead-signature">:= [<span class="type">Ctrl</span>(<span class="type">Ctrl</span>), <span class="type">Action</span>(<span class="type">Action</span>), <span class="type">Arrow</span>(<span class="type">Arrow</span>), <span class="type">Symbol</span>(<span class="type">Symbol</span>), <span class="type">Number</span>(<span class="type">Number</span>), <span class="type">Upper</span>(<span class="type">Letter</span>), <span class="type">Lower</span>(<span class="type">Letter</span>), <span class="type">Unsupported</span>(<span class="type">List</span>(<span class="type">U8</span>))]</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../ANSI/#ANSI.ScreenSize"><span class="type-ahead-module-name">ANSI</span>.<span class="type-ahead-def-name">ScreenSize</span> <span class="type-ahead-signature">: { width : <span class="type">U16</span>, height : <span class="type">U16</span> }</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../ANSI/#ANSI.CursorPosition"><span class="type-ahead-module-name">ANSI</span>.<span class="type-ahead-def-name">CursorPosition</span> <span class="type-ahead-signature">: { row : <span class="type">U16</span>, col : <span class="type">U16</span> }</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../ANSI/#ANSI.Pixel"><span class="type-ahead-module-name">ANSI</span>.<span class="type-ahead-def-name">Pixel</span> <span class="type-ahead-signature">: { char : <span class="type">Str</span>, fg : <span class="type">Color</span>, bg : <span class="type">Color</span>, styles : <span class="type">List</span>(<span class="type">Style</span>) }</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../ANSI/#ANSI.DrawFn"><span class="type-ahead-module-name">ANSI</span>.<span class="type-ahead-def-name">DrawFn</span> <span class="type-ahead-signature">: <span class="type">CursorPosition</span>, <span class="type">CursorPosition</span><span class="sig-arrow"> -&gt; </span><span class="type">Try</span>(<span class="type">Pixel</span>, {  })</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../C16/#C16.name_to_code"><span class="type-ahead-module-name">C16</span>.<span class="type-ahead-def-name">name_to_code</span> <span class="type-ahead-signature">: <span class="type">Name</span><span class="sig-arrow"> -&gt; </span><span class="type">U8</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../C16/#C16.to_c256"><span class="type-ahead-module-name">C16</span>.<span class="type-ahead-def-name">to_c256</span> <span class="type-ahead-signature">: <span class="type">C16</span><span class="sig-arrow"> -&gt; </span><span class="type">U8</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../C16/#C16.Name"><span class="type-ahead-module-name">C16</span>.<span class="type-ahead-def-name">Name</span> <span class="type-ahead-signature">:= [<span class="type">Black</span>, <span class="type">Red</span>, <span class="type">Green</span>, <span class="type">Yellow</span>, <span class="type">Blue</span>, <span class="type">Magenta</span>, <span class="type">Cyan</span>, <span class="type">White</span>]</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../C256/#C256.to_rgb"><span class="type-ahead-module-name">C256</span>.<span class="type-ahead-def-name">to_rgb</span> <span class="type-ahead-signature">: <span class="type">U8</span><span class="sig-arrow"> -&gt; </span>(<span class="type">U8</span>, <span class="type">U8</span>, <span class="type">U8</span>)</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Color/#Color.to_code"><span class="type-ahead-module-name">Color</span>.<span class="type-ahead-def-name">to_code</span> <span class="type-ahead-signature">: <span class="type">Color</span>, <span class="type">U8</span><span class="sig-arrow"> -&gt; </span><span class="type">List</span>(<span class="type">U8</span>)</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Control/#Control.to_code"><span class="type-ahead-module-name">Control</span>.<span class="type-ahead-def-name">to_code</span> <span class="type-ahead-signature">: <span class="type">Control</span><span class="sig-arrow"> -&gt; </span><span class="type">Str</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Layout/#Layout.squared_border"><span class="type-ahead-module-name">Layout</span>.<span class="type-ahead-def-name">squared_border</span> <span class="type-ahead-signature">: <span class="type">LineFill</span>(<span class="type">LineFill</span>(<span class="type">Str</span>))</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Layout/#Layout.rounded_border"><span class="type-ahead-module-name">Layout</span>.<span class="type-ahead-def-name">rounded_border</span> <span class="type-ahead-signature">: <span class="type">LineFill</span>(<span class="type">LineFill</span>(<span class="type">Str</span>))</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Layout/#Layout.pretty_border"><span class="type-ahead-module-name">Layout</span>.<span class="type-ahead-def-name">pretty_border</span> <span class="type-ahead-signature">: <span class="type">LineFill</span>(<span class="type">LineFill</span>(<span class="type">Str</span>))</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Layout/#Layout.default_row_spacing"><span class="type-ahead-module-name">Layout</span>.<span class="type-ahead-def-name">default_row_spacing</span> <span class="type-ahead-signature">: <span class="type">RowSpacing</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Layout/#Layout.default_spacing"><span class="type-ahead-module-name">Layout</span>.<span class="type-ahead-def-name">default_spacing</span> <span class="type-ahead-signature">: <span class="type">GridSpacing</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Layout/#Layout.data_to_rows"><span class="type-ahead-module-name">Layout</span>.<span class="type-ahead-def-name">data_to_rows</span> <span class="type-ahead-signature">: <span class="type">List</span>(<span class="type-var">a</span>), (<span class="type">U64</span>, <span class="type">U64</span>)<span class="sig-arrow"> -&gt; </span><span class="type">Try</span>(<span class="type">List</span>(<span class="type">List</span>(<span class="type-var">a</span>)), [<span class="type">OutOfBounds</span>])</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Layout/#Layout.data_to_columns"><span class="type-ahead-module-name">Layout</span>.<span class="type-ahead-def-name">data_to_columns</span> <span class="type-ahead-signature">: <span class="type">List</span>(<span class="type-var">a</span>), (<span class="type">U64</span>, <span class="type">U64</span>)<span class="sig-arrow"> -&gt; </span><span class="type">Try</span>(<span class="type">List</span>(<span class="type">List</span>(<span class="type-var">a</span>)), [<span class="type">OutOfBounds</span>])</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Layout/#Layout.trunc_or_pad"><span class="type-ahead-module-name">Layout</span>.<span class="type-ahead-def-name">trunc_or_pad</span> <span class="type-ahead-signature">: <span class="type">Str</span>, <span class="type">Str</span><span class="sig-arrow"> -&gt; </span><span class="type">Str</span>, <span class="type">U64</span><span class="sig-arrow"> -&gt; </span><span class="type">Str</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Layout/#Layout.draw_row"><span class="type-ahead-module-name">Layout</span>.<span class="type-ahead-def-name">draw_row</span> <span class="type-ahead-signature">: <span class="type">List</span>(<span class="type">Str</span>), <span class="type">List</span>(<span class="type">U64</span>), <span class="type">LineFill</span>(<span class="type">Str</span>), <span class="type">RowSpacing</span><span class="sig-arrow"> -&gt; </span><span class="type">Str</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Layout/#Layout.auto_sizes"><span class="type-ahead-module-name">Layout</span>.<span class="type-ahead-def-name">auto_sizes</span> <span class="type-ahead-signature">: <span class="type">List</span>(<span class="type">List</span>(<span class="type">Str</span>))<span class="sig-arrow"> -&gt; </span><span class="type">List</span>(<span class="type">U64</span>)</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Layout/#Layout.draw_grid"><span class="type-ahead-module-name">Layout</span>.<span class="type-ahead-def-name">draw_grid</span> <span class="type-ahead-signature">: <span class="type">List</span>(<span class="type">List</span>(<span class="type">Str</span>)), <span class="type">List</span>(<span class="type">U64</span>), <span class="type">LineFill</span>(<span class="type">LineFill</span>(<span class="type">Str</span>)), <span class="type">GridSpacing</span><span class="sig-arrow"> -&gt; </span><span class="type">Str</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Layout/#Layout.draw_table"><span class="type-ahead-module-name">Layout</span>.<span class="type-ahead-def-name">draw_table</span> <span class="type-ahead-signature">: <span class="type">List</span>(<span class="type">List</span>(<span class="type">Str</span>)), <span class="type">List</span>(<span class="type">U64</span>), <span class="type">LineFill</span>(<span class="type">LineFill</span>(<span class="type">Str</span>))<span class="sig-arrow"> -&gt; </span><span class="type">Str</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Layout/#Layout.LineFill"><span class="type-ahead-module-name">Layout</span>.<span class="type-ahead-def-name">LineFill</span> <span class="type-ahead-signature">: { start : <span class="type-var">a</span>, base : <span class="type-var">a</span>, sep : <span class="type-var">a</span>, end : <span class="type-var">a</span> }</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Layout/#Layout.RowSpacing"><span class="type-ahead-module-name">Layout</span>.<span class="type-ahead-def-name">RowSpacing</span> <span class="type-ahead-signature">: { mx : (<span class="type">U64</span>, <span class="type">U64</span>), px : (<span class="type">U64</span>, <span class="type">U64</span>) }</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Layout/#Layout.GridSpacing"><span class="type-ahead-module-name">Layout</span>.<span class="type-ahead-def-name">GridSpacing</span> <span class="type-ahead-signature">: { mx : (<span class="type">U64</span>, <span class="type">U64</span>), my : (<span class="type">U64</span>, <span class="type">U64</span>), px : (<span class="type">U64</span>, <span class="type">U64</span>), py : (<span class="type">U64</span>, <span class="type">U64</span>) }</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../PieceTable/#PieceTable.insert"><span class="type-ahead-module-name">PieceTable</span>.<span class="type-ahead-def-name">insert</span> <span class="type-ahead-signature">: <span class="type">PieceTable</span>(<span class="type-var">a</span>), { values : <span class="type">List</span>(<span class="type-var">a</span>), index : <span class="type">U64</span> }<span class="sig-arrow"> -&gt; </span><span class="type">PieceTable</span>(<span class="type-var">a</span>)</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../PieceTable/#PieceTable.length"><span class="type-ahead-module-name">PieceTable</span>.<span class="type-ahead-def-name">length</span> <span class="type-ahead-signature">: <span class="type">List</span>(<span class="type">Entry</span>)<span class="sig-arrow"> -&gt; </span><span class="type">U64</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../PieceTable/#PieceTable.delete"><span class="type-ahead-module-name">PieceTable</span>.<span class="type-ahead-def-name">delete</span> <span class="type-ahead-signature">: <span class="type">PieceTable</span>(<span class="type-var">a</span>), { index : <span class="type">U64</span> }<span class="sig-arrow"> -&gt; </span><span class="type">PieceTable</span>(<span class="type-var">a</span>)</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../PieceTable/#PieceTable.to_list"><span class="type-ahead-module-name">PieceTable</span>.<span class="type-ahead-def-name">to_list</span> <span class="type-ahead-signature">: <span class="type">PieceTable</span>(<span class="type-var">a</span>)<span class="sig-arrow"> -&gt; </span><span class="type">List</span>(<span class="type-var">a</span>)</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../PieceTable/#PieceTable.Span"><span class="type-ahead-module-name">PieceTable</span>.<span class="type-ahead-def-name">Span</span> <span class="type-ahead-signature">: { start : <span class="type">U64</span>, len : <span class="type">U64</span> }</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../PieceTable/#PieceTable.Entry"><span class="type-ahead-module-name">PieceTable</span>.<span class="type-ahead-def-name">Entry</span> <span class="type-ahead-signature">:= [<span class="type">Add</span>(<span class="type">Span</span>), <span class="type">Original</span>(<span class="type">Span</span>)]</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Rgb/#Rgb.from_hex"><span class="type-ahead-module-name">Rgb</span>.<span class="type-ahead-def-name">from_hex</span> <span class="type-ahead-signature">: <span class="type">U32</span><span class="sig-arrow"> -&gt; </span>(<span class="type">U8</span>, <span class="type">U8</span>, <span class="type">U8</span>)</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Spacing/#Spacing.xw"><span class="type-ahead-module-name">Spacing</span>.<span class="type-ahead-def-name">xw</span> <span class="type-ahead-signature">: <span class="type">Str</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Spacing/#Spacing.yw"><span class="type-ahead-module-name">Spacing</span>.<span class="type-ahead-def-name">yw</span> <span class="type-ahead-signature">: <span class="type">Str</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Spacing/#Spacing.padding"><span class="type-ahead-module-name">Spacing</span>.<span class="type-ahead-def-name">padding</span> <span class="type-ahead-signature">: <span class="type">Side</span>, <span class="type">U64</span><span class="sig-arrow"> -&gt; </span><span class="type">Spacing</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Spacing/#Spacing.apply"><span class="type-ahead-module-name">Spacing</span>.<span class="type-ahead-def-name">apply</span> <span class="type-ahead-signature">: <span class="type">Spacing</span><span class="sig-arrow"> -&gt; </span><span class="type">Str</span><span class="sig-arrow"> -&gt; </span><span class="type">Str</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Spacing/#Spacing.Side"><span class="type-ahead-module-name">Spacing</span>.<span class="type-ahead-def-name">Side</span> <span class="type-ahead-signature">:= [<span class="type">Top</span>, <span class="type">Right</span>, <span class="type">Bottom</span>, <span class="type">Left</span>]</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Style/#Style.to_code"><span class="type-ahead-module-name">Style</span>.<span class="type-ahead-def-name">to_code</span> <span class="type-ahead-signature">: <span class="type">Style</span><span class="sig-arrow"> -&gt; </span><span class="type">List</span>(<span class="type">U8</span>)</span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Utils/#Utils.linear_interpolation"><span class="type-ahead-module-name">Utils</span>.<span class="type-ahead-def-name">linear_interpolation</span> <span class="type-ahead-signature">: (<span class="type">F64</span>, <span class="type">F64</span>), (<span class="type">F64</span>, <span class="type">F64</span>)<span class="sig-arrow"> -&gt; </span><span class="type">F64</span><span class="sig-arrow"> -&gt; </span><span class="type">F64</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Utils/#Utils.clamp_u32"><span class="type-ahead-module-name">Utils</span>.<span class="type-ahead-def-name">clamp_u32</span> <span class="type-ahead-signature">: <span class="type">U32</span>, <span class="type">U32</span>, <span class="type">U32</span><span class="sig-arrow"> -&gt; </span><span class="type">U32</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Utils/#Utils.manhattan_distance"><span class="type-ahead-module-name">Utils</span>.<span class="type-ahead-def-name">manhattan_distance</span> <span class="type-ahead-signature">: <span class="type">List</span>(<span class="type">I64</span>), <span class="type">List</span>(<span class="type">I64</span>)<span class="sig-arrow"> -&gt; </span><span class="type">I64</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Utils/#Utils.mean"><span class="type-ahead-module-name">Utils</span>.<span class="type-ahead-def-name">mean</span> <span class="type-ahead-signature">: <span class="type">List</span>(<span class="type">F64</span>)<span class="sig-arrow"> -&gt; </span><span class="type">F64</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Utils/#Utils.variance"><span class="type-ahead-module-name">Utils</span>.<span class="type-ahead-def-name">variance</span> <span class="type-ahead-signature">: <span class="type">List</span>(<span class="type">F64</span>)<span class="sig-arrow"> -&gt; </span><span class="type">F64</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Utils/#Utils.standard_deviation"><span class="type-ahead-module-name">Utils</span>.<span class="type-ahead-def-name">standard_deviation</span> <span class="type-ahead-signature">: <span class="type">List</span>(<span class="type">F64</span>)<span class="sig-arrow"> -&gt; </span><span class="type">F64</span></span></a></li>
+            <li class="hidden"><a class="type-ahead-link" href="../Utils/#Utils.median"><span class="type-ahead-module-name">Utils</span>.<span class="type-ahead-def-name">median</span> <span class="type-ahead-signature">: <span class="type">List</span>(<span class="type">F64</span>)<span class="sig-arrow"> -&gt; </span><span class="type">Try</span>(<span class="type">F64</span>, [<span class="type">Empty</span>])</span></a></li>
+            </ul>
+        </form>
+        <div class="main-content">
+<!--! -->
+        <h1 class="module-name">Utils</h1>
+<!--!-->
+        <code class="entry-type-def">:= []</code>
+<!--!-->
+        <article class="entry entry-value" id="Utils.linear_interpolation">
+            <div class="entry-signature">
+                <a href="#Utils.linear_interpolation" class="entry-anchor" aria-label="Permalink to linear_interpolation"><svg class="link-icon"><use href="#link-icon"/></svg></a>
+                <code class="entry-signature-code"><a href="#Utils.linear_interpolation" class="entry-name-link"><strong>linear_interpolation</strong></a> : (<a href="https://roc-lang.org/builtins/main/Num#F64"><span class="type">F64</span></a>, <a href="https://roc-lang.org/builtins/main/Num#F64"><span class="type">F64</span></a>), (<a href="https://roc-lang.org/builtins/main/Num#F64"><span class="type">F64</span></a>, <a href="https://roc-lang.org/builtins/main/Num#F64"><span class="type">F64</span></a>)<span class="sig-arrow"> -&gt; </span><a href="https://roc-lang.org/builtins/main/Num#F64"><span class="type">F64</span></a><span class="sig-arrow"> -&gt; </span><a href="https://roc-lang.org/builtins/main/Num#F64"><span class="type">F64</span></a></code>
+            </div>
+        </article>
+<!--!-->
+        <article class="entry entry-value" id="Utils.clamp_u32">
+            <div class="entry-signature">
+                <a href="#Utils.clamp_u32" class="entry-anchor" aria-label="Permalink to clamp_u32"><svg class="link-icon"><use href="#link-icon"/></svg></a>
+                <code class="entry-signature-code"><a href="#Utils.clamp_u32" class="entry-name-link"><strong>clamp_u32</strong></a> : <a href="https://roc-lang.org/builtins/main/Num#U32"><span class="type">U32</span></a>, <a href="https://roc-lang.org/builtins/main/Num#U32"><span class="type">U32</span></a>, <a href="https://roc-lang.org/builtins/main/Num#U32"><span class="type">U32</span></a><span class="sig-arrow"> -&gt; </span><a href="https://roc-lang.org/builtins/main/Num#U32"><span class="type">U32</span></a></code>
+            </div>
+        </article>
+<!--!-->
+        <article class="entry entry-value" id="Utils.manhattan_distance">
+            <div class="entry-signature">
+                <a href="#Utils.manhattan_distance" class="entry-anchor" aria-label="Permalink to manhattan_distance"><svg class="link-icon"><use href="#link-icon"/></svg></a>
+                <code class="entry-signature-code"><a href="#Utils.manhattan_distance" class="entry-name-link"><strong>manhattan_distance</strong></a> : <a href="https://roc-lang.org/builtins/main/List"><span class="type">List</span></a>(<a href="https://roc-lang.org/builtins/main/Num#I64"><span class="type">I64</span></a>), <a href="https://roc-lang.org/builtins/main/List"><span class="type">List</span></a>(<a href="https://roc-lang.org/builtins/main/Num#I64"><span class="type">I64</span></a>)<span class="sig-arrow"> -&gt; </span><a href="https://roc-lang.org/builtins/main/Num#I64"><span class="type">I64</span></a></code>
+            </div>
+        </article>
+<!--!-->
+        <article class="entry entry-value" id="Utils.mean">
+            <div class="entry-signature">
+                <a href="#Utils.mean" class="entry-anchor" aria-label="Permalink to mean"><svg class="link-icon"><use href="#link-icon"/></svg></a>
+                <code class="entry-signature-code"><a href="#Utils.mean" class="entry-name-link"><strong>mean</strong></a> : <a href="https://roc-lang.org/builtins/main/List"><span class="type">List</span></a>(<a href="https://roc-lang.org/builtins/main/Num#F64"><span class="type">F64</span></a>)<span class="sig-arrow"> -&gt; </span><a href="https://roc-lang.org/builtins/main/Num#F64"><span class="type">F64</span></a></code>
+            </div>
+        </article>
+<!--!-->
+        <article class="entry entry-value" id="Utils.variance">
+            <div class="entry-signature">
+                <a href="#Utils.variance" class="entry-anchor" aria-label="Permalink to variance"><svg class="link-icon"><use href="#link-icon"/></svg></a>
+                <code class="entry-signature-code"><a href="#Utils.variance" class="entry-name-link"><strong>variance</strong></a> : <a href="https://roc-lang.org/builtins/main/List"><span class="type">List</span></a>(<a href="https://roc-lang.org/builtins/main/Num#F64"><span class="type">F64</span></a>)<span class="sig-arrow"> -&gt; </span><a href="https://roc-lang.org/builtins/main/Num#F64"><span class="type">F64</span></a></code>
+            </div>
+        </article>
+<!--!-->
+        <article class="entry entry-value" id="Utils.standard_deviation">
+            <div class="entry-signature">
+                <a href="#Utils.standard_deviation" class="entry-anchor" aria-label="Permalink to standard_deviation"><svg class="link-icon"><use href="#link-icon"/></svg></a>
+                <code class="entry-signature-code"><a href="#Utils.standard_deviation" class="entry-name-link"><strong>standard_deviation</strong></a> : <a href="https://roc-lang.org/builtins/main/List"><span class="type">List</span></a>(<a href="https://roc-lang.org/builtins/main/Num#F64"><span class="type">F64</span></a>)<span class="sig-arrow"> -&gt; </span><a href="https://roc-lang.org/builtins/main/Num#F64"><span class="type">F64</span></a></code>
+            </div>
+        </article>
+<!--!-->
+        <article class="entry entry-value" id="Utils.median">
+            <div class="entry-signature">
+                <a href="#Utils.median" class="entry-anchor" aria-label="Permalink to median"><svg class="link-icon"><use href="#link-icon"/></svg></a>
+                <code class="entry-signature-code"><a href="#Utils.median" class="entry-name-link"><strong>median</strong></a> : <a href="https://roc-lang.org/builtins/main/List"><span class="type">List</span></a>(<a href="https://roc-lang.org/builtins/main/Num#F64"><span class="type">F64</span></a>)<span class="sig-arrow"> -&gt; </span><a href="https://roc-lang.org/builtins/main/Try"><span class="type">Try</span></a>(<a href="https://roc-lang.org/builtins/main/Num#F64"><span class="type">F64</span></a>, [<span class="type">Empty</span>])</code>
+            </div>
+        </article>
+<!--!-->
+<!--!-->
+        </div>
+        <footer><p>Made by people who like to make nice things.</p></footer>
+    </main>
+</body>
+</html>
