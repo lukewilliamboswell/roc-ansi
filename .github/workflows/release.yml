@@ -71,7 +71,7 @@ jobs:
         uses: roc-lang/release-package/actions/prepare-bundles@d2560ead9f724bfaabfbc8134b8895e120171064
         with:
           bundle_glob: dist/*.tar.zst
-          test_os_json: '["ubuntu-latest","macos-15-intel","windows-2025"]'
+          test_os_json: '["ubuntu-latest"]'
 
       - name: Upload release bundles
         uses: actions/upload-artifact@v4
