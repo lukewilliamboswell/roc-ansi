@@ -12,6 +12,9 @@ dist/
 
 .direnv/
 
+__pycache__/
+*.py[cod]
+
 *.tar.br
 *.tar.gz
 
