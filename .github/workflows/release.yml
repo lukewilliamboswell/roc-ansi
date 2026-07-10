@@ -190,6 +190,40 @@ jobs:
         with:
           version: nightly-new-compiler
 
+      - name: Download release metadata
+        uses: actions/download-artifact@v4
+        with:
+          name: release-metadata
+          path: .release
+
+      - name: Update example package URLs
+        env:
+          RELEASE_VERSION: ${{ needs.build.outputs.release_version }}
+        run: |
+          bundle_url="$(python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          bundles = json.loads(Path(".release/release-bundles.json").read_text(encoding="utf-8"))
+          if len(bundles) != 1:
+              raise SystemExit(f"expected exactly one release bundle, found {len(bundles)}")
+
+          artifact_file = bundles[0]["artifact_file"]
+          repo = os.environ["GITHUB_REPOSITORY"]
+          version = os.environ["RELEASE_VERSION"]
+          print(f"https://github.com/{repo}/releases/download/{version}/{artifact_file}")
+          PY
+          )"
+          python3 scripts/update_example_urls.py --bundle-url "$bundle_url"
+
+      - name: Validate updated examples
+        run: |
+          for example in examples/*.roc; do
+            roc check "$example" --no-cache
+          done
+          roc test examples/tests.roc --no-cache
+
       - name: Snapshot existing docs
         uses: roc-lang/release-package/actions/docs-snapshot@e28a90a2ddeaa78a0da9ee91cc3e2d63fa770404
         with:
@@ -212,15 +246,15 @@ jobs:
           docs_root: www
           docs_version: ${{ needs.build.outputs.docs_version }}
 
-      - name: Commit docs
+      - name: Commit docs and examples
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add www
-          if git diff --cached --quiet -- www; then
-            echo "Docs did not change; skipping docs commit."
+          git add examples www
+          if git diff --cached --quiet -- examples www; then
+            echo "Docs and examples did not change; skipping release follow-up commit."
           else
-            git commit -m "Update docs for ${{ needs.build.outputs.release_version }}"
+            git commit -m "Update docs and examples for ${{ needs.build.outputs.release_version }}"
             git push origin "HEAD:${{ github.ref_name }}"
           fi
 
