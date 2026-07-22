@@ -65,6 +65,22 @@ jobs:
           bump_entrypoint: package/main.roc
           previous_url: ${{ steps.previous.outputs.previous_url }}
 
+      - name: Classify bump output for release notes
+        run: |
+          bump_output=".release/bump-output.txt"
+          if [[ ! -s "$bump_output" ]]; then
+            exit 0
+          fi
+          if grep -Eq '^(Comparing |roc bump check skipped|No previous release bundle found;)' "$bump_output"; then
+            exit 0
+          fi
+          {
+            echo "roc bump check skipped because no API comparison was produced."
+            echo
+            cat "$bump_output"
+          } > "$bump_output.tmp"
+          mv "$bump_output.tmp" "$bump_output"
+
       - name: Bundle package
         run: ./scripts/bundle.sh --output-dir dist
 
