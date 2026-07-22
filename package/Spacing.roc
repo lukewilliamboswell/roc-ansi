@@ -1,6 +1,12 @@
 ## Helpers for horizontal and vertical whitespace.
 Spacing := [Padding(Side, U64)].{
-	Side := [Top, Right, Bottom, Left]
+	is_eq : _
+	to_hash : _
+
+	Side := [Top, Right, Bottom, Left].{
+		is_eq : _
+		to_hash : _
+	}
 
 	xw : Str
 	xw = " "

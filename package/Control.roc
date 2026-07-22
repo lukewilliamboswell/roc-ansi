@@ -32,6 +32,9 @@ Control := [
 	Scroll([Up, Down], U16),
 	Style(Style.Style),
 ].{
+	is_eq : _
+	to_hash : _
+
 	to_code : Control -> Str
 	to_code = |control|
 		match control {

@@ -4,7 +4,13 @@ import C256
 ## These colors can be customized, leading to variations across different terminals.
 ## Therefore, if your use case requires a consistent color palette, it's recommended to avoid using them.
 C16 := [Standard(Name), Bright(Name)].{
-	Name := [Black, Red, Green, Yellow, Blue, Magenta, Cyan, White]
+	is_eq : _
+	to_hash : _
+
+	Name := [Black, Red, Green, Yellow, Blue, Magenta, Cyan, White].{
+		is_eq : _
+		to_hash : _
+	}
 
 	name_to_code : Name -> U8
 	name_to_code = |name|

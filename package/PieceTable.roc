@@ -70,27 +70,21 @@ insert_help = |input, { index, span }, out|
 			len_after = current.len - len_before
 
 			if len_before > 0 and len_after > 0 {
-				out.concat(
-					[
-						PieceTable.Entry.Add({ start: current.start, len: len_before }),
-						span,
-						PieceTable.Entry.Add({ start: current.start + len_before, len: len_after }),
-					],
-				).concat(rest)
+				out.concat([
+					PieceTable.Entry.Add({ start: current.start, len: len_before }),
+					span,
+					PieceTable.Entry.Add({ start: current.start + len_before, len: len_after }),
+				]).concat(rest)
 			} else if len_before > 0 {
-				out.concat(
-					[
-						PieceTable.Entry.Add({ start: current.start, len: len_before }),
-						span,
-					],
-				).concat(rest)
+				out.concat([
+					PieceTable.Entry.Add({ start: current.start, len: len_before }),
+					span,
+				]).concat(rest)
 			} else {
-				out.concat(
-					[
-						span,
-						PieceTable.Entry.Add({ start: current.start + len_before, len: len_after }),
-					],
-				).concat(rest)
+				out.concat([
+					span,
+					PieceTable.Entry.Add({ start: current.start + len_before, len: len_after }),
+				]).concat(rest)
 			}
 		}
 
@@ -99,27 +93,21 @@ insert_help = |input, { index, span }, out|
 			len_after = current.len - len_before
 
 			if len_before > 0 and len_after > 0 {
-				out.concat(
-					[
-						PieceTable.Entry.Original({ start: current.start, len: len_before }),
-						span,
-						PieceTable.Entry.Original({ start: current.start + len_before, len: len_after }),
-					],
-				).concat(rest)
+				out.concat([
+					PieceTable.Entry.Original({ start: current.start, len: len_before }),
+					span,
+					PieceTable.Entry.Original({ start: current.start + len_before, len: len_after }),
+				]).concat(rest)
 			} else if len_before > 0 {
-				out.concat(
-					[
-						PieceTable.Entry.Original({ start: current.start, len: len_before }),
-						span,
-					],
-				).concat(rest)
+				out.concat([
+					PieceTable.Entry.Original({ start: current.start, len: len_before }),
+					span,
+				]).concat(rest)
 			} else {
-				out.concat(
-					[
-						span,
-						PieceTable.Entry.Original({ start: current.start + len_before, len: len_after }),
-					],
-				).concat(rest)
+				out.concat([
+					span,
+					PieceTable.Entry.Original({ start: current.start + len_before, len: len_after }),
+				]).concat(rest)
 			}
 		}
 	}
@@ -144,12 +132,10 @@ delete_from_add = |span, rest, index, out| {
 	} else if is_end_of_span {
 		out.concat([PieceTable.Entry.Add({ start: span.start, len: span.len - 1 })]).concat(rest)
 	} else {
-		out.concat(
-			[
-				PieceTable.Entry.Add({ start: span.start, len: index }),
-				PieceTable.Entry.Add({ start: span.start + index + 1, len: span.len - index - 1 }),
-			],
-		).concat(rest)
+		out.concat([
+			PieceTable.Entry.Add({ start: span.start, len: index }),
+			PieceTable.Entry.Add({ start: span.start + index + 1, len: span.len - index - 1 }),
+		]).concat(rest)
 	}
 }
 
@@ -163,12 +149,10 @@ delete_from_original = |span, rest, index, out| {
 	} else if is_end_of_span {
 		out.concat([PieceTable.Entry.Original({ start: span.start, len: span.len - 1 })]).concat(rest)
 	} else {
-		out.concat(
-			[
-				PieceTable.Entry.Original({ start: span.start, len: index }),
-				PieceTable.Entry.Original({ start: span.start + index + 1, len: span.len - index - 1 }),
-			],
-		).concat(rest)
+		out.concat([
+			PieceTable.Entry.Original({ start: span.start, len: index }),
+			PieceTable.Entry.Original({ start: span.start + index + 1, len: span.len - index - 1 }),
+		]).concat(rest)
 	}
 }
 
