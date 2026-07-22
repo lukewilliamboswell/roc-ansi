@@ -7,7 +7,10 @@ ANSI := [].{
 	Escape := [
 		Reset,
 		Control(ControlPkg.Control),
-	]
+	].{
+		is_eq : _
+		to_hash : _
+	}
 
 	to_str : Escape -> Str
 	to_str = |escape|
@@ -64,13 +67,31 @@ ANSI := [].{
 		VerticalBar,
 		CurlyCloseBrace,
 		Tilde,
-	]
+	].{
+		is_eq : _
+		to_hash : _
+	}
 
-	Ctrl := [Space, A, B, C, D, E, F, G, H, I, J, K, L, N, O, P, Q, R, S, T, U, V, W, X, Y, Z, BackSlash, SquareCloseBracket, Caret, Underscore]
-	Action := [Escape, Enter, Space, Delete]
-	Arrow := [Up, Down, Left, Right]
-	Number := [N0, N1, N2, N3, N4, N5, N6, N7, N8, N9]
-	Letter := [A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z]
+	Ctrl := [Space, A, B, C, D, E, F, G, H, I, J, K, L, N, O, P, Q, R, S, T, U, V, W, X, Y, Z, BackSlash, SquareCloseBracket, Caret, Underscore].{
+		is_eq : _
+		to_hash : _
+	}
+	Action := [Escape, Enter, Space, Delete].{
+		is_eq : _
+		to_hash : _
+	}
+	Arrow := [Up, Down, Left, Right].{
+		is_eq : _
+		to_hash : _
+	}
+	Number := [N0, N1, N2, N3, N4, N5, N6, N7, N8, N9].{
+		is_eq : _
+		to_hash : _
+	}
+	Letter := [A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z].{
+		is_eq : _
+		to_hash : _
+	}
 
 	Input := [
 		Ctrl(Ctrl),
@@ -81,7 +102,10 @@ ANSI := [].{
 		Upper(Letter),
 		Lower(Letter),
 		Unsupported(List(U8)),
-	]
+	].{
+		is_eq : _
+		to_hash : _
+	}
 
 	parse_raw_stdin : List(U8) -> Input
 	parse_raw_stdin = |bytes|
@@ -634,9 +658,7 @@ join_all_pixels = |rows| {
 }
 
 join_pixel_row :
-	{ char : Str, fg : ColorPkg.Color, bg : ColorPkg.Color, lines : List(Str), styles : List(StylePkg.Style) },
-	List(ANSI.Pixel),
-	U64 -> { char : Str, fg : ColorPkg.Color, bg : ColorPkg.Color, lines : List(Str), styles : List(StylePkg.Style) }
+	{ char : Str, fg : ColorPkg.Color, bg : ColorPkg.Color, lines : List(Str), styles : List(StylePkg.Style) }, List(ANSI.Pixel), U64 -> { char : Str, fg : ColorPkg.Color, bg : ColorPkg.Color, lines : List(Str), styles : List(StylePkg.Style) }
 join_pixel_row = |{ char, fg, bg, lines, styles }, pixel_row, row| {
 	folded = {
 		pixel_row.fold(

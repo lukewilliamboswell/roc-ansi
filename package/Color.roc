@@ -13,6 +13,9 @@ Color := [
 	Standard(C16.Name),
 	Bright(C16.Name),
 ].{
+	is_eq : _
+	to_hash : _
+
 	to_code : Color, U8 -> List(U8)
 	to_code = |color, offset|
 		match color {

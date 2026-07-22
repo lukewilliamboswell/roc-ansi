@@ -15,6 +15,9 @@ Style := [
 	Foreground(Color.Color),
 	Background(Color.Color),
 ].{
+	is_eq : _
+	to_hash : _
+
 	to_code : Style -> List(U8)
 	to_code = |style|
 		match style {

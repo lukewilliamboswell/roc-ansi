@@ -272,15 +272,7 @@ f64_to_u64 = |value| {
 }
 
 draw_grid_rows :
-	List(List(Str)),
-	List(U64),
-	Layout.LineFill(Str),
-	Str,
-	Str,
-	Layout.RowSpacing,
-	(U64, U64),
-	U64,
-	List(Str) -> List(Str)
+	List(List(Str)), List(U64), Layout.LineFill(Str), Str, Str, Layout.RowSpacing, (U64, U64), U64, List(Str) -> List(Str)
 draw_grid_rows = |grid, sizes, border, sep_line, padding_line, row_spacing, py, index, out| {
 	match grid {
 		[] => out

@@ -5,9 +5,14 @@ app [main!] {
 
 import pf.Stdout
 import ansi.ANSI
+import ansi.C16
 import ansi.C256
+import ansi.Color
+import ansi.Control
 import ansi.PieceTable
 import ansi.Rgb
+import ansi.Spacing
+import ansi.Style
 
 main! : List(Str) => Try({}, [Exit(I32), StdoutErr(Str), ..])
 main! = |_args| {
@@ -23,6 +28,24 @@ expect Rgb.from_hex(0x008080) == (0, 128, 128)
 
 ## Arrow key input renders a readable description.
 expect ANSI.input_to_str(ANSI.Input.Arrow(ANSI.Arrow.Up)) == "Arrow Up"
+
+## Parsed input values support derived equality and hashing.
+expect {
+	input = ANSI.Input.Arrow(ANSI.Arrow.Up)
+
+	input == ANSI.Input.Arrow(ANSI.Arrow.Up) and Set.contains(Set.single(input), input)
+}
+
+## Terminal values support derived equality and hashing through nested nominal types.
+expect {
+	red = Color.Color.C16(C16.C16.Standard(C16.Name.Red))
+	style = Style.Style.Foreground(red)
+	control = Control.Control.Style(style)
+	escape = ANSI.Escape.Control(control)
+	spacing = Spacing.padding(Spacing.Side.Left, 2)
+
+	Set.contains(Set.single(escape), escape) and spacing == Spacing.padding(Spacing.Side.Left, 2) and Set.contains(Set.single(spacing), spacing)
+}
 
 base_table : PieceTable.PieceTable(U8)
 base_table = {
