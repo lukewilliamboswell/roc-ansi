@@ -9,7 +9,7 @@ Rgb := (U8, U8, U8).{
 				_ => 0
 			}
 
-			U32.to_u8_wrap(U32.bitwise_and(U32.shift_right_by(u24, shift), 0xFF))
+			U32.to_u8_wrap(U32.bitwise_and(U32.shr_zf_wrap(u24, shift), 0xFF))
 		}
 
 		(c(0), c(1), c(2))
