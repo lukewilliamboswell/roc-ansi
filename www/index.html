@@ -2,11 +2,69 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="refresh" content="0; url=/roc-ansi/0.12.0/">
-  <link rel="canonical" href="/roc-ansi/0.12.0/">
-  <title>Redirecting to 0.12.0</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Typed helpers for ANSI terminal control sequences in Roc.">
+  <title>roc-ansi · terminal styling for Roc</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="stylesheet" href="./vendor/simple-css/simple.min.css">
+  <link rel="stylesheet" href="./site.css">
+  <link rel="stylesheet" href="./roc-highlight.css">
 </head>
 <body>
-  <p><a href="/roc-ansi/0.12.0/">Redirecting to 0.12.0</a></p>
+  <header class="hero">
+    <nav>
+      <a class="brand" href="./">roc-ansi</a>
+      <a href="./main/">API docs</a>
+      <a href="./examples/">Examples</a>
+      <a href="https://github.com/lukewilliamboswell/roc-ansi">GitHub</a>
+      <a href="https://github.com/lukewilliamboswell/roc-ansi/releases">Releases</a>
+    </nav>
+    <h1>Colorful terminal interfaces, in Roc.</h1>
+    <p>Compose ANSI colors, styles, cursor controls, input handling, and simple terminal layouts with typed helpers.</p>
+    <p><a class="button" href="./main/">Browse the API documentation</a> <a class="button button-secondary" href="./examples/">See the examples</a></p>
+  </header>
+  <main>
+    <section>
+      <h2>Small, composable building blocks</h2>
+      <div class="cards">
+        <article><h3>Style text</h3><p>Apply 16-color, 256-color, or RGB foreground and background colors alongside bold, italic, underline, and other styles.</p></article>
+        <article><h3>Control the terminal</h3><p>Move the cursor, erase regions, scroll, query terminal state, and render screen-oriented layouts.</p></article>
+        <article><h3>Handle input</h3><p>Parse raw terminal bytes into typed keys, arrows, controls, symbols, and cursor positions.</p></article>
+      </div>
+    </section>
+    <section>
+      <h2>A quick taste</h2>
+      <pre class="snippet"><code class="language-roc">app [main!] {
+	ansi: &quot;https://github.com/lukewilliamboswell/roc-ansi/releases/download/0.12.0/J75zfZxPJQwSG7sQJFnZHVAbJj55L3myvst2WcDWcEaZ.tar.zst&quot;,
+}
+
+import ansi.ANSI
+import ansi.C16
+import ansi.Color
+
+main! = |_args| {
+	greeting = ANSI.color(&quot;hello&quot;, { fg: Color.Color.Standard(C16.Name.Green), bg: Color.Color.Default })
+	echo!(greeting)
+	Ok({})
+}</code></pre>
+      <p>Add the <code>ansi</code> dependency to your app header, then import the modules you need.
+      Each <a href="https://github.com/lukewilliamboswell/roc-ansi/releases/latest">release</a> publishes the bundled package to depend on.</p>
+    </section>
+    <section>
+      <h2>Explore</h2>
+      <ul>
+        <li><a href="./main/">Main branch API docs</a>, regenerated on every deployment.</li>
+        <li><a href="./examples/">Rendered examples and source</a> for colors, styles, menus, and a text editor.</li>
+        <li><a href="https://github.com/lukewilliamboswell/roc-ansi/releases/latest">Latest release</a> and its package bundle.</li>
+      </ul>
+    </section>
+    <section>
+      <h2>Released documentation</h2>
+      <p>API documentation is archived for each release.</p>
+      <!--VERSIONS-->
+    </section>
+  </main>
+  <footer>roc-ansi is open source under the UPL-1.0 license.</footer>
+  <script type="module" src="./roc-highlight.js"></script>
 </body>
 </html>

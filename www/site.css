@@ -1,0 +1,52 @@
+:root { --accent: #7357d8; --accent-hover: #957ce8; }
+
+/* Nav */
+header nav { margin-bottom: 0; }
+header nav a.brand { font-size: 1.25rem; font-weight: 750; }
+header nav a.brand,
+header nav a.brand:visited {
+  margin-left: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+}
+header nav a.brand:hover { border: 0; color: var(--accent); }
+
+/* Only the landing page gets the tall hero band. */
+header.hero { padding-bottom: 3rem; }
+header.hero h1 { max-width: 18ch; margin: 3rem auto 1rem; font-size: clamp(2.8rem, 7vw, 5rem); letter-spacing: -.035em; }
+header.hero > p { max-width: 44rem; margin-inline: auto; }
+body > header:not(.hero) { padding-block: 1rem; }
+
+/* Buttons */
+a.button { display: inline-block; border-radius: .4rem; background: var(--accent); color: white !important; font-weight: 700; padding: .7rem 1rem; text-decoration: none; }
+a.button:hover { background: var(--accent-hover); }
+a.button-secondary { background: transparent; color: var(--accent) !important; border: 2px solid var(--accent); padding: calc(.7rem - 2px) calc(1rem - 2px); }
+a.button-secondary:hover { background: var(--accent); color: white !important; }
+
+/* Card grids */
+.cards, .example-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1rem; }
+.cards article, .example-grid article { margin: 0; display: flex; flex-direction: column; }
+.cards article > *:last-child, .example-grid article > *:last-child { margin-bottom: 0; }
+.cards article h3 { margin-block: 0 .6rem; }
+.example-grid img { width: 100%; height: 13rem; border-radius: .35rem; background: #111; object-fit: contain; }
+.example-grid h2 { font-size: 1.3rem; margin-block: .8rem .4rem; }
+.example-grid h2 a { text-decoration: none; }
+.example-grid h2 a:hover { text-decoration: underline; }
+
+/* Example detail pages */
+.terminal-capture { margin-inline: 0; text-align: center; }
+.terminal-capture img { max-width: 100%; max-height: 38rem; border-radius: .5rem; background: #111; object-fit: contain; }
+.terminal-capture figcaption { color: var(--text-light); }
+
+/* Archived documentation versions */
+.version-list { display: flex; flex-wrap: wrap; gap: .5rem; padding: 0; list-style: none; }
+.version-list li { margin: 0; }
+.version-list a { display: inline-block; border: 1px solid var(--border); border-radius: .4rem; padding: .35rem .8rem; text-decoration: none; }
+.version-list a:hover { border-color: var(--accent); }
+
+pre { max-height: 46rem; overflow-x: auto; tab-size: 4; }
+/* Landing-page snippet: wrap long dependency URLs instead of scrolling sideways. */
+pre.snippet code { white-space: pre-wrap; overflow-wrap: anywhere; }

@@ -1,0 +1,5 @@
+/* Small additions to the generated `roc docs` stylesheet. */
+.sidebar-site-link { margin-bottom: 0.75rem; }
+.sidebar-site-link a { font-size: 0.9rem; text-decoration: none; }
+.sidebar-site-link a:hover { text-decoration: underline; }
+.main-content .pkg-full-name-heading { margin-top: 0; }

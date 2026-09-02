@@ -47,7 +47,7 @@ def find_free_port() -> int:
 
 
 def bundle_package(bundle_dir: Path) -> Path:
-    completed = run(["scripts/bundle.sh", "--output-dir", str(bundle_dir)])
+    completed = run([sys.executable, "scripts/bundle.py", "--output-dir", str(bundle_dir)])
     match = re.search(r"^Created:\s+(.+\.tar\.zst)\s*$", completed.stdout, re.MULTILINE)
 
     if match is None:

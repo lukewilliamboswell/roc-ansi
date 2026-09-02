@@ -639,7 +639,14 @@ take_number = |input|
 expect take_number({ val: 0, rest: [27, 91, 51, 51, 59, 49, 82] }) == { val: 0, rest: [27, 91, 51, 51, 59, 49, 82] }
 
 ## Number parsing consumes consecutive digit bytes.
-expect take_number({ val: 0, rest: [51, 51, 59, 49, 82] }) == { val: 33, rest: [59, 49, 82] }
+expect {
+	actual = take_number({ val: 0, rest: [51, 51, 59, 49, 82] })
+	actual.val == 33
+		and match actual.rest {
+			[59, 49, 82] => True
+			_ => False
+		}
+}
 
 ## Number parsing stops after the final digit.
 expect take_number({ val: 0, rest: [49, 82] }) == { val: 1, rest: [82] }

@@ -1,0 +1,23 @@
+.syntax-comment { color: #667085; font-style: italic; }
+.syntax-constant,
+.syntax-string { color: #9c2f2f; }
+.syntax-keyword,
+.syntax-special { color: #7551a1; }
+.syntax-operator,
+.syntax-punctuation { color: #996515; }
+.syntax-function { color: #175cd3; }
+.syntax-namespace,
+.syntax-type { color: #2f6f49; }
+
+@media (prefers-color-scheme: dark) {
+  .syntax-comment { color: #98a2b3; }
+  .syntax-constant,
+  .syntax-string { color: #fda29b; }
+  .syntax-keyword,
+  .syntax-special { color: #d6bbfb; }
+  .syntax-operator,
+  .syntax-punctuation { color: #fec84b; }
+  .syntax-function { color: #84adff; }
+  .syntax-namespace,
+  .syntax-type { color: #75e0a7; }
+}

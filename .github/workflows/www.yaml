@@ -1,38 +1,58 @@
-# Simple workflow for deploying static content to GitHub Pages
-name: Deploy www/ content to GH Pages site
+name: Deploy site and docs to Pages
 
 on:
-  # Allows you to run this workflow manually from the Actions tab
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/www.yaml"
+      - ".roc-version"
+      - "package/**"
+      - "scripts/assemble_www.py"
+      - "scripts/enhance_docs_site.py"
+      - "scripts/generate_example_pages.py"
+      - "examples/**"
+      - "www/**"
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+permissions: {}
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
 concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  group: pages
+  cancel-in-progress: true
 
 jobs:
   deploy:
+    name: Deploy site and docs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - uses: actions/checkout@v4
+
+      - name: Read pinned Roc version
+        id: roc-version
+        run: python3 scripts/workflow_helpers.py roc-version --github-output "$GITHUB_OUTPUT"
+
+      - name: Install Roc
+        uses: roc-lang/setup-roc@bd311e2fb815a3d2255f7ee14a922f0b736e020b
         with:
-          # Upload docs/ folder
-          path: "./www"
-      - name: Deploy to GitHub Pages
+          version: nightly-new-compiler
+          nightly-tag: ${{ steps.roc-version.outputs.nightly-tag }}
+
+      - name: Assemble Pages site
+        run: python3 scripts/assemble_www.py --output pages-site
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: pages-site
+
+      - name: Deploy Pages
         id: deployment
         uses: actions/deploy-pages@v4
