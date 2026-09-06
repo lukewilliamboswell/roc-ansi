@@ -7,10 +7,10 @@ after the upstream 09:00 UTC build. Late publication can wait until the next day
 repository's validation workflows, including their validation-only release paths.
 The controller, its tests, and job permissions are maintained in
 [roc-automation](https://github.com/lukewilliamboswell/roc-automation).
-The caller workflows pin shared code to `42b13b90ba3d40d76a671d1bbaeb31c7adaa11b8`.
+The caller workflows pin shared code to `8691138c0aab4a7509e3b489e7dff7d91816264f`.
 Dependabot proposes reviewed updates to Actions/workflow references.
 
-Follow the shared [integration and permissions guide](https://github.com/lukewilliamboswell/roc-automation/blob/42b13b90ba3d40d76a671d1bbaeb31c7adaa11b8/docs/integration.md)
+Follow the shared [integration and permissions guide](https://github.com/lukewilliamboswell/roc-automation/blob/8691138c0aab4a7509e3b489e7dff7d91816264f/docs/integration.md)
 for the PR-creation setting, action allowlists, required checks, and first live
 GITHUB_TOKEN run. Keep default token permissions read-only. The updater never approves PRs and receives no protection bypass. This repository
 opts into automatic merging of validated compiler-pin PRs as the initial trial.
@@ -24,7 +24,7 @@ The shared repository owns the controller regression suite. Project tests remain
 in this repository and run on the exact candidate commit. Scheduled bot-token
 acceptance must be verified after merge; file changes alone cannot prove it.
 
-Use the shared [OpenSSF rollout checklist](https://github.com/lukewilliamboswell/roc-automation/blob/42b13b90ba3d40d76a671d1bbaeb31c7adaa11b8/docs/openssf.md)
+Use the shared [OpenSSF rollout checklist](https://github.com/lukewilliamboswell/roc-automation/blob/8691138c0aab4a7509e3b489e7dff7d91816264f/docs/openssf.md)
 to record project-specific evidence. This integration does not establish badge
 compliance or change repository settings.
 
@@ -33,8 +33,8 @@ compliance or change repository settings.
 
 `auto_merge: true` in `.github/roc-nightly.json` enables the shared merge policy.
 Only a verified Actions-bot commit changing `.roc-version` on the current default
-branch can qualify. The isolated merge job rechecks both validation runs through
-the API and requests a squash merge of that exact candidate SHA.
+branch can qualify. The isolated merge job performs no repository checkout and reads its policy at
+the trusted event SHA. It rechecks both validation runs through the API and requests a squash merge of that exact candidate SHA.
 
 The active default-branch trial ruleset requires PRs, verified signatures, an
 up-to-date branch, and these GitHub Actions checks:
