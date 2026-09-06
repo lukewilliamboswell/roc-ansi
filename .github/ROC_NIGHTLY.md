@@ -66,3 +66,10 @@ the candidate (pending, then success after verification). This lets GitHub enfor
 the required checks even when dispatched runs are not associated with a bot PR.
 Only that controller receives `statuses: write`; the merge job independently
 checks the underlying runs and jobs and cannot write statuses.
+
+
+The required `test-examples` check exercises the checked-in published ANSI and
+platform URLs without rewriting them. The release build and bundle checks also
+exercise working-tree changes via localhost archives. Both must pass before a
+nightly can merge, so a local fix cannot conceal an incompatible published release.
+Release follow-up PRs update the committed URLs after publication and validation.

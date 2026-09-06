@@ -19,3 +19,7 @@ __pycache__/
 *.tar.gz
 
 .DS_Store
+
+# Generated API documentation belongs in build/deployment artifacts.
+www/[0-9]*.[0-9]*.[0-9]*/
+www/main/

@@ -2,12 +2,12 @@
 from __future__ import annotations
 
 import argparse
+from contextlib import contextmanager
 import functools
 import http.server
 import os
 import re
 import shutil
-import socket
 import subprocess
 import sys
 import tempfile
@@ -40,12 +40,6 @@ def run(cmd: list[str], *, cwd: Path = ROOT) -> subprocess.CompletedProcess[str]
     return completed
 
 
-def find_free_port() -> int:
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.bind(("127.0.0.1", 0))
-        return int(sock.getsockname()[1])
-
-
 def bundle_package(bundle_dir: Path) -> Path:
     completed = run([sys.executable, "scripts/bundle.py", "--output-dir", str(bundle_dir)])
     match = re.search(r"^Created:\s+(.+\.tar\.zst)\s*$", completed.stdout, re.MULTILINE)
@@ -61,12 +55,11 @@ def bundle_package(bundle_dir: Path) -> Path:
 
 
 def start_server(directory: Path) -> tuple[http.server.ThreadingHTTPServer, str]:
-    port = find_free_port()
     handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(directory))
-    server = http.server.ThreadingHTTPServer(("127.0.0.1", port), handler)
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
-    return server, f"http://127.0.0.1:{port}"
+    return server, f"http://127.0.0.1:{server.server_port}"
 
 
 def copy_examples_with_bundle_url(examples_dir: Path, bundle_url: str) -> list[Path]:
@@ -122,12 +115,9 @@ def build_and_run_examples(examples: list[Path], build_dir: Path) -> None:
         run([str(output)])
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--bundle-path", type=Path, help="Use an existing bundle instead of creating one")
-    parser.add_argument("--skip-build-run", action="store_true", help="Skip compiled example execution")
-    args = parser.parse_args()
-
+@contextmanager
+def local_examples(bundle_path: Path | None = None):
+    """Serve a working-tree bundle and rewrite only temporary example copies."""
     default_tmp = ROOT / ".roc-ansi-tmp"
     tmp_parent = Path(os.environ.get("ROC_ANSI_TMPDIR", default_tmp))
     tmp_parent.mkdir(parents=True, exist_ok=True)
@@ -141,10 +131,10 @@ def main() -> None:
         bundle_dir.mkdir()
         examples_dir.mkdir()
 
-        if args.bundle_path is None:
+        if bundle_path is None:
             bundle_path = bundle_package(bundle_dir)
         else:
-            source_bundle = args.bundle_path.resolve()
+            source_bundle = bundle_path.resolve()
             if not source_bundle.exists():
                 raise SystemExit(f"Bundle does not exist: {source_bundle}")
 
@@ -155,17 +145,24 @@ def main() -> None:
         try:
             bundle_url = f"{base_url}/{bundle_path.name}"
             examples = copy_examples_with_bundle_url(examples_dir, bundle_url)
-
             print(f"Testing examples with bundled package: {bundle_url}")
-            run_example_checks(examples)
-            run_example_tests(examples)
-            run_example_apps(examples)
-
-            if not args.skip_build_run:
-                build_and_run_examples(examples, build_dir)
+            yield examples, build_dir
         finally:
             server.shutdown()
             server.server_close()
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Test working-tree changes using a localhost bundle and temporary example copies.")
+    parser.add_argument("--bundle-path", type=Path, help="Use an existing bundle instead of creating one")
+    parser.add_argument("--skip-build-run", action="store_true", help="Skip compiled example execution")
+    args = parser.parse_args()
+    with local_examples(args.bundle_path) as (examples, build_dir):
+        run_example_checks(examples)
+        run_example_tests(examples)
+        run_example_apps(examples)
+        if not args.skip_build_run:
+            build_and_run_examples(examples, build_dir)
 
 
 if __name__ == "__main__":

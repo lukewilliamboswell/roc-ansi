@@ -48,11 +48,15 @@ def main() -> None:
     parser.add_argument("--roc", default=os.environ.get("ROC", "roc"))
     parser.add_argument("--output", type=Path, default=ROOT / ".roc-ansi-tmp" / "www-preview")
     parser.add_argument("--url-root", default="/roc-ansi/main")
+    parser.add_argument("--fetch-release-docs", action="store_true", help="Restore historical docs from GitHub release assets")
     args = parser.parse_args()
 
     output = args.output.resolve()
     prepare_output(output)
     shutil.copytree(ROOT / "www", output, dirs_exist_ok=True)
+    if args.fetch_release_docs:
+        from release_docs import fetch
+        fetch(output)
     main_docs = output / "main"
     if main_docs.exists():
         shutil.rmtree(main_docs)

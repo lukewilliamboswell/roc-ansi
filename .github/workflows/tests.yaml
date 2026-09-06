@@ -44,4 +44,13 @@ jobs:
 
       - run: roc version
 
-      - run: python3 scripts/all_tests.py
+      - name: Test examples against their checked-in published release
+        run: python3 scripts/test_published_examples.py
+
+      - name: Test maintenance scripts
+        run: python3 -m unittest discover -s tests -v
+
+      - name: Validate the assembled documentation site
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/assemble_www.py --fetch-release-docs --output .roc-ansi-tmp/ci-site

@@ -8,6 +8,7 @@ on:
       - ".roc-version"
       - "package/**"
       - "scripts/assemble_www.py"
+      - "scripts/release_docs.py"
       - "scripts/enhance_docs_site.py"
       - "scripts/generate_example_pages.py"
       - "examples/**"
@@ -44,8 +45,10 @@ jobs:
           version: nightly-new-compiler
           nightly-tag: ${{ steps.roc-version.outputs.nightly-tag }}
 
-      - name: Assemble Pages site
-        run: python3 scripts/assemble_www.py --output pages-site
+      - name: Assemble Pages site from source and release documentation assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/assemble_www.py --fetch-release-docs --output pages-site
 
       - uses: actions/configure-pages@v6
 

@@ -207,7 +207,7 @@ jobs:
           github_token: ${{ github.token }}
 
   prepare-docs:
-    name: Prepare versioned docs
+    name: Publish docs artifact and prepare example URLs
     needs:
       - build
       - publish-release
@@ -251,46 +251,34 @@ jobs:
         run: python3 scripts/update_example_urls.py --bundle-url "$BUNDLE_URL"
 
       - name: Validate updated examples
-        run: python3 scripts/workflow_helpers.py validate-examples
+        run: python3 scripts/test_published_examples.py
 
-      - name: Snapshot existing docs
-        uses: roc-lang/release-package/actions/docs-snapshot@d2560ead9f724bfaabfbc8134b8895e120171064
-        with:
-          docs_root: www
-
-      - name: Generate docs
+      - name: Generate release documentation outside the source tree
         env:
           DOCS_VERSION: ${{ needs.build.outputs.docs_version }}
-        run: python3 scripts/generate_docs.py --docs-root www --skip-index
+        run: python3 scripts/generate_docs.py
 
-      - name: Update docs index
-        uses: roc-lang/release-package/actions/docs-index@d2560ead9f724bfaabfbc8134b8895e120171064
-        with:
-          docs_root: www
-          docs_version: ${{ needs.build.outputs.docs_version }}
+      - name: Package release documentation
+        env:
+          DOCS_VERSION: ${{ needs.build.outputs.docs_version }}
+        run: python3 scripts/release_docs.py pack "$DOCS_VERSION"
 
-      - name: Validate docs
-        uses: roc-lang/release-package/actions/docs-validate@d2560ead9f724bfaabfbc8134b8895e120171064
-        with:
-          docs_root: www
-          docs_version: ${{ needs.build.outputs.docs_version }}
+      - name: Publish documentation as a release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DOCS_VERSION: ${{ needs.build.outputs.docs_version }}
+        run: python3 scripts/release_docs.py publish "$DOCS_VERSION" ".roc-ansi-tmp/docs-assets/roc-ansi-docs-$DOCS_VERSION.tar.gz"
 
-      - name: Create docs and examples follow-up PR
-        uses: roc-lang/release-package/actions/create-followup-pr@d2560ead9f724bfaabfbc8134b8895e120171064
-        with:
-          release_version: ${{ needs.build.outputs.release_version }}
-          paths: examples www
-          base_branch: ${{ github.ref_name }}
-          commit_message: Update docs and examples for ${{ needs.build.outputs.release_version }}
-          pr_title: Update docs and examples for ${{ needs.build.outputs.release_version }}
-          pr_body: |
-            Release follow-up for ${{ needs.build.outputs.release_version }}.
+      - name: Create signed example URL follow-up PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ needs.build.outputs.release_version }}
+        run: python3 scripts/create_release_followup.py
 
-            Updated generated docs and checked-in example package URLs.
-          github_token: ${{ github.token }}
-
-      - name: Assemble Pages site
-        run: python3 scripts/assemble_www.py --output pages-site
+      - name: Assemble Pages site from source and release documentation assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/assemble_www.py --fetch-release-docs --output pages-site
 
       - name: Setup Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0

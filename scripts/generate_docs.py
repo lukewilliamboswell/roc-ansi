@@ -21,28 +21,11 @@ def normalize_version(value: str) -> str:
     return normalized
 
 
-def redirect_page(version: str) -> str:
-    target = f"/roc-ansi/{version}/"
-    return f"""<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="refresh" content="0; url={target}">
-  <link rel="canonical" href="{target}">
-  <title>Redirecting to {version}</title>
-</head>
-<body>
-  <p><a href="{target}">Redirecting to {version}</a></p>
-</body>
-</html>
-"""
-
-
 def main() -> int:
     parser = argparse.ArgumentParser(description="Generate versioned roc-ansi documentation.")
     parser.add_argument("version", nargs="?", default=os.environ.get("DOCS_VERSION"))
-    parser.add_argument("--docs-root", type=Path, default=Path(os.environ.get("DOCS_ROOT", "www")))
-    parser.add_argument("--skip-index", action="store_true")
+    parser.add_argument("--docs-root", type=Path, default=Path(os.environ.get("DOCS_ROOT", ".roc-ansi-tmp/release-docs")))
+    parser.add_argument("--skip-index", action="store_true", help="Compatibility option; the landing page is always preserved")
     args = parser.parse_args()
 
     if args.version is None:
@@ -68,8 +51,6 @@ def main() -> int:
         cwd=ROOT,
         check=True,
     )
-    if not args.skip_index:
-        (docs_root / "index.html").write_text(redirect_page(version), encoding="utf-8")
 
     print(f"Generated docs for {version} in {output_dir}")
     return 0

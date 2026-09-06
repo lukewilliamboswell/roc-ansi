@@ -30,9 +30,7 @@ def main() -> None:
     if tmp_dir.exists():
         shutil.rmtree(tmp_dir)
     docs_dir = tmp_dir / "docs"
-    bundle_dir = tmp_dir / "bundle"
     docs_dir.mkdir(parents=True)
-    bundle_dir.mkdir(parents=True)
 
     run([ROC, "version"])
     section("Checking format...")
@@ -48,9 +46,7 @@ def main() -> None:
         section("Skipping package bundling on Windows.")
         return
 
-    section("Bundling package...")
-    run([sys.executable, "scripts/bundle.py", "--output-dir", str(bundle_dir)])
-    section("Testing examples against localhost bundle...")
+    section("Bundling the working tree and testing examples against localhost...")
     run([sys.executable, "scripts/test_bundle_examples.py"])
 
 
