@@ -1,7 +1,19 @@
-:root { --accent: #7357d8; --accent-hover: #957ce8; }
+:root { --accent: #7357d8; }
+
+/* simple.css centres a narrow reading column; the screenshot grid needs room. */
+body { grid-template-columns: 1fr min(64rem, 90%) 1fr; }
+/* simple.css lets the header span the full width; keep it on the content grid. */
+body > header > * { max-width: 64rem; margin-inline: auto; }
+body > main { padding-block: 1.5rem; }
+main > section:first-child, main > section:first-child > :first-child { margin-top: 0; }
+main > section { margin-top: 2.5rem; }
+h1 { font-size: 1.8rem; }
+h2 { font-size: 1.4rem; margin-bottom: .5rem; }
 
 /* Nav */
-header nav { margin-bottom: 0; }
+body > header { padding-block: 1rem; text-align: left; }
+body > header > p { max-width: 64rem; margin: 0 auto; }
+header nav { margin-bottom: .5rem; justify-content: flex-start; }
 header nav a.brand { font-size: 1.25rem; font-weight: 750; }
 header nav a.brand,
 header nav a.brand:visited {
@@ -14,32 +26,12 @@ header nav a.brand:visited {
 }
 header nav a.brand:hover { border: 0; color: var(--accent); }
 
-/* Only the landing page gets the tall hero band. */
-header.hero { padding-bottom: 3rem; }
-header.hero h1 { max-width: 18ch; margin: 3rem auto 1rem; font-size: clamp(2.8rem, 7vw, 5rem); letter-spacing: -.035em; }
-header.hero > p { max-width: 44rem; margin-inline: auto; }
-body > header:not(.hero) { padding-block: 1rem; }
-
-/* Buttons */
-a.button { display: inline-block; border-radius: .4rem; background: var(--accent); color: white !important; font-weight: 700; padding: .7rem 1rem; text-decoration: none; }
-a.button:hover { background: var(--accent-hover); }
-a.button-secondary { background: transparent; color: var(--accent) !important; border: 2px solid var(--accent); padding: calc(.7rem - 2px) calc(1rem - 2px); }
-a.button-secondary:hover { background: var(--accent); color: white !important; }
-
-/* Card grids */
-.cards, .example-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1rem; }
-.cards article, .example-grid article { margin: 0; display: flex; flex-direction: column; }
-.cards article > *:last-child, .example-grid article > *:last-child { margin-bottom: 0; }
-.cards article h3 { margin-block: 0 .6rem; }
-.example-grid img { width: 100%; height: 13rem; border-radius: .35rem; background: #111; object-fit: contain; }
-.example-grid h2 { font-size: 1.3rem; margin-block: .8rem .4rem; }
-.example-grid h2 a { text-decoration: none; }
-.example-grid h2 a:hover { text-decoration: underline; }
-
-/* Example detail pages */
-.terminal-capture { margin-inline: 0; text-align: center; }
-.terminal-capture img { max-width: 100%; max-height: 38rem; border-radius: .5rem; background: #111; object-fit: contain; }
-.terminal-capture figcaption { color: var(--text-light); }
+/* Example grid: a terminal capture per example, linking to its source. */
+.example-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); gap: 1rem; }
+.example-grid a.example { display: block; padding: .5rem; border: 1px solid var(--border); border-radius: .5rem; text-decoration: none; color: var(--text); }
+.example-grid a.example:hover { border-color: var(--accent); }
+.example-grid img { display: block; width: 100%; height: 12rem; border-radius: .35rem; background: #111; object-fit: contain; }
+.example-grid span { display: block; padding: .5rem .25rem 0; font-weight: 600; }
 
 /* Archived documentation versions */
 .version-list { display: flex; flex-wrap: wrap; gap: .5rem; padding: 0; list-style: none; }
@@ -47,6 +39,6 @@ a.button-secondary:hover { background: var(--accent); color: white !important; }
 .version-list a { display: inline-block; border: 1px solid var(--border); border-radius: .4rem; padding: .35rem .8rem; text-decoration: none; }
 .version-list a:hover { border-color: var(--accent); }
 
-pre { max-height: 46rem; overflow-x: auto; tab-size: 4; }
+pre { overflow-x: auto; tab-size: 4; }
 /* Landing-page snippet: wrap long dependency URLs instead of scrolling sideways. */
 pre.snippet code { white-space: pre-wrap; overflow-wrap: anywhere; }

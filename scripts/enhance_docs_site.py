@@ -17,8 +17,7 @@ DOCS_INTRO = """
         <p>Typed helpers for ANSI terminal control sequences in Roc: colors, text
         styles, cursor and screen control, input parsing, and simple layouts.</p>
         <p>Pick a module from the sidebar, or head back to the
-        <a href="{root}">roc-ansi site</a> for
-        <a href="{root}examples/">rendered examples</a>.</p>
+        <a href="{root}">roc-ansi site</a> for examples.</p>
 """
 
 
