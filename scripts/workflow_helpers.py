@@ -21,11 +21,12 @@ def append_output(path: Path, name: str, value: str) -> None:
         output.write(f"{name}={value}\n")
 
 
-def roc_version(path: Path = ROOT / ".roc-version") -> str:
-    value = path.read_text(encoding="utf-8").strip()
-    if not value or any(character in value for character in "\r\n"):
-        raise ValueError(f"{path} must contain one non-empty Roc version")
-    return value
+def roc_version(path: Path = ROOT / "package/main.roc") -> str:
+    source = path.read_text(encoding="utf-8")
+    matches = re.findall(r'(?m)^\s*roc:\s*"([^"]+)"\s*,?$', source)
+    if len(matches) != 1:
+        raise ValueError(f"{path} must contain exactly one literal Roc compiler pin")
+    return matches[0]
 
 
 def bundle_url(metadata: Path, repository: str, version: str) -> str:
