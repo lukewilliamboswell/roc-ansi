@@ -34,12 +34,12 @@ Run with `roc examples/text-editor.roc`
 
 ## Development and CI
 
-The checked-in examples pin an immutable URL for the latest published ANSI release
-(currently 0.13.0), alongside their released platform URL. Running an example with
-`roc examples/animals.roc` uses those published dependencies.
+The checked-in examples pin a compiler, an immutable URL for a published ANSI
+release, and its released platform URL. Running an example
+with `roc examples/animals.roc` uses that documented combination.
 
 To test changes to `package/`, use the local scripts with the compiler pinned in
-`.roc-version` (set `ROC=/path/to/roc` to select it):
+`package/main.roc` (set `ROC=/path/to/roc` to select the executable):
 
 ```sh
 # Package format, checks, tests, docs, and all examples against local changes:
@@ -90,7 +90,7 @@ After validating package changes, dispatch the **Release** workflow with a new
 5. Creates a GitHub-signed `release-followup/VERSION` PR updating only example URLs.
 
 Review and merge that follow-up PR so `main` points to the newest working release.
-The nightly updater only auto-merges `.roc-version` updates; release follow-ups
+The nightly updater only auto-merges the compiler pin in `package/main.roc`; release follow-ups
 remain reviewable PRs. Generated `roc docs` output is never committed. The follow-up creator can reuse an identical signed bot
 commit on retry, but refuses to overwrite a branch containing different work.
 PR and `nightly_validation` runs only validate; they never publish or deploy.
@@ -108,10 +108,10 @@ See [https://lukewilliamboswell.github.io/roc-ansi/](https://lukewilliamboswell.
 To generate versioned docs locally, use:
 
 ```sh
-ROC=/path/to/roc python3 scripts/generate_docs.py 0.13.0
+ROC=/path/to/roc python3 scripts/generate_docs.py VERSION
 ```
 
-Output goes to `.roc-ansi-tmp/release-docs/0.13.0`, outside the tracked site source.
+Output goes to `.roc-ansi-tmp/release-docs/VERSION`, outside the tracked site source.
 Generated API docs are not committed. Release workflows upload archives named
 `roc-ansi-docs-VERSION.tar.gz` alongside the package assets. Pages deployments
 restore those archives and generate fresh `/main/` docs, preserving historical

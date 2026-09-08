@@ -34,7 +34,8 @@ def main() -> None:
 
     run([ROC, "version"])
     section("Checking format...")
-    run([ROC, "fmt", "--check", "package", "examples"])
+    roc_sources = sorted(ROOT.glob("package/*.roc")) + sorted(ROOT.glob("examples/*.roc"))
+    run([ROC, "fmt", "--check", *(str(path.relative_to(ROOT)) for path in roc_sources)])
     section("Checking package...")
     run([ROC, "check", "package/main.roc"])
     section("Running package tests...")

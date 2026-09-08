@@ -3,14 +3,15 @@
 This repository checks once daily at 13:07 UTC, about four hours
 after the upstream 09:00 UTC build. Late publication can wait until the next day.
 
-`.roc-version` is the compiler pin. `.github/roc-nightly.json` selects this
-repository's validation workflows, including their validation-only release paths.
+The `roc` field in `package/main.roc` is the development compiler pin.
+`.github/roc-nightly.json` selects that root and this repository's validation
+workflows, including their validation-only release paths. Public example pins stay
+separate so they continue to document a tested released combination.
 The controller, its tests, and job permissions are maintained in
 [roc-automation](https://github.com/lukewilliamboswell/roc-automation).
-The caller workflows pin shared code to `55d05b2e689a70fb668aa73ae61294b17126f850`.
-Dependabot proposes reviewed updates to Actions/workflow references.
+Dependabot proposes reviewed updates to the pinned Actions and shared workflows.
 
-Follow the shared [integration and permissions guide](https://github.com/lukewilliamboswell/roc-automation/blob/55d05b2e689a70fb668aa73ae61294b17126f850/docs/integration.md)
+Follow the shared [integration and permissions guide](https://github.com/lukewilliamboswell/roc-automation/blob/main/docs/integration.md)
 for the PR-creation setting, action allowlists, required checks, and first live
 GITHUB_TOKEN run. Keep default token permissions read-only. The updater never approves PRs and receives no protection bypass. This repository
 opts into automatic merging of validated compiler-pin PRs as the initial trial.
@@ -24,7 +25,7 @@ The shared repository owns the controller regression suite. Project tests remain
 in this repository and run on the exact candidate commit. Scheduled bot-token
 acceptance must be verified after merge; file changes alone cannot prove it.
 
-Use the shared [OpenSSF rollout checklist](https://github.com/lukewilliamboswell/roc-automation/blob/55d05b2e689a70fb668aa73ae61294b17126f850/docs/openssf.md)
+Use the shared [OpenSSF rollout checklist](https://github.com/lukewilliamboswell/roc-automation/blob/main/docs/openssf.md)
 to record project-specific evidence. This integration does not establish badge
 compliance or change repository settings.
 
@@ -32,9 +33,10 @@ compliance or change repository settings.
 ## Automatic merge trial
 
 `auto_merge: true` in `.github/roc-nightly.json` enables the shared merge policy.
-Only a verified Actions-bot commit changing `.roc-version` on the current default
-branch can qualify. The isolated merge job performs no repository checkout and reads its policy at
-the trusted event SHA. It rechecks both validation runs through the API and requests a squash merge of that exact candidate SHA.
+Only a verified Actions-bot commit changing the configured compiler pin on the
+current default branch can qualify. The isolated merge job performs no repository
+checkout and reads its policy at the trusted event SHA. It rechecks both validation
+runs through the API and requests a squash merge of that exact candidate SHA.
 
 The active default-branch trial ruleset requires PRs, verified signatures, an
 up-to-date branch, and these GitHub Actions checks:
@@ -66,6 +68,12 @@ the candidate (pending, then success after verification). This lets GitHub enfor
 the required checks even when dispatched runs are not associated with a bot PR.
 Only that controller receives `statuses: write`; the merge job independently
 checks the underlying runs and jobs and cannot write statuses.
+
+GitHub may leave ordinary `pull_request` workflows awaiting approval when the PR
+author is `github-actions[bot]`. After the controller validates and merges the
+exact candidate, GitHub closes those redundant waiting runs with a failure
+conclusion even though no job ran. The dispatched runs and the three mirrored
+required statuses above are the acceptance evidence for an automatic nightly.
 
 
 The required `test-examples` check exercises the checked-in published ANSI and

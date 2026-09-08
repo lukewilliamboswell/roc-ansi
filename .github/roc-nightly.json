@@ -3,5 +3,8 @@
     "tests.yaml",
     "release.yml"
   ],
+  "compiler_roots": [
+    "package/main.roc"
+  ],
   "auto_merge": true
 }
