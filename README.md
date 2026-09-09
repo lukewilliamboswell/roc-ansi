@@ -90,7 +90,7 @@ After validating package changes, dispatch the **Release** workflow with a new
 5. Creates a GitHub-signed `release-followup/VERSION` PR updating only example URLs.
 
 Review and merge that follow-up PR so `main` points to the newest working release.
-The nightly updater only auto-merges the compiler pin in `package/main.roc`; release follow-ups
+The nightly updater auto-merges the compiler pins in `package/main.roc` and the examples; release follow-ups
 remain reviewable PRs. Generated `roc docs` output is never committed. The follow-up creator can reuse an identical signed bot
 commit on retry, but refuses to overwrite a branch containing different work.
 PR and `nightly_validation` runs only validate; they never publish or deploy.
