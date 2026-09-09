@@ -3,10 +3,11 @@
 This repository checks once daily at 13:07 UTC, about four hours
 after the upstream 09:00 UTC build. Late publication can wait until the next day.
 
-The `roc` field in `package/main.roc` is the development compiler pin.
-`.github/roc-nightly.json` selects that root and this repository's validation
-workflows, including their validation-only release paths. Public example pins stay
-separate so they continue to document a tested released combination.
+The `roc` fields in `package/main.roc` and the public examples are the development
+compiler pins. `.github/roc-nightly.json` selects those roots and this repository's
+validation workflows, including their validation-only release paths. Keeping every
+application header on the same pin is required because Roc validates the header pin
+against the running compiler.
 The controller, its tests, and job permissions are maintained in
 [roc-automation](https://github.com/lukewilliamboswell/roc-automation).
 Dependabot proposes reviewed updates to the pinned Actions and shared workflows.

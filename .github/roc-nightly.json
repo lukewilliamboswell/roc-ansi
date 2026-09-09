@@ -4,7 +4,13 @@
     "release.yml"
   ],
   "compiler_roots": [
-    "package/main.roc"
+    "package/main.roc",
+    "examples/animals.roc",
+    "examples/colors.roc",
+    "examples/styles.roc",
+    "examples/tests.roc",
+    "examples/text-editor.roc",
+    "examples/tui-menu.roc"
   ],
   "auto_merge": true
 }
