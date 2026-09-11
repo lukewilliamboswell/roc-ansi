@@ -12,5 +12,5 @@ package
 		PieceTable,
 	]
 	{
-		roc: "nightly-2026-09-10-a670e34",
+		roc: "nightly-2026-09-11-793f9d8",
 	}
