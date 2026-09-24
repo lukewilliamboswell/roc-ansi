@@ -37,7 +37,7 @@ compliance or change repository settings.
 Only a verified Actions-bot commit changing the configured compiler pin on the
 current default branch can qualify. The isolated merge job performs no repository
 checkout and reads its policy at the trusted event SHA. It rechecks both validation
-runs through the API and requests a squash merge of that exact candidate SHA.
+runs through the API and requests a merge commit of that exact candidate SHA.
 
 The active default-branch trial ruleset requires PRs, verified signatures, an
 up-to-date branch, and these GitHub Actions checks:
