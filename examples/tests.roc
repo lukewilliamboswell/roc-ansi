@@ -15,7 +15,7 @@ import ansi.Rgb
 import ansi.Spacing
 import ansi.Style
 
-main! : List(Str) => Try({}, [Exit(I32), StdoutErr(Str), ..])
+main! : List(Str) => Try({}, [Exit(I32), StdoutErr(Str)])
 main! = |_args| {
 	Stdout.line!("Run `roc test examples/tests.roc` to exercise the roc-ansi package examples.")?
 	Ok({})

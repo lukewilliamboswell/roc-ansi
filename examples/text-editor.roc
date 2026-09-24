@@ -14,7 +14,7 @@ to_str = |table|
 		Err(_) => "<invalid utf8>"
 	}
 
-main! : List(Str) => Try({}, [Exit(I32), StdoutErr(Str), ..])
+main! : List(Str) => Try({}, [Exit(I32), StdoutErr(Str)])
 main! = |_args| {
 	original = Str.to_utf8("hello terminal")
 	table0 : PieceTable.PieceTable(U8)
