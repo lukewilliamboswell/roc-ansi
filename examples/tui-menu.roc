@@ -21,7 +21,7 @@ menu_line = |label, selected| {
 	}
 }
 
-main! : List(Str) => Try({}, [Exit(I32), StdoutErr(Str), ..])
+main! : List(Str) => Try({}, [Exit(I32), StdoutErr(Str)])
 main! = |_args| {
 	lines = [
 		with_style("Choose a task", "1"),
