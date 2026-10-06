@@ -20,7 +20,7 @@ PACKAGE_DEPENDENCY_RE = re.compile(r'(?m)^(\s*ansi:\s*)"[^"]+"')
 ROC = os.environ.get("ROC", "roc")
 
 
-def run(cmd: list[str], *, cwd: Path = ROOT) -> subprocess.CompletedProcess[str]:
+def run(cmd: list[str], *, cwd: Path = ROOT, ok_codes: tuple[int, ...] = (0,)) -> subprocess.CompletedProcess[str]:
     print("+", " ".join(cmd))
     completed = subprocess.run(
         cmd,
@@ -30,7 +30,7 @@ def run(cmd: list[str], *, cwd: Path = ROOT) -> subprocess.CompletedProcess[str]
         stderr=subprocess.PIPE,
     )
 
-    if completed.returncode != 0:
+    if completed.returncode not in ok_codes:
         if completed.stdout:
             print(completed.stdout)
         if completed.stderr:
@@ -84,14 +84,17 @@ def copy_examples_with_bundle_url(examples_dir: Path, bundle_url: str) -> list[P
 
 def run_example_checks(examples: list[Path]) -> None:
     for example in examples:
-        run([ROC, "check", example.name, "--no-cache"], cwd=example.parent)
+        # Exit code 2 means warnings only; the platform package may emit some we do not control.
+        completed = run([ROC, "check", example.name, "--no-cache"], cwd=example.parent, ok_codes=(0, 2))
+        if completed.returncode == 2 and not re.search(r"\b0 errors\b", completed.stdout + completed.stderr):
+            raise SystemExit(f"roc check reported errors for {example.name}")
 
 
 def run_example_apps(examples: list[Path]) -> None:
     for example in examples:
         if example.name == "tests.roc":
             continue
-        run([ROC, example.name, "--no-cache"], cwd=example.parent)
+        run([ROC, example.name, "--no-cache"], cwd=example.parent, ok_codes=(0, 2))
 
 
 def run_example_tests(examples: list[Path]) -> None:
@@ -99,7 +102,9 @@ def run_example_tests(examples: list[Path]) -> None:
     if len(tests) != 1:
         raise SystemExit("Expected exactly one examples/tests.roc file")
 
-    run([ROC, "test", tests[0].name, "--no-cache"], cwd=tests[0].parent)
+    completed = run([ROC, "test", tests[0].name, "--no-cache"], cwd=tests[0].parent, ok_codes=(0, 2))
+    if completed.returncode == 2 and not re.search(r"All \(\d+\) tests passed", completed.stdout + completed.stderr):
+        raise SystemExit("roc test did not report all tests passing")
 
 
 def build_and_run_examples(examples: list[Path], build_dir: Path) -> None:
@@ -111,7 +116,7 @@ def build_and_run_examples(examples: list[Path], build_dir: Path) -> None:
             continue
 
         output = build_dir / f"{example.stem}{exe_suffix}"
-        run([ROC, "build", example.name, f"--output={output}", "--no-cache"], cwd=example.parent)
+        run([ROC, "build", example.name, f"--output={output}", "--no-cache"], cwd=example.parent, ok_codes=(0, 2))
         run([str(output)])
 
 
