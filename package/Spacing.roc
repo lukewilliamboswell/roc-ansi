@@ -28,7 +28,7 @@ Spacing := [Padding(Side, U64)].{
 						Bottom => Str.concat(str, Str.repeat(Spacing.yw, width))
 						Left => Str.concat(Str.repeat(Spacing.xw, width), str)
 					}
-				}
+			}
 	}
 }
 

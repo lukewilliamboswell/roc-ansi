@@ -411,7 +411,7 @@ ANSI := [].{
 						col: (state.cursor.col + 1) % state.screen.width,
 					},
 				}
-			}
+		}
 
 	## Loop through each pixel in the screen and build up a single string to write to stdout.
 	draw_screen : { cursor : CursorPosition, screen : ScreenSize }, List(DrawFn) -> Str

@@ -6,10 +6,10 @@ package
 		Color,
 		Control,
 		Layout,
+		PieceTable,
 		Rgb,
 		Spacing,
 		Style,
-		PieceTable,
 	]
 	{
 		roc: "nightly-2026-10-04-130536d",

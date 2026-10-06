@@ -106,7 +106,7 @@ Control := [
 							},
 							"K",
 						)
-					}
+				}
 
 			Scroll(direction, lines) =>
 				Str.concat(
