@@ -44,8 +44,13 @@ jobs:
 
       - run: roc version
 
-      - name: Test examples against their checked-in published release
-        run: python3 scripts/test_published_examples.py
+      - name: Test checked-in examples against the current package source
+        run: python3 scripts/test_bundle_examples.py --current-source
+
+      - name: Test the latest published examples archive with the pinned compiler
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/published_examples.py test
 
       - name: Test maintenance scripts
         run: python3 -m unittest discover -s tests -v

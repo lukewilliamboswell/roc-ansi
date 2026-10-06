@@ -207,7 +207,7 @@ jobs:
           github_token: ${{ github.token }}
 
   prepare-docs:
-    name: Publish docs artifact and prepare example URLs
+    name: Publish docs artifact and examples archive
     needs:
       - build
       - publish-release
@@ -215,7 +215,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: write
     environment:
       name: release
 
@@ -245,13 +244,20 @@ jobs:
           RELEASE_VERSION: ${{ needs.build.outputs.release_version }}
         run: python3 scripts/workflow_helpers.py bundle-url --metadata .release/release-bundles.json --repository "$GITHUB_REPOSITORY" --version "$RELEASE_VERSION" --github-output "$GITHUB_OUTPUT"
 
-      - name: Update example package URLs
+      - name: Package the frozen examples with this release's bundle URL
         env:
           BUNDLE_URL: ${{ steps.bundle-url.outputs.bundle-url }}
-        run: python3 scripts/update_example_urls.py --bundle-url "$BUNDLE_URL"
+          RELEASE_VERSION: ${{ needs.build.outputs.release_version }}
+        run: python3 scripts/published_examples.py pack --version "$RELEASE_VERSION" --bundle-url "$BUNDLE_URL" --output-dir .roc-ansi-tmp/examples-assets
 
-      - name: Validate updated examples
-        run: python3 scripts/test_published_examples.py
+      - name: Validate the packaged examples against the published release
+        run: python3 scripts/published_examples.py test --archive ".roc-ansi-tmp/examples-assets/roc-ansi-examples-${{ needs.build.outputs.release_version }}.tar.gz"
+
+      - name: Attach the examples archive to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ needs.build.outputs.release_version }}
+        run: gh release upload "$RELEASE_VERSION" ".roc-ansi-tmp/examples-assets/roc-ansi-examples-$RELEASE_VERSION.tar.gz" --repo "$GITHUB_REPOSITORY"
 
       - name: Generate release documentation outside the source tree
         env:
@@ -268,12 +274,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           DOCS_VERSION: ${{ needs.build.outputs.docs_version }}
         run: python3 scripts/release_docs.py publish "$DOCS_VERSION" ".roc-ansi-tmp/docs-assets/roc-ansi-docs-$DOCS_VERSION.tar.gz"
-
-      - name: Create signed example URL follow-up PR
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_VERSION: ${{ needs.build.outputs.release_version }}
-        run: python3 scripts/create_release_followup.py
 
       - name: Assemble Pages site from source and release documentation assets
         env:

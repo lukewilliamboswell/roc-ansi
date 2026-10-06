@@ -51,19 +51,8 @@ def validate_examples() -> None:
     if not examples:
         raise ValueError("no Roc examples found")
     for example in examples:
-        # Exit code 2 means warnings only; the platform package may emit some we do not control.
-        completed = subprocess.run([roc, "check", str(example), "--no-cache"], cwd=ROOT, text=True, capture_output=True)
-        sys.stdout.write(completed.stdout)
-        sys.stderr.write(completed.stderr)
-        if completed.returncode == 2 and re.search(r"\b0 errors\b", completed.stdout + completed.stderr):
-            continue
-        completed.check_returncode()
-    completed = subprocess.run([roc, "test", "examples/tests.roc", "--no-cache"], cwd=ROOT, text=True, capture_output=True)
-    sys.stdout.write(completed.stdout)
-    sys.stderr.write(completed.stderr)
-    if completed.returncode == 2 and re.search(r"All \(\d+\) tests passed", completed.stdout + completed.stderr):
-        return
-    completed.check_returncode()
+        subprocess.run([roc, "check", str(example), "--no-cache"], cwd=ROOT, check=True)
+    subprocess.run([roc, "test", "examples/tests.roc", "--no-cache"], cwd=ROOT, check=True)
 
 
 def main() -> int:

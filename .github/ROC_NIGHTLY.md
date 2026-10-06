@@ -77,8 +77,17 @@ conclusion even though no job ran. The dispatched runs and the three mirrored
 required statuses above are the acceptance evidence for an automatic nightly.
 
 
-The required `test-examples` check exercises the checked-in published ANSI and
-platform URLs without rewriting them. The release build and bundle checks also
-exercise working-tree changes via localhost archives. Both must pass before a
-nightly can merge, so a local fix cannot conceal an incompatible published release.
-Release follow-up PRs update the committed URLs after publication and validation.
+The required `test-examples` check runs two lanes. The checked-in examples use a
+relative path to the current package source and are tested directly. Then
+`scripts/published_examples.py test` downloads the latest release's frozen
+`roc-ansi-examples-VERSION.tar.gz`, keeps its immutable package and platform URLs, and
+replaces only the compiler pin in temporary copies. Both must pass before a nightly can
+merge, so a source fix cannot conceal an incompatible published release. The release
+build and bundle checks also exercise the working tree via a localhost archive.
+Until a release carries an examples archive, the published lane reports a notice and
+skips.
+
+Releases attach the frozen examples archive, so no follow-up PR rewrites URLs on
+`main`. Never edit a published archive retroactively; a real incompatibility needs a
+repaired release. The examples depend on the basic-cli platform release declared in
+their headers. Moving to a newer platform release is a separate reviewed change.
