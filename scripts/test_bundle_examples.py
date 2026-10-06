@@ -155,8 +155,18 @@ def local_examples(bundle_path: Path | None = None):
 def main() -> None:
     parser = argparse.ArgumentParser(description="Test working-tree changes using a localhost bundle and temporary example copies.")
     parser.add_argument("--bundle-path", type=Path, help="Use an existing bundle instead of creating one")
+    parser.add_argument("--current-source", action="store_true", help="Test the checked-in examples, which use a relative path to the package source")
     parser.add_argument("--skip-build-run", action="store_true", help="Skip compiled example execution")
     args = parser.parse_args()
+    if args.current_source:
+        paths = sorted((ROOT / "examples").glob("*.roc"))
+        run_example_checks(paths)
+        run_example_tests(paths)
+        run_example_apps(paths)
+        if not args.skip_build_run:
+            with tempfile.TemporaryDirectory(prefix="roc-ansi-current-", dir=os.environ.get("ROC_ANSI_TMPDIR")) as tmp:
+                build_and_run_examples(paths, Path(tmp))
+        return
     with local_examples(args.bundle_path) as (examples, build_dir):
         run_example_checks(examples)
         run_example_tests(examples)

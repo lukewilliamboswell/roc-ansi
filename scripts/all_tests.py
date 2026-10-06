@@ -47,6 +47,9 @@ def main() -> None:
         section("Skipping package bundling on Windows.")
         return
 
+    section("Testing examples against the current source...")
+    run([sys.executable, "scripts/test_bundle_examples.py", "--current-source"])
+
     section("Bundling the working tree and testing examples against localhost...")
     run([sys.executable, "scripts/test_bundle_examples.py"])
 

@@ -34,9 +34,15 @@ Run with `roc examples/text-editor.roc`
 
 ## Development and CI
 
-The checked-in examples pin a compiler, an immutable URL for a published ANSI
-release, and its released platform URL. Running an example
-with `roc examples/animals.roc` uses that documented combination.
+The checked-in examples use a relative path to the package source
+(`ansi: "../package/main.roc"`), the [basic-cli](https://github.com/roc-lang/basic-cli)
+platform release, and the development compiler pin. Running `roc examples/animals.roc`
+therefore runs the example against the current source.
+
+Each release attaches a frozen `roc-ansi-examples-VERSION.tar.gz` archive. Its
+headers point at that release's immutable ANSI bundle URL and keep the compiler it
+was published with. Download it from the release page to use the examples outside
+this repository.
 
 To test changes to `package/`, use the local scripts with the compiler pinned in
 `package/main.roc` (set `ROC=/path/to/roc` to select the executable):
@@ -52,30 +58,32 @@ python3 scripts/run_example.py animals
 python3 scripts/test_bundle_examples.py --bundle-path dist/PACKAGE_HASH.tar.zst
 ```
 
-The local scripts bundle the working tree, serve the archive on a free localhost
-port, and rewrite the ANSI URL only in temporary example copies. Checked-in URLs
-stay on the published release. The server and temporary copies are cleaned up
-when the command exits.
+The bundle script archives the working tree, serves it on a free localhost
+port, and rewrites the ANSI dependency only in temporary example copies. The
+server and temporary copies are cleaned up when the command exits.
 
-CI deliberately exercises both dependencies:
+CI exercises each compatibility promise separately:
 
-- `test-examples` runs `scripts/test_published_examples.py`: it checks, tests, runs,
-  and builds the examples with their committed published URLs and no URL rewrite.
-  A nightly that breaks the released package or platform must fail this check.
-- `Build release bundle` validates the working-tree package and local examples;
+- `test-examples` first runs the checked-in examples against the current source
+  (`scripts/test_bundle_examples.py --current-source`). It then runs
+  `scripts/published_examples.py test`, which downloads the latest release's examples
+  archive and tests it with the released package and platform URLs unchanged,
+  replacing only the compiler pin in temporary copies. A nightly that breaks what
+  users download must fail this check. Until a release carries an examples archive,
+  this lane reports a notice and skips.
+- `Build release bundle` validates the working-tree package and examples;
   `Test default bundle (ubuntu-latest)` validates the exact proposed release
   archive through localhost. These checks cover changes that are not released yet.
 
 Run the published compatibility check locally with:
 
 ```sh
-python3 scripts/test_published_examples.py
+python3 scripts/published_examples.py test
 ```
 
-A passing local bundle test does not override a failing published-release check.
-Diagnose the break and prepare a compatible package/platform release before
-accepting the nightly update. CI uses the checked-in release URLs; it does not
-silently substitute a newer release or the local package.
+A passing current-source test does not override a failing published-release check.
+Diagnose the break and prepare a compatible package release before accepting the
+nightly update. CI never substitutes the local package for a released one.
 
 ## Releasing
 
@@ -84,15 +92,15 @@ After validating package changes, dispatch the **Release** workflow with a new
 
 1. Tests and bundles the working tree, then tests the exact archive through localhost.
 2. Publishes the versioned release asset.
-3. Rewrites example URLs to that asset and tests the published examples again.
+3. Packages the examples with headers rewritten to that asset's immutable URL,
+   tests that archive against the published release, and attaches it to the
+   release as `roc-ansi-examples-VERSION.tar.gz`.
 4. Generates docs in ignored build output and uploads a versioned docs archive
    as a GitHub release asset. Pages restores these archives during deployment.
-5. Creates a GitHub-signed `release-followup/VERSION` PR updating only example URLs.
 
-Review and merge that follow-up PR so `main` points to the newest working release.
-The nightly updater auto-merges the compiler pins in `package/main.roc` and the examples; release follow-ups
-remain reviewable PRs. Generated `roc docs` output is never committed. The follow-up creator can reuse an identical signed bot
-commit on retry, but refuses to overwrite a branch containing different work.
+No follow-up PR is needed: the examples on `main` use relative paths and never
+change for a release. The nightly updater auto-merges the compiler pins in
+`package/main.roc` and the examples. Generated `roc docs` output is never committed.
 PR and `nightly_validation` runs only validate; they never publish or deploy.
 
 For maintenance-script changes, also run:
