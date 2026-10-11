@@ -5,31 +5,31 @@ app [main!] {
 }
 
 import pf.Stdout
+import ansi.ANSI
+import ansi.Style
 
-with_style : Str, Str -> Str
-with_style = |text, code| "\u(001b)[${code}m${text}\u(001b)[0m"
-
-with_color : Str, Str, Str -> Str
-with_color = |text, fg, bg| "\u(001b)[${fg}m\u(001b)[${bg}m${text}\u(001b)[0m"
+## Style some text, then reset so the style does not leak into following lines.
+with_style : Str, List(Style.Style) -> Str
+with_style = |text, styles| Str.concat(ANSI.style(text, styles), ANSI.style("", [Default]))
 
 menu_line : Str, Bool -> Str
 menu_line = |label, selected| {
 	if selected {
-		with_color(with_style("> ${label}", "1"), "32", "49")
+		ANSI.color(ANSI.style("> ${label}", [Bold(On)]), { fg: Standard(Green), bg: Default })
 	} else {
-		with_color("- ${label}", "37", "49")
+		ANSI.color("- ${label}", { fg: Standard(White), bg: Default })
 	}
 }
 
 main! = |_args| {
 	lines = [
-		with_style("Choose a task", "1"),
+		with_style("Choose a task", [Bold(On)]),
 		"",
 		menu_line("Generate report", True),
 		menu_line("Sync cache", False),
 		menu_line("Publish bundle", False),
 		"",
-		with_color("ENTER to run, ESC to quit", "34", "49"),
+		ANSI.color("ENTER to run, ESC to quit", { fg: Standard(Blue), bg: Default }),
 	]
 
 	Stdout.line!(Str.join_with(lines, "\n"))?

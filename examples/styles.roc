@@ -5,19 +5,22 @@ app [main!] {
 }
 
 import pf.Stdout
+import ansi.ANSI
+import ansi.Style
 
-with_style : Str, Str -> Str
-with_style = |text, code| "\u(001b)[${code}m${text}\u(001b)[0m"
+## Style some text, then reset so the style does not leak into following lines.
+with_style : Str, List(Style.Style) -> Str
+with_style = |text, styles| Str.concat(ANSI.style(text, styles), ANSI.style("", [Default]))
 
 main! = |_args| {
 	lines = [
-		with_style("Bold On", "1"),
-		with_style("Faint On", "2"),
-		with_style("Italic On", "3"),
-		with_style("Strikethrough On", "9"),
-		with_style("Underline On", "4"),
-		with_style("Invert On", "7"),
-		with_style("Combination", "1;3;9;4"),
+		with_style("Bold On", [Bold(On)]),
+		with_style("Faint On", [Faint(On)]),
+		with_style("Italic On", [Italic(On)]),
+		with_style("Strikethrough On", [Strikethrough(On)]),
+		with_style("Underline On", [Underline(On)]),
+		with_style("Invert On", [Invert(On)]),
+		with_style("Combination", [Bold(On), Italic(On), Strikethrough(On), Underline(On)]),
 		"This should not have any style",
 	]
 
