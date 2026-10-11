@@ -11,6 +11,4 @@ package
 		Spacing,
 		Style,
 	]
-	{
-		roc: "nightly-2026-10-11-7d256b9",
-	}
+	{}

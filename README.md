@@ -32,115 +32,131 @@ Run with `roc examples/text-editor.roc`
 
 ![example output showing a piece table edit preview](examples/text-editor.png)
 
-## Development and CI
+## Development
 
-The checked-in examples use a relative path to the package source
-(`ansi: "../package/main.roc"`), the [basic-cli](https://github.com/roc-lang/basic-cli)
-platform release, and the development compiler pin. Running `roc examples/animals.roc`
-therefore runs the example against the current source.
+The examples in this repository depend on the package by relative path
+(`ansi: "../package/main.roc"`), so `roc examples/animals.roc` runs an example
+against your working tree. Nothing pins a Roc compiler for the package or the
+examples: use the [latest nightly](https://github.com/roc-lang/nightlies/releases).
 
-Each release attaches a frozen `roc-ansi-examples-VERSION.tar.gz` archive. Its
-headers point at that release's immutable ANSI bundle URL and keep the compiler it
-was published with. Download it from the release page to use the examples outside
-this repository.
+To use the examples outside this repository, download the
+`roc-ansi-examples-VERSION.zip` archive attached to a
+[release](https://github.com/lukewilliamboswell/roc-ansi/releases). Its copies
+depend on that release's package URL instead.
 
-To test changes to `package/`, use the local scripts with the compiler pinned in
-`package/main.roc` (set `ROC=/path/to/roc` to select the executable):
+### Two compilers
 
-```sh
-# Package format, checks, tests, docs, and all examples against local changes:
-python3 scripts/all_tests.py
+| Command | Chosen by | Used for |
+| --- | --- | --- |
+| `roc` | You: the latest nightly | Checking, testing, bundling and running the package and its examples |
+| `roc-stable` | The release named in [`Blueprint.roc`](Blueprint.roc) | Running the scripts in `scripts/` |
 
-# Run one example against local changes, retaining terminal input/output:
-python3 scripts/run_example.py animals
+`roc-stable` exists so the repository's tooling keeps working when a nightly
+breaks something. It never checks or builds the package.
 
-# Test all examples against an already-created bundle:
-python3 scripts/test_bundle_examples.py --bundle-path dist/PACKAGE_HASH.tar.zst
-```
+### Run the checks
 
-The bundle script archives the working tree, serves it on a free localhost
-port, and rewrites the ANSI dependency only in temporary example copies. The
-server and temporary copies are cleaned up when the command exits.
-
-CI exercises each compatibility promise separately:
-
-- `test-examples` first runs the checked-in examples against the current source
-  (`scripts/test_bundle_examples.py --current-source`). It then runs
-  `scripts/published_examples.py test`, which downloads the latest release's examples
-  archive and tests it with the released package and platform URLs unchanged,
-  replacing only the compiler pin in temporary copies. A nightly that breaks what
-  users download must fail this check. Until a release carries an examples archive,
-  this lane reports a notice and skips.
-- `Build release bundle` validates the working-tree package and examples;
-  `Test default bundle (ubuntu-latest)` validates the exact proposed release
-  archive through localhost. These checks cover changes that are not released yet.
-
-Run the published compatibility check locally with:
+The scripts are Roc programs that start with `#!/usr/bin/env roc-stable`. Their
+environment is declared in `Blueprint.roc`, pinned by `Blueprint.lock`, and
+realised by [roc-blueprint](https://github.com/lukewilliamboswell/roc-blueprint).
+You need [Nix](https://nixos.org/download) with flakes, the `blueprint` 0.4.0 CLI
+from its [release page](https://github.com/lukewilliamboswell/roc-blueprint/releases/tag/0.4.0),
+and a nightly `roc` on your `PATH`.
 
 ```sh
-python3 scripts/published_examples.py test
+blueprint run check      # everything CI checks
+blueprint shell          # or enter the environment and run scripts directly
 ```
 
-A passing current-source test does not override a failing published-release check.
-Diagnose the break and prepare a compatible package release before accepting the
-nightly update. CI never substitutes the local package for a released one.
+`blueprint run check` runs [`scripts/check_all.roc`](scripts/check_all.roc), which:
+
+1. Fails if a `roc:` header pin or `.roc-version` has come back.
+2. Tests, checks and formats the scripts with `roc-stable`.
+3. Formats, checks and tests the package with `roc`.
+4. Checks, tests, runs and builds every example against the working tree.
+5. Bundles the package, serves that bundle from a loopback address, and repeats
+   step 4 against it in temporary copies of the examples.
+6. Builds the examples archive and the documentation site and archive.
+
+Set `ROC_NIGHTLY=/path/to/roc` to check the package with a compiler other than
+the `roc` on your `PATH`.
+
+| Task | What it does |
+| --- | --- |
+| `blueprint run check` | Everything CI checks |
+| `blueprint run bundle` | Bundle the package into `dist` |
+| `blueprint run test-bundle` | Test the examples against the bundle in `dist`, or `BUNDLE_PATH` |
+| `blueprint run test-published` | Test the latest release's examples archive, as published |
+| `blueprint run site` | Assemble the documentation site |
+| `blueprint run serve` | Assemble the site and preview it locally |
+
+### Workflows
+
+| Workflow | Runs on | What it shows |
+| --- | --- | --- |
+| [`ci.yml`](.github/workflows/ci.yml) | Pull requests, pushes to `main` | The working tree passes `blueprint run check` on the latest nightly |
+| [`release.yml`](.github/workflows/release.yml) | Manual dispatch; pull requests as a dry run | The exact bundle and examples archive proposed for publication work |
+| [`nightly.yml`](.github/workflows/nightly.yml) | Daily | The latest release's examples archive works on the latest nightly |
+| [`www.yaml`](.github/workflows/www.yaml) | Pushes to `main` | Deploys the documentation site |
+
+A pull request can fail because a new nightly arrived, with no fault in the
+change. Compare with the latest `nightly.yml` run and with `main` before
+treating a failure as a regression.
+
+`nightly.yml` keeps one tracking issue: opened on the first failure, updated on
+later failures, closed on the next pass. A failure there means the latest
+release needs a patch release. Published archives are never edited.
+
+### Update the tooling
+
+Nothing updates the tooling automatically. `Blueprint.lock` only changes when
+someone runs `blueprint update` and opens a pull request with the result.
+
+To change the tooling compiler, open a pull request that changes the nightly
+tag in `Blueprint.roc`, and the basic-cli URL there and in every script header
+if the scripts need a newer platform. Run `blueprint update` in the same pull
+request, and fix any script the new compiler breaks.
 
 ## Releasing
 
-After validating package changes, dispatch the **Release** workflow with a new
-`release_version`. Its normal publication path:
+Dispatch the **Release** workflow from `main` with a new `release_version`. It:
 
-1. Tests and bundles the working tree, then tests the exact archive through localhost.
-2. Publishes the versioned release asset.
-3. Packages the examples with headers rewritten to that asset's immutable URL,
-   tests that archive against the published release, and attaches it to the
-   release as `roc-ansi-examples-VERSION.tar.gz`.
-4. Generates docs in ignored build output and uploads a versioned docs archive
-   as a GitHub release asset. Pages restores these archives during deployment.
+1. Runs `blueprint run check`, bundles the package, and tests the examples
+   against that exact bundle through a loopback address.
+2. Publishes the GitHub release with the bundle. The release notes name the
+   `roc` and `roc-stable` versions used, which replaces a header pin as the
+   record of what the release was built and tested with.
+3. Tests the examples archive against the published bundle URL, then attaches
+   it as `roc-ansi-examples-VERSION.zip`, with the API docs as
+   `roc-ansi-docs-VERSION.tar.gz`.
+4. Deploys the documentation site.
 
-No follow-up PR is needed: the examples on `main` use relative paths and never
-change for a release. The nightly updater auto-merges the compiler pins in
-`package/main.roc` and the examples. Generated `roc docs` output is never committed.
-PR and `nightly_validation` runs only validate; they never publish or deploy.
-
-For maintenance-script changes, also run:
-
-```sh
-python3 -m unittest discover -s tests -v
-```
+The jobs that hold the write token run no code from this repository. No
+follow-up pull request is needed, because the examples on `main` never change
+for a release. On a pull request the workflow stops after step 1 and publishes
+nothing; its bundle and examples archive are kept as workflow artifacts.
 
 ## Documentation
 
 See [https://lukewilliamboswell.github.io/roc-ansi/](https://lukewilliamboswell.github.io/roc-ansi/)
 
-To generate versioned docs locally, use:
+Generated API docs are never committed. Each release attaches its docs as
+`roc-ansi-docs-VERSION.tar.gz`; the site is assembled from those archives plus
+fresh docs for `main`, so historical version URLs keep working without their
+HTML being stored in Git. Hand-maintained site files and the vendored
+highlighter live in `www/`.
 
 ```sh
-ROC=/path/to/roc python3 scripts/generate_docs.py VERSION
+blueprint run serve                        # main docs only; no downloads
+FETCH_RELEASE_DOCS=1 blueprint run serve   # also restore every release's docs
 ```
 
-Output goes to `.roc-ansi-tmp/release-docs/VERSION`, outside the tracked site source.
-Generated API docs are not committed. Release workflows upload archives named
-`roc-ansi-docs-VERSION.tar.gz` alongside the package assets. Pages deployments
-restore those archives and generate fresh `/main/` docs, preserving historical
-version URLs without storing their HTML in Git.
+The preview picks a free port, or the one named by `SITE_PORT`, and prints its
+URL. `FETCH_RELEASE_DOCS=1` downloads release assets with `gh`, which must be
+authenticated. `blueprint run site` assembles the same site without serving it,
+into `.roc-ansi-tmp/site` or the directory named by `SITE_OUTPUT`.
 
-To preview the complete site, including released documentation:
-
-```sh
-python3 scripts/assemble_www.py --fetch-release-docs
-```
-
-This downloads documentation assets from GitHub. The normal local preview below
-only generates `/main/` docs and does not need that download. Hand-maintained site
-files and vendored highlighting assets remain in `www/`.
-
-Generate the landing page with fresh main-branch API docs, then serve the isolated QA preview:
-
-```sh
-./scripts/serve_www.py
-```
-
-The preview chooses a free local port and opens it automatically; its landing page links to freshly generated `/main/` API docs. Pass `--no-open` to avoid opening a browser, `--no-serve` to only assemble the preview, or `--port 8000` to choose a fixed port. Set `ROC=/path/to/roc` if `roc` is not on your `PATH`.
-
-The landing page shows a terminal capture for each runnable example, linking to its source on GitHub. The site vendors the Tree-sitter Roc grammar and web runtime for client-side highlighting; see [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) for license details.
+The landing page shows a terminal capture for each runnable example, linking to
+its source on GitHub. The site vendors the Tree-sitter Roc grammar and web
+runtime for client-side highlighting; see
+[THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) for license details.
