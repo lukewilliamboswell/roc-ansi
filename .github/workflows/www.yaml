@@ -5,11 +5,12 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/www.yaml"
+      - ".github/actions/setup-blueprint/**"
+      - "Blueprint.roc"
+      - "Blueprint.lock"
       - "package/**"
-      - "scripts/assemble_www.py"
-      - "scripts/release_docs.py"
-      - "scripts/enhance_docs_site.py"
-      - "scripts/generate_example_pages.py"
+      - "scripts/build_site.roc"
+      - "scripts/src/**"
       - "examples/**"
       - "www/**"
   workflow_dispatch:
@@ -21,40 +22,51 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
-    name: Deploy site and docs
+  build:
+    name: Assemble the documentation site
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Nix and blueprint
+        uses: ./.github/actions/setup-blueprint
+
+      - name: Install the latest Roc nightly
+        uses: roc-lang/setup-roc@f5a74bf90aa694b43ab4a7cbfdb19273bc6aa697
+        with:
+          version: nightly-new-compiler
+
+      - name: Assemble the site with the archived docs of each release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FETCH_RELEASE_DOCS: "1"
+          SITE_OUTPUT: pages-site
+        run: blueprint run site
+
+      - name: Setup Pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: pages-site
+
+  deploy:
+    name: Deploy site and docs
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
       pages: write
       id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v7
-
-      - name: Read pinned Roc version
-        id: roc-version
-        run: python3 scripts/workflow_helpers.py roc-version --github-output "$GITHUB_OUTPUT"
-
-      - name: Install Roc
-        uses: roc-lang/setup-roc@f5a74bf90aa694b43ab4a7cbfdb19273bc6aa697
-        with:
-          version: nightly-new-compiler
-          nightly-tag: ${{ steps.roc-version.outputs.nightly-tag }}
-
-      - name: Assemble Pages site from source and release documentation assets
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: python3 scripts/assemble_www.py --fetch-release-docs --output pages-site
-
-      - uses: actions/configure-pages@v6
-
-      - uses: actions/upload-pages-artifact@v5
-        with:
-          path: pages-site
-
       - name: Deploy Pages
         id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

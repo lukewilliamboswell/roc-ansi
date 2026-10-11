@@ -1,0 +1,93 @@
+name: Nightly compatibility
+
+# Answers one question each day: does the release people download today still
+# work with today's compiler?
+#
+# It runs the examples archive attached to the latest release, exactly as
+# published, on the latest Roc nightly. Nothing from the default branch is
+# tested except the scripts that drive the run. A failure means the release
+# needs a patch release; this workflow never commits, merges or publishes.
+on:
+  schedule:
+    # Once daily, about four hours after the upstream 09:00 UTC build.
+    - cron: "7 13 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: nightly-compatibility
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: Latest release on the latest nightly
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    outputs:
+      compiler: ${{ steps.compiler.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Nix and blueprint
+        uses: ./.github/actions/setup-blueprint
+
+      - name: Install the latest Roc nightly
+        uses: roc-lang/setup-roc@f5a74bf90aa694b43ab4a7cbfdb19273bc6aa697
+        with:
+          version: nightly-new-compiler
+
+      - name: Record the compiler
+        id: compiler
+        run: echo "version=$(roc version)" >> "$GITHUB_OUTPUT"
+
+      - name: Test the latest release's examples archive as published
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: blueprint run test-published
+
+  # Keeps one tracking issue: opened on the first failure, updated on later
+  # failures, closed on the next pass. It checks out nothing and runs no code
+  # from this repository or from a release.
+  report:
+    name: Track the result in an issue
+    needs: test
+    if: ${{ !cancelled() && (needs.test.result == 'success' || needs.test.result == 'failure') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    steps:
+      - name: Open, update or close the tracking issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESULT: ${{ needs.test.result }}
+          COMPILER: ${{ needs.test.outputs.compiler }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          TITLE: The latest release fails on the latest Roc nightly
+        run: |
+          set -euo pipefail
+          # Only an issue this workflow opened is ever updated or closed.
+          number=$(
+            gh issue list --repo "$GITHUB_REPOSITORY" --state open --limit 200 --json number,title,author |
+              jq --raw-output --arg title "$TITLE" \
+                '[.[] | select(.title == $title and .author.is_bot)][0].number // empty'
+          )
+          compiler=${COMPILER:-"the latest nightly (its version was not recorded)"}
+          if [ "$RESULT" = success ]; then
+            if [ -n "$number" ]; then
+              gh issue close "$number" --repo "$GITHUB_REPOSITORY" \
+                --comment "The latest release passes again with $compiler: $RUN_URL"
+            fi
+          elif [ -n "$number" ]; then
+            gh issue comment "$number" --repo "$GITHUB_REPOSITORY" \
+              --body "Still failing with $compiler: $RUN_URL"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body "The examples archive of the latest release failed with $compiler: $RUN_URL
+
+          The archive is immutable, so the fix is a patch release that works with this compiler. This issue is updated by each failing run of the Nightly compatibility workflow and closed by the next passing one."
+          fi
