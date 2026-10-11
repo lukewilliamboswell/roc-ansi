@@ -97,7 +97,6 @@ the `roc` on your `PATH`.
 | [`ci.yml`](.github/workflows/ci.yml) | Pull requests, pushes to `main` | The working tree passes `blueprint run check` on the latest nightly |
 | [`release.yml`](.github/workflows/release.yml) | Manual dispatch; pull requests as a dry run | The exact bundle and examples archive proposed for publication work |
 | [`nightly.yml`](.github/workflows/nightly.yml) | Daily | The latest release's examples archive works on the latest nightly |
-| [`update-blueprint.yml`](.github/workflows/update-blueprint.yml) | Weekly | Nothing by itself: it proposes a `Blueprint.lock` update for CI to check |
 | [`www.yaml`](.github/workflows/www.yaml) | Pushes to `main` | Deploys the documentation site |
 
 A pull request can fail because a new nightly arrived, with no fault in the
@@ -108,12 +107,15 @@ treating a failure as a regression.
 later failures, closed on the next pass. A failure there means the latest
 release needs a patch release. Published archives are never edited.
 
-### Change the tooling compiler
+### Update the tooling
 
-Open a pull request that changes the nightly tag in `Blueprint.roc`, and the
-basic-cli URL there and in every script header if the scripts need a newer
-platform. Run `blueprint update` in the same pull request, and fix any script
-the new compiler breaks. `update-blueprint.yml` never changes that tag.
+Nothing updates the tooling automatically. `Blueprint.lock` only changes when
+someone runs `blueprint update` and opens a pull request with the result.
+
+To change the tooling compiler, open a pull request that changes the nightly
+tag in `Blueprint.roc`, and the basic-cli URL there and in every script header
+if the scripts need a newer platform. Run `blueprint update` in the same pull
+request, and fix any script the new compiler breaks.
 
 ## Releasing
 
