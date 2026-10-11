@@ -5,18 +5,16 @@ app [main!] {
 }
 
 import pf.Stdout
-
-with_color : Str, Str, Str -> Str
-with_color = |text, fg, bg| "\u(001b)[${fg}m\u(001b)[${bg}m${text}\u(001b)[0m"
+import ansi.ANSI
 
 main! = |_args| {
 	parts = [
 		"The ",
-		with_color("GREEN", "32", "49"),
+		ANSI.color("GREEN", { fg: Standard(Green), bg: Default }),
 		" frog, the ",
-		with_color("BLUE", "34", "49"),
+		ANSI.color("BLUE", { fg: Standard(Blue), bg: Default }),
 		" bird, and the ",
-		with_color("RED", "31", "49"),
+		ANSI.color("RED", { fg: Standard(Red), bg: Default }),
 		" ant shared a leaf.",
 	]
 

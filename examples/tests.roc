@@ -10,6 +10,7 @@ import ansi.C16
 import ansi.C256
 import ansi.Color
 import ansi.Control
+import ansi.Layout
 import ansi.PieceTable
 import ansi.Rgb
 import ansi.Spacing
@@ -28,6 +29,9 @@ expect Rgb.from_hex(0x008080) == (0, 128, 128)
 
 ## Arrow key input renders a readable description.
 expect ANSI.input_to_str(ANSI.Input.Arrow(ANSI.Arrow.Up)) == "Arrow Up"
+
+## Coloring text wraps it in foreground and background escapes, then resets.
+expect ANSI.color("green", { fg: Standard(Green), bg: Default }) == "\u(001b)[32m\u(001b)[49mgreen\u(001b)[0m"
 
 ## Parsed input values support derived equality and hashing.
 expect {
@@ -56,3 +60,18 @@ base_table = {
 
 ## Inserting into a piece table preserves surrounding bytes.
 expect PieceTable.to_list(PieceTable.insert(base_table, { values: Str.to_utf8("X"), index: 1 })) == Str.to_utf8("aXbc")
+
+## Left padding prepends spaces.
+expect Spacing.apply(Spacing.padding(Spacing.Side.Left, 2))("Hi") == "  Hi"
+
+## Grid drawing renders cells inside a squared border.
+expect Layout.draw_grid([["A", "B"], ["C", "D"]], [1, 1], Layout.squared_border, Layout.default_spacing) == Str.join_with(
+	[
+		"┌─┬─┐",
+		"│A│B│",
+		"├─┼─┤",
+		"│C│D│",
+		"└─┴─┘",
+	],
+	"\n",
+)
