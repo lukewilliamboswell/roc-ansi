@@ -14,7 +14,7 @@ import src/Site
 ##
 ##     DOCS_VERSION=0.14.0 scripts/package_docs.roc
 ##
-## Writes `roc-ansi-docs-<version>.tar.gz` to `dist`, or to the directory named
+## Writes `roc-ansi-docs-<version>.zip` to `dist`, or to the directory named
 ## by `OUTPUT_DIR`. The site restores archived docs from these assets.
 main! = |_args| {
 	roc = Script.roc!()?

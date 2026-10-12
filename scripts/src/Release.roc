@@ -98,7 +98,21 @@ Release := [].{
 
 	## The documentation archive attached to the release `version`.
 	docs_archive : Str -> Str
-	docs_archive = |version| "${Release.name}-docs-${version}.tar.gz"
+	docs_archive = |version| "${Release.name}-docs-${version}.zip"
+
+	## Pick the documentation archive out of the asset names of the release
+	## `version`. Releases up to 0.13.1 attached a `.tar.gz` instead of a `.zip`.
+	find_docs_archive : Str, List(Str) -> [Zip(Str), LegacyTarball(Str), Missing]
+	find_docs_archive = |version, assets| {
+		legacy = "${Release.name}-docs-${version}.tar.gz"
+		if assets.contains(Release.docs_archive(version)) {
+			Zip(Release.docs_archive(version))
+		} else if assets.contains(legacy) {
+			LegacyTarball(legacy)
+		} else {
+			Missing
+		}
+	}
 
 	## Whether `entry` may appear in the documentation archive of `version`:
 	## a path beneath the `version` directory that cannot escape it.
@@ -159,10 +173,13 @@ expect Release.version_of_bundle_url("../package/main.roc").is_err()
 expect Release.version_of_bundle_url("https://github.com/someone/roc-ansi/releases/download/0.14.0/Abc123.tar.zst").is_err()
 expect Release.version_of_bundle_url("https://github.com/lukewilliamboswell/roc-ansi/releases/download/latest/Abc123.tar.zst").is_err()
 expect Release.examples_archive("0.14.0") == "roc-ansi-examples-0.14.0.zip"
-expect Release.find_examples_archive("0.14.0", ["Abc123.tar.zst", "roc-ansi-docs-0.14.0.tar.gz", "roc-ansi-examples-0.14.0.zip"]) == Zip("roc-ansi-examples-0.14.0.zip")
+expect Release.find_examples_archive("0.14.0", ["Abc123.tar.zst", "roc-ansi-docs-0.14.0.zip", "roc-ansi-examples-0.14.0.zip"]) == Zip("roc-ansi-examples-0.14.0.zip")
 expect Release.find_examples_archive("0.13.1", ["roc-ansi-examples-0.13.1.tar.gz"]) == LegacyTarball("roc-ansi-examples-0.13.1.tar.gz")
 expect Release.find_examples_archive("0.14.0", ["roc-ansi-examples-0.13.1.zip"]) == Missing
-expect Release.docs_archive("0.14.0") == "roc-ansi-docs-0.14.0.tar.gz"
+expect Release.docs_archive("0.14.0") == "roc-ansi-docs-0.14.0.zip"
+expect Release.find_docs_archive("0.14.0", ["Abc123.tar.zst", "roc-ansi-docs-0.14.0.zip"]) == Zip("roc-ansi-docs-0.14.0.zip")
+expect Release.find_docs_archive("0.13.1", ["roc-ansi-docs-0.13.1.tar.gz", "roc-ansi-examples-0.13.1.tar.gz"]) == LegacyTarball("roc-ansi-docs-0.13.1.tar.gz")
+expect Release.find_docs_archive("0.7.0", ["Abc123.tar.zst"]) == Missing and Release.find_docs_archive("0.14.0", ["roc-ansi-docs-0.13.1.zip"]) == Missing
 expect Release.examples_readme("0.14.0", url).contains("    ${url}\n") and Release.examples_readme("0.14.0", url).ends_with("/releases/tag/0.14.0\n")
 expect Release.valid_examples_entry("roc-ansi-examples-0.14.0", "roc-ansi-examples-0.14.0/README.md")
 expect Release.valid_examples_entry("roc-ansi-examples-0.14.0", "roc-ansi-examples-0.14.0/spec.json") and !Release.valid_examples_entry("roc-ansi-examples-0.14.0", "roc-ansi-examples-0.14.0/examples/spec.json")

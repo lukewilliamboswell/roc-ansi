@@ -131,7 +131,7 @@ Dispatch the **Release** workflow from `main` with a new `release_version`. It:
    record of what the release was built and tested with.
 3. Tests the examples archive against the published bundle URL, then attaches
    it as `roc-ansi-examples-VERSION.zip`, with the API docs as
-   `roc-ansi-docs-VERSION.tar.gz`.
+   `roc-ansi-docs-VERSION.zip`.
 4. Deploys the documentation site.
 
 The jobs that hold the write token run no code from this repository. No
@@ -144,7 +144,7 @@ nothing; its bundle and examples archive are kept as workflow artifacts.
 See [https://lukewilliamboswell.github.io/roc-ansi/](https://lukewilliamboswell.github.io/roc-ansi/)
 
 Generated API docs are never committed. Each release attaches its docs as
-`roc-ansi-docs-VERSION.tar.gz`; the site is assembled from those archives plus
+`roc-ansi-docs-VERSION.zip`; the site is assembled from those archives plus
 fresh docs for `main`, so historical version URLs keep working without their
 HTML being stored in Git. Hand-maintained site files and the vendored
 highlighter live in `www/`.

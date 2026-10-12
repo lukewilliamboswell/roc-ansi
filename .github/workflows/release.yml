@@ -170,7 +170,7 @@ jobs:
           name: release-assets
           path: |
             dist/roc-ansi-examples-*.zip
-            dist/roc-ansi-docs-*.tar.gz
+            dist/roc-ansi-docs-*.zip
           if-no-files-found: error
           retention-days: 7
 
@@ -349,7 +349,7 @@ jobs:
         run: |
           gh release upload "$RELEASE_VERSION" \
             "dist/roc-ansi-examples-$RELEASE_VERSION.zip" \
-            "dist/roc-ansi-docs-$DOCS_VERSION.tar.gz" \
+            "dist/roc-ansi-docs-$DOCS_VERSION.zip" \
             --repo "$GITHUB_REPOSITORY"
 
   build-site:
