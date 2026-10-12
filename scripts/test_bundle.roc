@@ -17,7 +17,7 @@ import src/Script
 ## workflow passes the exact archive it is about to publish, which catches
 ## packaging mistakes that checking the source tree cannot.
 main! = |_args| {
-	roc_nightly = Script.roc_nightly!()?
+	roc = Script.roc!()?
 	bundle = Bundle.selected!("dist")?
-	Bundle.test!(roc_nightly, bundle)
+	Bundle.test!(roc, bundle)
 }

@@ -11,13 +11,13 @@ import Script
 Site := [].{
 
 	## Generate the API documentation of the working tree into `output`.
-	docs! = |roc_nightly, output|
-		roc_nightly.run!(["docs", "package/main.roc", "--output=${Path.display(output)}"])
+	docs! = |roc, output|
+		roc.run!(["docs", "package/main.roc", "--output=${Path.display(output)}"])
 
-	## Assemble the whole site into `output` with `roc_nightly`. `releases`
+	## Assemble the whole site into `output` with `roc`. `releases`
 	## says whether to restore archived docs from release assets, which needs
 	## network access: `FetchReleaseDocs` or `SkipReleaseDocs`.
-	assemble! = |roc_nightly, output, releases| {
+	assemble! = |roc, output, releases| {
 		prepare_output!(output)?
 		Path.copy_dir_with!("www", output, { symlinks: Preserve, destination: Merge })?
 		match releases {
@@ -29,7 +29,7 @@ Site := [].{
 		if Path.exists!(main_docs)? {
 			Path.delete_all!(main_docs)?
 		}
-		roc_nightly
+		roc
 			.cmd(["docs", "package/main.roc", "--output=${Path.display(main_docs)}"])
 			.env_str("ROC_DOCS_URL_ROOT", "${Html.base_path}/main")
 			.exec_cmd!()?

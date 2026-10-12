@@ -16,8 +16,8 @@ import src/Script
 main! = |_args| {
 	# The bundle holds the package being developed, so the floating compiler
 	# builds it. The tooling compiler only runs this script.
-	roc_nightly = Script.roc_nightly!()?
+	roc = Script.roc!()?
 	output_dir = Script.env_or!("OUTPUT_DIR", "dist")?
-	_ = Bundle.build!(roc_nightly, Path.utf8(output_dir))?
+	_ = Bundle.build!(roc, Path.utf8(output_dir))?
 	Ok({})
 }

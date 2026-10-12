@@ -16,9 +16,9 @@ import src/Script
 ## where a release states what it was built with.
 main! = |_args| {
 	roc_stable = Script.roc_stable!()?
-	roc_nightly = Script.roc_nightly!()?
+	roc = Script.roc!()?
 	output = Path.utf8(Script.env_or!("OUTPUT", ".release/compilers.md")?)
-	package_compiler = roc_nightly.capture_utf8!(["version"], ".")?.trim().drop_prefix("Roc compiler version ")
+	package_compiler = roc.capture_utf8!(["version"], ".")?.trim().drop_prefix("Roc compiler version ")
 	tooling_compiler = roc_stable.capture_utf8!(["version"], ".")?.trim().drop_prefix("Roc compiler version ")
 	notes = Str.join_with(
 		[

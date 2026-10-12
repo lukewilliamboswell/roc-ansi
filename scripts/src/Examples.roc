@@ -21,7 +21,7 @@ Examples := [].{
 	## Check every example in `directory`, run the tests in `tests.roc`, then
 	## run each application both directly and as a built executable.
 	exercise! : Script.Command, Path, Source => Try({}, _)
-	exercise! = |roc_nightly, directory, source| {
+	exercise! = |roc, directory, source| {
 		files = Files.direct_roc_files!(directory)?
 		names = files.map_try(Script.file_name)?
 		apps = names.keep_if(|name| name != "tests.roc")
@@ -30,17 +30,17 @@ Examples := [].{
 		}
 
 		for name in names {
-			roc!(roc_nightly, ["check", OsStr.from_str(name), "--no-cache"], directory, source)?
+			roc!(roc, ["check", OsStr.from_str(name), "--no-cache"], directory, source)?
 		}
-		roc!(roc_nightly, ["test", "tests.roc", "--no-cache"], directory, source)?
+		roc!(roc, ["test", "tests.roc", "--no-cache"], directory, source)?
 		for name in apps {
-			roc!(roc_nightly, [OsStr.from_str(name), "--no-cache"], directory, source)?
+			roc!(roc, [OsStr.from_str(name), "--no-cache"], directory, source)?
 		}
 		Env.with_temp_dir!(
 			|build| {
 				for name in apps {
 					executable = Path.join(build, Files.stem(name))
-					roc!(roc_nightly, ["build", OsStr.from_str(name), "--output=${Path.display(executable)}", "--no-cache"], directory, source)?
+					roc!(roc, ["build", OsStr.from_str(name), "--output=${Path.display(executable)}", "--no-cache"], directory, source)?
 					label = Path.display(executable)
 					Stdout.line!("+ ${label}")?
 					finish!(label, captured!(label, Cmd.new(Path.to_os_str(executable)).cwd(directory))?)?
@@ -53,9 +53,9 @@ Examples := [].{
 }
 
 roc! : Script.Command, List(OsStr), Path, Examples.Source => Try({}, _)
-roc! = |roc_nightly, args, directory, source| {
-	label = Str.join_with([roc_nightly.program].concat(args).map(OsStr.display), " ")
-	command = roc_nightly.cmd(args).cwd(directory)
+roc! = |roc, args, directory, source| {
+	label = Str.join_with([roc.program].concat(args).map(OsStr.display), " ")
+	command = roc.cmd(args).cwd(directory)
 	Stdout.line!("+ ${label}")?
 	output = match source {
 		Direct => captured!(label, command)?

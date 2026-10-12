@@ -17,11 +17,11 @@ import src/Site
 ## With `FETCH_RELEASE_DOCS=1` the archived docs of every release are restored
 ## from its assets, which needs `gh` to be authenticated.
 main! = |_args| {
-	roc_nightly = Script.roc_nightly!()?
+	roc = Script.roc!()?
 	output = Path.absolute!(Path.utf8(Script.env_or!("SITE_OUTPUT", ".roc-ansi-tmp/site")?))?
 	releases = match Script.env_or!("FETCH_RELEASE_DOCS", "")? {
 		"" | "0" => SkipReleaseDocs
 		_ => FetchReleaseDocs
 	}
-	Site.assemble!(roc_nightly, output, releases)
+	Site.assemble!(roc, output, releases)
 }

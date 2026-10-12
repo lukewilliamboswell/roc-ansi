@@ -17,7 +17,7 @@ import src/Site
 ## Takes the same `SITE_OUTPUT` and `FETCH_RELEASE_DOCS` as `build_site.roc`,
 ## and serves on a free port unless `SITE_PORT` names one.
 main! = |_args| {
-	roc_nightly = Script.roc_nightly!()?
+	roc = Script.roc!()?
 	output = Path.absolute!(Path.utf8(Script.env_or!("SITE_OUTPUT", ".roc-ansi-tmp/site")?))?
 	releases = match Script.env_or!("FETCH_RELEASE_DOCS", "")? {
 		"" | "0" => SkipReleaseDocs
@@ -28,6 +28,6 @@ main! = |_args| {
 		Ok(value) => value
 		Err(_) => return Script.fail!("SITE_PORT must be between 0 and 65535, not ${requested}")
 	}
-	Site.assemble!(roc_nightly, output, releases)?
+	Site.assemble!(roc, output, releases)?
 	Preview.serve!(output, port)
 }

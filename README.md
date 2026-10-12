@@ -78,9 +78,6 @@ blueprint shell          # or enter the environment and run scripts directly
    step 4 against it in temporary copies of the examples.
 6. Builds the examples archive and the documentation site and archive.
 
-Set `ROC_NIGHTLY=/path/to/roc` to check the package with a compiler other than
-the `roc` on your `PATH`.
-
 | Task | What it does |
 | --- | --- |
 | `blueprint run check` | Everything CI checks |

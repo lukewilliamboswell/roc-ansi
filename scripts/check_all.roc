@@ -22,22 +22,22 @@ import src/Site
 ##
 ## Two compilers take part. `roc-stable`, pinned by Blueprint.roc, runs this
 ## script and checks the other scripts. The package, the examples and what a
-## release would publish are checked with the `roc` on PATH, or `ROC_NIGHTLY`,
-## which is meant to be the latest nightly.
+## release would publish are checked with the `roc` on PATH, which is meant to
+## be the latest nightly.
 main! = |_args| {
 	roc_stable = Script.roc_stable!()?
-	roc_nightly = Script.roc_nightly!()?
+	roc = Script.roc!()?
 
 	Script.section!("Compilers")?
 	roc_stable.run!(["version"])?
-	roc_nightly.run!(["version"])?
+	roc.run!(["version"])?
 
 	check_compiler_pins!()?
 	check_scripts!(roc_stable)?
-	check_package!(roc_nightly)?
-	check_examples!(roc_nightly)?
-	check_release_artifacts!(roc_nightly)?
-	check_site!(roc_nightly)?
+	check_package!(roc)?
+	check_examples!(roc)?
+	check_release_artifacts!(roc)?
+	check_site!(roc)?
 
 	Script.section!("Whitespace")?
 	Script.command("git").run!(["diff", "--check"])
@@ -84,14 +84,14 @@ check_scripts! = |roc_stable| {
 	roc_stable.run!(["fmt", "--check", "scripts"])
 }
 
-check_package! = |roc_nightly| {
+check_package! = |roc| {
 	Script.section!("Package")?
-	roc_nightly.run!(["fmt", "--check", "package", "examples"])?
-	roc_nightly.run!(["check", "package/main.roc", "--no-cache"])?
-	roc_nightly.run!(["test", "package/main.roc", "--no-cache"])
+	roc.run!(["fmt", "--check", "package", "examples"])?
+	roc.run!(["check", "package/main.roc", "--no-cache"])?
+	roc.run!(["test", "package/main.roc", "--no-cache"])
 }
 
-check_examples! = |roc_nightly| {
+check_examples! = |roc| {
 	Script.section!("Examples, against the working tree")?
 	# Committed examples must exercise the working tree, never a published bundle.
 	for example in Files.roc_sources!("examples")? {
@@ -100,17 +100,17 @@ check_examples! = |roc_nightly| {
 			_ => return Script.fail!("${Path.display(example.path)}: the app header must declare ${Release.shorthand}: \"../package/main.roc\"")
 		}
 	}
-	Examples.exercise!(roc_nightly, "examples", Direct)
+	Examples.exercise!(roc, "examples", Direct)
 }
 
 # Build what a release would publish, and test that instead of the source tree.
-check_release_artifacts! = |roc_nightly| {
+check_release_artifacts! = |roc| {
 	Script.section!("Release bundle and examples archive")?
 	Env.with_temp_dir!(
 		|temporary| {
 			output = Path.join(temporary, "dist")
-			bundle = Bundle.build!(roc_nightly, output)?
-			Bundle.test!(roc_nightly, bundle)?
+			bundle = Bundle.build!(roc, output)?
+			Bundle.test!(roc, bundle)?
 
 			# The archive's URL does not exist until a release is published, so
 			# here it is unpacked and compared instead of run.
@@ -127,14 +127,14 @@ check_release_artifacts! = |roc_nightly| {
 	)
 }
 
-check_site! = |roc_nightly| {
+check_site! = |roc| {
 	Script.section!("Documentation site and docs archive")?
 	Env.with_temp_dir!(
 		|temporary| {
-			Site.assemble!(roc_nightly, Path.join(temporary, "site"), SkipReleaseDocs)?
+			Site.assemble!(roc, Path.join(temporary, "site"), SkipReleaseDocs)?
 
 			docs_root = Path.join(temporary, "docs")
-			Site.docs!(roc_nightly, Path.join(docs_root, "0.0.0"))?
+			Site.docs!(roc, Path.join(docs_root, "0.0.0"))?
 			first = DocsArchive.pack!(docs_root, "0.0.0", Path.join(temporary, "first"))?
 			second = DocsArchive.pack!(docs_root, "0.0.0", Path.join(temporary, "second"))?
 			if Path.read_bytes!(first)? != Path.read_bytes!(second)? {

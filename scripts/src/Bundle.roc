@@ -11,9 +11,9 @@ import Script
 ## Building the package bundle, and testing the examples against one.
 Bundle := [].{
 
-	## Bundle the working-tree package into `output_dir` with `roc_nightly`,
+	## Bundle the working-tree package into `output_dir` with `roc`,
 	## returning the path of the archive it created.
-	build! = |roc_nightly, output_dir| {
+	build! = |roc, output_dir| {
 		modules = Files.direct_roc_files!("package")?.map_try(Script.file_name)?
 		if !modules.contains("main.roc") {
 			return Script.fail!("package/main.roc does not exist")
@@ -25,7 +25,7 @@ Bundle := [].{
 		args = ["bundle", "main.roc"]
 			.concat(modules.keep_if(|name| name != "main.roc").map(OsStr.from_str))
 			.concat(["--output-dir", Path.to_os_str(output)])
-		report = roc_nightly.capture_utf8!(args, "package")?
+		report = roc.capture_utf8!(args, "package")?
 		match Str.split_on(report, "\n").keep_oks(|line| if line.starts_with("Created: ") Ok(line.drop_prefix("Created: ").trim()) else Err(NotCreated)) {
 			[created] => {
 				bundle = Path.utf8(created)
@@ -54,7 +54,7 @@ Bundle := [].{
 
 	## Run the examples against `bundle`, served from a loopback address. Only
 	## temporary copies of the examples are pointed at it.
-	test! = |roc_nightly, bundle| {
+	test! = |roc, bundle| {
 		Script.require_file!(bundle)?
 		server = Loopback.start!(bundle)?
 		Script.info!("SERVE", server.url)?
@@ -67,7 +67,7 @@ Bundle := [].{
 					Path.write_utf8!(example, Headers.with_dependency(source, Release.shorthand, server.url)?)?
 				}
 				# An empty package cache makes Roc fetch the bundle from the server.
-				fetching = roc_nightly.with_empty_package_cache(Path.join(temporary, "cache"))
+				fetching = roc.with_empty_package_cache(Path.join(temporary, "cache"))
 				Examples.exercise!(fetching, examples, Served(server))
 			},
 		)

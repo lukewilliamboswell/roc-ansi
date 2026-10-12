@@ -22,7 +22,7 @@ import src/Script
 ## fetch the published bundle. `EXAMPLES_ARCHIVE` names a local archive to test
 ## instead, which the release workflow uses before attaching one.
 main! = |_args| {
-	roc_nightly = Script.roc_nightly!()?
+	roc = Script.roc!()?
 	Env.with_temp_dir!(
 		|temporary| {
 			archive = match Script.env_or!("EXAMPLES_ARCHIVE", "")? {
@@ -31,10 +31,10 @@ main! = |_args| {
 			}
 			unpacked = Archive.unpack!(archive, Path.join(temporary, "unpacked"))?
 			Script.info!("PUBLISHED", "${Release.name} ${unpacked.version}: ${unpacked.url}")?
-			roc_nightly.run!(["version"])?
+			roc.run!(["version"])?
 			# An empty package cache makes Roc fetch the published bundle, as it
 			# would for someone using this release for the first time.
-			fetching = roc_nightly.with_empty_package_cache(Path.join(temporary, "cache"))
+			fetching = roc.with_empty_package_cache(Path.join(temporary, "cache"))
 			Examples.exercise!(fetching, unpacked.examples, Direct)
 		},
 	)
