@@ -1,0 +1,86 @@
+= Maintain and release
+
+This chapter is for a maintainer: what each workflow shows, how the tooling is
+updated, and how a release is made. The repository follows the
+https://lukewilliamboswell.github.io/roc-automation/[roc-automation manual],
+which gives the reasons behind each practice.
+
+== What each workflow shows
+
+[cols="1,2,3",options="header"]
+|===
+| Workflow | Runs on | What it shows
+
+| `ci.yml`
+| Pull requests, pushes to `main`
+| The working tree passes `blueprint run check` on the latest nightly
+
+| `release.yml`
+| Manual dispatch; pull requests as a dry run
+| The exact bundle, examples archive and documentation proposed for publication work
+
+| `nightly.yml`
+| Daily
+| The latest release's examples archive still works on the latest nightly
+
+| `www.yaml`
+| Pushes to `main`
+| Deploys the documentation site
+|===
+
+The package is pure Roc, so every job runs on Linux only.
+
+`nightly.yml` keeps one tracking issue: opened on the first failure, updated by
+later failures, and closed by the next pass. A failure there means the latest
+release needs a patch release. A published archive is never edited.
+
+== Update the tooling
+
+Nothing updates the tooling automatically. Each of these is a pull request.
+
+Refresh the lock:: Run `blueprint update` and commit `Blueprint.lock`.
+Change the tooling compiler:: Change the tag in `Command("roc-stable", ...)` in
+`Blueprint.roc` and the `roc` field of every script to the same nightly. The
+check fails until they agree. Run `blueprint update roc` if the lock predates
+that nightly, and fix any script the new compiler breaks.
+Upgrade Blueprint:: Change the platform URL at the top of `Blueprint.roc`, and
+the `version` and `sha256-*` inputs the workflows pass to `setup-blueprint`,
+from the same roc-blueprint release.
+Update a script dependency:: Change its URL in every script header and under
+`RocPackages` in `Blueprint.roc`, then run `blueprint update`.
+
+== Make a release
+
+. Choose the version. `roc bump` compares the package with the latest release
+  and says how far the version must move:
++
+[source,sh]
+----
+roc bump --old <latest release bundle URL> package/main.roc
+----
+. Write the notes in `docs/releases/<version>.adoc`, add them to the top of
+  `docs/releases.adoc`, and merge that pull request. Write them for someone
+  deciding whether and how to upgrade. Use `+{package-url}+` wherever the
+  release's bundle URL belongs.
+. Dispatch the *Release* workflow from `main` with that version.
+
+On a pull request the workflow builds and tests the same things under the
+version `0.0.1-dry-run`, and publishes nothing.
+
+== How the site is put together
+
+Generated API documentation is never committed. Each release attaches its
+documentation as `roc-ansi-docs-<version>.zip`, and the site is assembled from
+those archives and from fresh documentation for `main`. The address of each
+release's documentation therefore keeps working without its HTML being stored
+in Git.
+
+[source,sh]
+----
+blueprint run serve                        # main only; no downloads
+FETCH_RELEASE_DOCS=1 blueprint run serve   # also restore every release's docs
+----
+
+The preview picks a free port, or the one named by `SITE_PORT`.
+`FETCH_RELEASE_DOCS=1` downloads release assets with `gh`, which must be
+authenticated. `blueprint run site` assembles the same site without serving it.

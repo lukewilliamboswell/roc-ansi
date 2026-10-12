@@ -1,0 +1,165 @@
+= Contribute
+
+This chapter is for someone changing roc-ansi: what to install, how to run the
+checks a pull request must pass, and where each kind of test lives.
+
+Use https://github.com/lukewilliamboswell/roc-ansi/issues[issues] for bugs and
+design discussion, and pull requests for changes. Say what behaviour changes
+and how you checked it. A bug fix or a new behaviour comes with a test.
+
+== Set up
+
+You need three things:
+
+* https://nixos.org/download[Nix], with flakes enabled.
+* The `blueprint` command from
+  https://github.com/lukewilliamboswell/roc-blueprint[roc-blueprint], at the
+  release named by the platform URL at the top of `Blueprint.roc`. Download the
+  binary for your system from that release and check it against the release's
+  `blueprint.sha256`, or run `nix profile install github:lukewilliamboswell/roc-blueprint/<version>`.
+* A current Roc https://github.com/roc-lang/nightlies/releases[nightly] on your
+  `PATH` as `roc`.
+
+== Two compilers
+
+[cols="1,2,3",options="header"]
+|===
+| Command | Chosen by | Used for
+
+| `roc`
+| You: the latest nightly
+| Checking, testing, bundling and running the package and its examples
+
+| `roc-stable`
+| The release named in `Blueprint.roc`
+| Running the scripts under `scripts/`
+|===
+
+The package is always tested with the newest compiler, because that is what its
+users install. `roc-stable` exists so the repository's own tooling keeps
+working on the day a nightly breaks something. It never checks or builds the
+package, and it only exists inside `blueprint run` and `blueprint shell`.
+
+Nothing pins a compiler for the package or the examples. Each script names
+`roc-stable`'s release in its `roc` header field, so that running one with a
+different compiler says why it misbehaves.
+
+== Run the checks
+
+[source,sh]
+----
+blueprint run check      # everything a pull request must pass
+blueprint shell          # or enter the environment and run scripts directly
+blueprint tasks          # list every task
+----
+
+`blueprint run check` runs `scripts/check_all.roc`, which:
+
+. Fails if a compiler pin appears outside `scripts/`, or a script's pin differs
+  from `Blueprint.roc`.
+. Tests, checks and formats the scripts with `roc-stable`.
+. Formats, checks and tests the package with `roc`.
+. Builds every example against the working tree, runs it, and compares its
+  output with `tests/spec.json`.
+. Builds each fuzz target and replays its committed corpus.
+. Counts allocations and compares them with `tests/allocations.json`.
+. Bundles the package, builds the examples archive, and runs the archived
+  examples, unchanged, against that bundle.
+. Builds the API documentation and its archive.
+
+A pull request can fail because a new nightly arrived, with no fault in the
+change. Compare with the latest run of the nightly workflow and with `main`
+before treating a failure as yours.
+
+== Where tests live
+
+[cols="1,2,3",options="header"]
+|===
+| Kind | Where | How to add one
+
+| Unit tests
+| `expect` beside the code in `package/`
+| Write an `expect` in the module. `roc test package/main.roc` runs them all.
+
+| Example output
+| `tests/spec.json`
+| Add a case to the example's entry, then record its output; see <<change-an-example>>.
+
+| Properties
+| `fuzz/<name>/main.roc`
+| A https://lukewilliamboswell.github.io/roc-fuzz/[roc-fuzz] target with a small `corpus/`; see <<search-for-inputs-nobody-thought-of>>.
+
+| Allocations
+| `tests/allocations.json`
+| Add a case and its ceiling; see <<keep-allocations-from-creeping-up>>.
+
+| Script logic
+| `expect` in the modules under `scripts/src/`
+| Keep effects out of the module, and add it to the list in `check_scripts!`.
+|===
+
+== Change an example
+
+An example's exact output is recorded, so a change to what it prints must be
+recorded too:
+
+[source,sh]
+----
+blueprint shell
+scripts/test_examples.roc -- --update
+----
+
+That rewrites `tests/spec.json` from what the examples print now. Review the
+diff like any other change. An example that cannot run for a reason outside
+this repository is skipped in the specification with a `reason` and an `issue`
+link; a skip without both is rejected.
+
+Examples are for users of the package. Keep each one short, about one thing,
+and commented for someone reading it with no other context. A test belongs in
+`package/` or `tests/`, not in `examples/`.
+
+== Search for inputs nobody thought of
+
+`fuzz/piece-table` states a rule that must hold for every document and index,
+and https://lukewilliamboswell.github.io/roc-fuzz/[roc-fuzz] searches for an
+input that breaks it. Every pull request only builds the target and replays its
+committed corpus. To search:
+
+[source,sh]
+----
+roc build --fuzz fuzz/piece-table/main.roc --output=piece-table
+./piece-table run fuzz/piece-table/corpus --time=60
+----
+
+When it finds a failure, fix the bug and keep the minimised input as an
+ordinary `expect` in the package.
+
+== Keep allocations from creeping up
+
+A change can make an in-place update copy a whole list on every call, and
+every test still passes. `tests/allocations.json` records the most allocations
+each listed case may make, and the check fails above that.
+
+* A count below its ceiling passes, and the check says what to lower the
+  ceiling to. Lower it in the same pull request, so the gain cannot be lost.
+* Raising a ceiling needs a reason in the pull request. It is not a way to make
+  a red build green.
+
+The counts come from `tests/allocations/main.roc`, built on the roc-fuzz
+platform because its host counts allocations. Nothing is fuzzed there.
+
+== Build this manual
+
+The manual is the AsciiDoc under `docs/`, one chapter per file, rendered by the
+shared https://lukewilliamboswell.github.io/roc-automation/#build-docs[build-docs]
+action. To build it yourself you need Docker and a checkout of roc-automation:
+
+[source,sh]
+----
+blueprint run install-snippet
+python3 ../roc-automation/actions/build-docs/build_docs.py --workspace . --pdf-filename roc-ansi.pdf
+----
+
+The first command writes the install snippet for the latest release into
+`docs/generated/`, which needs `gh` to be authenticated. The second writes the
+site and the PDF to `.docs-out/site`.

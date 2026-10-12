@@ -1,0 +1,42 @@
+= The roc-ansi manual
+:doctype: book
+:author: The roc-ansi contributors
+:revnumber: {docs-version}
+:toc: left
+:toclevels: 2
+:sectnums:
+:sectanchors:
+:icons: font
+:source-highlighter: rouge
+
+[.lead]
+roc-ansi lets a Roc program colour and style what it prints, move the cursor,
+read key presses and draw simple tables, by writing the ANSI escape sequences a
+terminal understands for you.
+
+ifdef::backend-html5[]
+link:roc-ansi.pdf[Download this manual as a PDF] ·
+https://github.com/lukewilliamboswell/roc-ansi[View roc-ansi on GitHub].
+endif::[]
+
+.How to use this manual
+****
+Deciding whether to use roc-ansi:: Start with <<what-roc-ansi-is>>.
+Using it for the first time:: Follow <<get-started>>.
+Looking for code to adapt:: Browse <<learn-from-the-examples>>.
+Changing roc-ansi itself:: Read <<contribute>>.
+Releasing or looking after the repository:: Read <<maintain-and-release>>.
+Upgrading:: See <<release-notes>>.
+****
+
+include::overview.adoc[leveloffset=+1]
+
+include::getting-started.adoc[leveloffset=+1]
+
+include::examples.adoc[leveloffset=+1]
+
+include::contributing.adoc[leveloffset=+1]
+
+include::maintaining.adoc[leveloffset=+1]
+
+include::releases.adoc[leveloffset=+1]

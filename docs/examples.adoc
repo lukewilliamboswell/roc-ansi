@@ -1,0 +1,49 @@
+= Learn from the examples
+
+Each example is a short, complete program that shows one thing, with comments
+that walk through it. Read them top to bottom, or copy one as a starting point.
+
+[cols="1,3",options="header"]
+|===
+| Example | What it shows
+
+| https://github.com/lukewilliamboswell/roc-ansi/blob/main/examples/animals.roc[`animals.roc`]
+| Colouring a few words inside a sentence with `ANSI.color`
+
+| https://github.com/lukewilliamboswell/roc-ansi/blob/main/examples/colors.roc[`colors.roc`]
+| Every way of naming a colour, from the most portable to the least
+
+| https://github.com/lukewilliamboswell/roc-ansi/blob/main/examples/styles.roc[`styles.roc`]
+| Bold, faint, italic and the other text styles, and how to switch them off
+
+| https://github.com/lukewilliamboswell/roc-ansi/blob/main/examples/menu.roc[`menu.roc`]
+| Combining colours and styles to draw a menu with one highlighted entry
+
+| https://github.com/lukewilliamboswell/roc-ansi/blob/main/examples/piece-table.roc[`piece-table.roc`]
+| Editing text with a piece table
+|===
+
+== Which copy to use
+
+The examples exist in two places, and they are not the same.
+
+The examples for a release:: Each release attaches an archive,
+`roc-ansi-examples-<version>.zip`, linked from
+xref:getting-started.adoc#add-the-package[Add the package]. Its examples depend
+on that release's package URL and never change. Use these to start a project.
+
+The examples in the repository:: These depend on the package beside them,
+`ansi: "../package/main.roc"`, so they always match the unreleased code on
+`main`. They may use something no release has yet. Use these when you are
+changing roc-ansi.
+
+== What the output looks like
+
+.`menu.roc`
+image::images/menu.png[A menu with a bold title and its first entry highlighted in green]
+
+.`piece-table.roc`
+image::images/piece-table.png[One line of text showing a document after an insertion and a deletion]
+
+The archive also holds `spec.json`, which records exactly what each example
+printed when the release was made.

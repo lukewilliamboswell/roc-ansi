@@ -63,7 +63,7 @@ add_examples! = |output| {
 		source : Path
 		source = "examples/${slug}.roc"
 		capture : Path
-		capture = "examples/${slug}.png"
+		capture = "docs/images/${slug}.png"
 		if !Path.is_file!(source)? or !Path.is_file!(capture)? {
 			return Script.fail!("missing source or terminal capture for the ${slug} example")
 		}

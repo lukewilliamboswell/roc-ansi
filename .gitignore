@@ -7,6 +7,9 @@ examples/**
 !examples/**/*.*
 
 generated-docs/
+# Rendered by the shared build-docs action, and its generated input.
+.docs-out/
+docs/generated/
 .roc-ansi-tmp/
 dist/
 

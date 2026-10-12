@@ -1,0 +1,69 @@
+= What roc-ansi is
+
+A terminal changes colour, moves its cursor and reports key presses through
+short byte sequences called ANSI escape codes. They are easy to get wrong and
+unpleasant to read: `\u(001b)[38;5;208m` means "orange text". roc-ansi is a Roc
+package that gives each of them a typed name, so a program says
+`ANSI.color("hello", { fg: C256(208), bg: Default })` and gets the right bytes.
+
+It is a pure Roc package. It has no platform of its own and works wherever Roc
+does, with any platform that can write to a terminal.
+
+== What it covers
+
+[cols="1,3",options="header"]
+|===
+| Module | What it is for
+
+| `ANSI`
+| The entry point: colour and style text, turn any escape into a string, parse raw key presses, and draw to a screen buffer
+
+| `Color`, `C16`, `C256`, `Rgb`
+| The four ways to name a colour: the terminal default, the 16 named colours, the 256-colour palette, and 24-bit RGB
+
+| `Style`
+| Bold, faint, italic, underline, strikethrough and inverted text
+
+| `Control`
+| Cursor movement, clearing the screen or a line, and scrolling
+
+| `Layout`, `Spacing`
+| Bordered grids and tables, padding and margins
+
+| `PieceTable`
+| A piece table, the structure a text editor keeps its buffer in
+|===
+
+== What it looks like
+
+image::images/animals.png[A sentence with three words coloured green, blue and red]
+
+image::images/colors.png[Lines of text in the 16 named colours, 256-colour and RGB]
+
+image::images/styles.png[Lines of bold, faint, italic, strikethrough, underlined and inverted text]
+
+Each picture is the output of one of the programs in
+xref:examples.adoc#learn-from-the-examples[Learn from the examples].
+
+== What it does not do
+
+* It does not put the terminal into raw mode or read from standard input. Your
+  platform does that; roc-ansi parses the bytes it hands you.
+* It does not detect what a terminal supports. A program that must work
+  everywhere should keep to the 16 named colours.
+
+== Compatibility
+
+Roc has no stable release yet, so a roc-ansi release is built and tested with
+one nightly compiler, named in its release notes. The latest release is tested
+against the latest nightly every day, and a failure is fixed by a patch
+release. Use the latest release with a current
+https://github.com/roc-lang/nightlies/releases[nightly].
+
+== Where to ask and report
+
+* Bugs and requests: https://github.com/lukewilliamboswell/roc-ansi/issues[GitHub issues].
+* Vulnerabilities: privately, as described in
+  https://github.com/lukewilliamboswell/roc-ansi/blob/main/SECURITY.md[SECURITY.md].
+* roc-ansi is open source under the
+  https://github.com/lukewilliamboswell/roc-ansi/blob/main/LICENSE[Universal Permissive License 1.0].

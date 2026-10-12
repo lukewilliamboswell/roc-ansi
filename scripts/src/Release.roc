@@ -123,6 +123,45 @@ Release := [].{
 			[] => Bool.False
 		}
 
+	## The address the documentation site is served from.
+	site : Str
+	site = "https://lukewilliamboswell.github.io/roc-ansi"
+
+	## The part of the manual that names one release: a first program whose
+	## header holds that release's bundle `url`, and links to its API
+	## reference, examples and notes. It is AsciiDoc, generated because a
+	## bundle URL holds a hash that cannot be written by hand.
+	install_snippet : Str, Str, Str -> Str
+	install_snippet = |version, url, examples_asset| {
+		release = "https://github.com/${Release.repository}/releases"
+		Str.join_with(
+			[
+				".The latest release is ${version}",
+				"[source,roc]",
+				"----",
+				"app [main!] {",
+				"\tansi: \"${url}\",",
+				"}",
+				"",
+				"import ansi.ANSI",
+				"",
+				"main! = |_args| {",
+				"\techo!(ANSI.color(\"hello\", { fg: Standard(Green), bg: Default }))",
+				"\tOk({})",
+				"}",
+				"----",
+				"",
+				"For release ${version}:",
+				"",
+				"* ${Release.site}/${version}/[API reference]",
+				"* ${release}/download/${version}/${examples_asset}[Examples], each depending on this release",
+				"* ${release}/tag/${version}[Release notes]",
+				"",
+			],
+			"\n",
+		)
+	}
+
 	## The README at the top of the examples archive.
 	examples_readme : Str, Str -> Str
 	examples_readme = |version, url|
@@ -197,3 +236,5 @@ expect !Release.valid_legacy_examples_entry("../escape.roc") and !Release.valid_
 expect Release.valid_docs_entry("0.14.0", "0.14.0/index.html") and Release.valid_docs_entry("0.14.0", "0.14.0/ANSI/") and Release.valid_docs_entry("0.14.0", "0.14.0")
 expect !Release.valid_docs_entry("0.14.0", "../escape") and !Release.valid_docs_entry("0.14.0", "/escape") and !Release.valid_docs_entry("0.14.0", "0.14.0/../../escape")
 expect !Release.valid_docs_entry("0.14.0", "0.13.0/index.html") and !Release.valid_docs_entry("0.14.0", "0.14.0//index.html") and !Release.valid_docs_entry("0.14.0", "0.14.0/a\\b") and !Release.valid_docs_entry("0.14.0", "")
+expect Release.install_snippet("0.14.0", url, "roc-ansi-examples-0.14.0.zip").contains("\tansi: \"${url}\",\n")
+expect Release.install_snippet("0.14.0", url, "roc-ansi-examples-0.14.0.zip").contains("* https://lukewilliamboswell.github.io/roc-ansi/0.14.0/[API reference]\n* https://github.com/lukewilliamboswell/roc-ansi/releases/download/0.14.0/roc-ansi-examples-0.14.0.zip[Examples]")
