@@ -25,14 +25,13 @@ Examples := [].{
 
 	## What to do with the examples in `directory`.
 	##
-	## `expected` is the specification to compare with, or `ExitCodeOnly` for an
-	## archive published before releases carried one. `Update` rewrites that
-	## specification from what the examples print, in place of comparing.
+	## `spec` is the specification to compare with. `Update` rewrites it from
+	## what the examples print, in place of comparing.
 	## `roc_args` are added to every `roc check` and `roc build`.
 	Options : {
 		directory : Path,
 		source : Source,
-		expected : [Recorded(Path), ExitCodeOnly],
+		spec : Path,
 		mode : [Compare, Update],
 		roc_args : List(OsStr),
 	}
@@ -60,17 +59,17 @@ Examples := [].{
 		if !Report.passed(done.steps) {
 			return Script.fail!("${done.failures.len().to_str()} steps failed in ${Path.display(options.directory)}")
 		}
-		match (options.mode, options.expected) {
-			(Update, Recorded(spec_path)) => {
+		match options.mode {
+			Update => {
 				rendered = Spec.render(done.updated)
-				if Path.read_utf8!(spec_path)? == rendered {
-					Script.info!("UNCHANGED", Path.display(spec_path))
+				if Path.read_utf8!(options.spec)? == rendered {
+					Script.info!("UNCHANGED", Path.display(options.spec))
 				} else {
-					Path.write_utf8!(spec_path, rendered)?
-					Script.info!("UPDATED", Path.display(spec_path))
+					Path.write_utf8!(options.spec, rendered)?
+					Script.info!("UPDATED", Path.display(options.spec))
 				}
 			}
-			_ => Ok({})
+			Compare => Ok({})
 		}
 	}
 }
@@ -129,26 +128,21 @@ execute! = |roc, options, examples, colour, build| {
 	Ok({ steps: $steps, failures: $failures, updated: $updated })
 }
 
-# The specification to run: the recorded one, checked against the examples
-# that exist, or one case per example that only requires it to exit with 0.
+# The recorded specification, checked against the examples that exist.
 load! : Examples.Options, List(Str) => Try(List(Spec.App), _)
-load! = |options, paths|
-	match options.expected {
-		ExitCodeOnly => Ok(paths.map(|path| { path, cases: [{ name: "exits with 0", args: Err(Missing), stdin: Err(Missing), exit_code: Err(Missing), stdout: Err(Missing), skip: Err(Missing) }] }))
-		Recorded(spec_path) => {
-			examples = match Spec.parse(Path.read_utf8!(spec_path)?) {
-				Ok(parsed) => parsed
-				Err(InvalidSpec) => return Script.fail!("${Path.display(spec_path)} is not a specification of the examples")
-			}
-			# A case being recorded for the first time has no output yet.
-			problems = Spec.problems(examples, paths).keep_if(|problem| options.mode == Compare or !problem.ends_with(": the expected stdout is required"))
-			if problems.is_empty() {
-				Ok(examples)
-			} else {
-				Script.fail!("${Path.display(spec_path)} does not describe the examples in ${Path.display(options.directory)}:\n${Str.join_with(problems, "\n")}")
-			}
-		}
+load! = |options, paths| {
+	examples = match Spec.parse(Path.read_utf8!(options.spec)?) {
+		Ok(parsed) => parsed
+		Err(InvalidSpec) => return Script.fail!("${Path.display(options.spec)} is not a specification of the examples")
 	}
+	# A case being recorded for the first time has no output yet.
+	problems = Spec.problems(examples, paths).keep_if(|problem| options.mode == Compare or !problem.ends_with(": the expected stdout is required"))
+	if problems.is_empty() {
+		Ok(examples)
+	} else {
+		Script.fail!("${Path.display(options.spec)} does not describe the examples in ${Path.display(options.directory)}:\n${Str.join_with(problems, "\n")}")
+	}
+}
 
 # Check an example and build it once, for every case to run. Returns what went
 # wrong, or "" when the executable is ready.

@@ -22,5 +22,5 @@ main! = |args| {
 		["--update"] => Update
 		_ => return Script.fail!("usage: scripts/test_examples.roc [-- --update]")
 	}
-	Examples.run!(Script.roc!()?, { directory: "examples", source: Direct, expected: Recorded("tests/spec.json"), mode, roc_args: [] })
+	Examples.run!(Script.roc!()?, { directory: "examples", source: Direct, spec: "tests/spec.json", mode, roc_args: [] })
 }
