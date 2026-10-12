@@ -115,7 +115,6 @@ Release := [].{
 				"",
 				"    cd examples",
 				"    roc colors.roc",
-				"    roc test tests.roc",
 				"",
 				"Release notes: https://github.com/${Release.repository}/releases/tag/${version}",
 				"",

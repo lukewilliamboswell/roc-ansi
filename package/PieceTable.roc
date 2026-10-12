@@ -291,3 +291,11 @@ expect {
 	actual = table_to_str(PieceTable.delete(test_table, { index: 9999 }))?
 	actual == "Lorem ipsum dolor sit amet"
 }
+
+## Inserting into a single original span preserves the surrounding bytes.
+expect {
+	table : PieceTable(U8)
+	table = { original: Str.to_utf8("abc"), added: [], table: [PieceTable.Entry.Original({ start: 0, len: 3 })] }
+
+	PieceTable.to_list(PieceTable.insert(table, { values: Str.to_utf8("X"), index: 1 })) == Str.to_utf8("aXbc")
+}
