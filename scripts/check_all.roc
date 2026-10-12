@@ -103,24 +103,27 @@ check_examples! = |roc| {
 	Examples.run!(roc, { directory: "examples", source: Direct, expected: Recorded("tests/spec.json"), mode: Compare, roc_args: [] })
 }
 
-# Build what a release would publish, and test that instead of the source tree.
+# Build what a release would publish, and test those files instead of the
+# source tree.
 check_release_artifacts! = |roc| {
 	Script.section!("Release bundle and examples archive")?
 	Env.with_temp_dir!(
 		|temporary| {
 			output = Path.join(temporary, "dist")
 			bundle = Bundle.build!(roc, output)?
-			Bundle.test!(roc, bundle)?
+			archive = Archive.pack!(Release.dry_run_version, Script.file_name(bundle)?, output)?
+			Bundle.test!(roc, bundle, archive)?
 
-			# The archive's URL does not exist until a release is published, so
-			# here it is unpacked and compared instead of run.
-			archive = Archive.pack!("0.0.0", Script.file_name(bundle)?, output)?
 			unpacked = Archive.unpack!(archive, Path.join(temporary, "unpacked"))?
 			for example in Files.roc_sources!("examples")? {
 				archived = Path.read_utf8!(Path.join(unpacked.examples, Script.file_name(example.path)?))?
 				if Headers.with_dependency(example.source, Release.shorthand, unpacked.url) != Ok(archived) {
 					return Script.fail!("the archived ${Path.display(example.path)} differs by more than its package dependency")
 				}
+			}
+			match unpacked.expected {
+				Recorded(archived_spec) if Path.read_utf8!(archived_spec)? == Path.read_utf8!(Archive.spec)? => {}
+				_ => return Script.fail!("the examples archive does not hold ${Path.display(Archive.spec)} unchanged")
 			}
 			Script.pass!("archived examples differ from the repository's only in the package dependency")
 		},

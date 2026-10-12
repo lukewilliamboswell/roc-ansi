@@ -1,14 +1,14 @@
+import Archive
 import cli.Env
 import cli.OsStr
 import cli.Path
 import Examples
 import Files
-import Headers
 import Loopback
 import Release
 import Script
 
-## Building the package bundle, and testing the examples against one.
+## Building the package bundle, and testing an examples archive against one.
 Bundle := [].{
 
 	## Bundle the working-tree package into `output_dir` with `roc`,
@@ -52,26 +52,38 @@ Bundle := [].{
 		}
 	}
 
-	## Run the examples against `bundle`, served from a loopback address. Only
-	## temporary copies of the examples are pointed at it.
-	test! = |roc, bundle| {
+	## Run the examples in `archive`, exactly as archived, against `bundle`.
+	##
+	## The archived examples name the release URL of the bundle, which does not
+	## exist before the release does. So the bundle is served from a loopback
+	## address and Roc is told to load it wherever that URL is declared. The
+	## files under test are the files a release would publish.
+	test! = |roc, bundle, archive| {
 		Script.require_file!(bundle)?
-		server = Loopback.start!(bundle)?
-		Script.info!("SERVE", server.url)?
 		result = Env.with_temp_dir!(
 			|temporary| {
-				examples = Path.join(temporary, "examples")
-				Path.copy_dir!("examples", examples)?
-				for example in Files.direct_roc_files!(examples)? {
-					source = Path.read_utf8!(example)?
-					Path.write_utf8!(example, Headers.with_dependency(source, Release.shorthand, server.url)?)?
+				unpacked = Archive.unpack!(archive, Path.join(temporary, "unpacked"))?
+				if !unpacked.url.ends_with("/${Script.file_name(bundle)?}") {
+					return Script.fail!("${Path.display(archive)} depends on ${unpacked.url}, which is not ${Path.display(bundle)}")
 				}
+				server = Loopback.start!(bundle)?
+				Script.info!("SERVE", "${server.url} in place of ${unpacked.url}")?
 				# An empty package cache makes Roc fetch the bundle from the server.
 				fetching = roc.with_empty_package_cache(Path.join(temporary, "cache"))
-				Examples.run!(fetching, { directory: examples, source: Served(server), expected: Recorded("tests/spec.json"), mode: Compare, roc_args: [] })
+				ran = Examples.run!(
+					fetching,
+					{
+						directory: unpacked.examples,
+						source: Served(server),
+						expected: unpacked.expected,
+						mode: Compare,
+						roc_args: ["--replace-dep", OsStr.from_str(unpacked.url), OsStr.from_str(server.url)],
+					},
+				)
+				Loopback.stop!(server)?
+				ran
 			},
 		)
-		Loopback.stop!(server)?
 		result
 	}
 }

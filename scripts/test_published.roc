@@ -19,7 +19,9 @@ import src/Script
 ##
 ## This answers whether the release people download today works with today's
 ## compiler. Nothing is pointed at the working tree: the archived examples
-## fetch the published bundle. `EXAMPLES_ARCHIVE` names a local archive to test
+## fetch the published bundle and are compared with the output archived
+## beside them. A release published before archives carried that is only
+## required to build and exit cleanly. `EXAMPLES_ARCHIVE` names a local archive to test
 ## instead, which the release workflow uses before attaching one.
 main! = |_args| {
 	roc = Script.roc!()?
@@ -35,9 +37,7 @@ main! = |_args| {
 			# An empty package cache makes Roc fetch the published bundle, as it
 			# would for someone using this release for the first time.
 			fetching = roc.with_empty_package_cache(Path.join(temporary, "cache"))
-			# Releases up to 0.13.1 recorded no expected output, so their examples
-			# can only be required to build and exit cleanly.
-			Examples.run!(fetching, { directory: unpacked.examples, source: Direct, expected: ExitCodeOnly, mode: Compare, roc_args: [] })
+			Examples.run!(fetching, { directory: unpacked.examples, source: Direct, expected: unpacked.expected, mode: Compare, roc_args: [] })
 		},
 	)
 }

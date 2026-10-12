@@ -75,10 +75,21 @@ Release := [].{
 	}
 
 	## Whether `entry` may appear in the examples archive whose top-level
-	## directory is `root`: the README, or a Roc file directly inside `examples`.
+	## directory is `root`: the README, the expected-output specification, or
+	## a Roc file directly inside `examples`.
 	valid_examples_entry : Str, Str -> Bool
 	valid_examples_entry = |root, entry|
-		entry == "${root}/README.md" or example_file(entry.drop_prefix("${root}/examples/")) and entry.starts_with("${root}/examples/")
+		entry == "${root}/README.md" or entry == "${root}/spec.json" or example_file(entry.drop_prefix("${root}/examples/")) and entry.starts_with("${root}/examples/")
+
+	## Whether `version` can be in a package URL. Roc reads 0.0.0 there as "no
+	## version" and rejects the URL, so the lowest usable version is 0.0.1.
+	publishable_version : Str -> Bool
+	publishable_version = |version| Release.valid_version(version) and version != "0.0.0" and !version.starts_with("0.0.0-")
+
+	## The version a pull request builds and tests its release under. It is
+	## never published.
+	dry_run_version : Str
+	dry_run_version = "0.0.1-dry-run"
 
 	## Whether `entry` may appear in a legacy examples tarball, which holds
 	## nothing but Roc files directly inside `examples`.
@@ -116,6 +127,8 @@ Release := [].{
 				"    cd examples",
 				"    roc colors.roc",
 				"",
+				"`spec.json` records what each example printed when ${version} was released.",
+				"",
 				"Release notes: https://github.com/${Release.repository}/releases/tag/${version}",
 				"",
 			],
@@ -152,7 +165,10 @@ expect Release.find_examples_archive("0.14.0", ["roc-ansi-examples-0.13.1.zip"])
 expect Release.docs_archive("0.14.0") == "roc-ansi-docs-0.14.0.tar.gz"
 expect Release.examples_readme("0.14.0", url).contains("    ${url}\n") and Release.examples_readme("0.14.0", url).ends_with("/releases/tag/0.14.0\n")
 expect Release.valid_examples_entry("roc-ansi-examples-0.14.0", "roc-ansi-examples-0.14.0/README.md")
-expect Release.valid_examples_entry("roc-ansi-examples-0.14.0", "roc-ansi-examples-0.14.0/examples/tui-menu.roc")
+expect Release.valid_examples_entry("roc-ansi-examples-0.14.0", "roc-ansi-examples-0.14.0/spec.json") and !Release.valid_examples_entry("roc-ansi-examples-0.14.0", "roc-ansi-examples-0.14.0/examples/spec.json")
+expect Release.publishable_version("0.0.1-dry-run") and Release.publishable_version("0.14.0") and !Release.publishable_version("0.0.0") and !Release.publishable_version("0.0.0-rc1") and !Release.publishable_version("latest")
+expect Release.publishable_version(Release.dry_run_version)
+expect Release.valid_examples_entry("roc-ansi-examples-0.14.0", "roc-ansi-examples-0.14.0/examples/menu.roc")
 expect !Release.valid_examples_entry("roc-ansi-examples-0.14.0", "roc-ansi-examples-0.14.0/examples/../../escape.roc")
 expect !Release.valid_examples_entry("roc-ansi-examples-0.14.0", "roc-ansi-examples-0.14.0/examples/nested/app.roc")
 expect !Release.valid_examples_entry("roc-ansi-examples-0.14.0", "roc-ansi-examples-0.14.0/examples/notes.txt")

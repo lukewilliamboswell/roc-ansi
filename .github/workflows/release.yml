@@ -30,7 +30,9 @@ jobs:
       contents: read
     outputs:
       release_version: ${{ steps.validate.outputs.release_version }}
-      docs_version: ${{ steps.validate.outputs.docs_version }}
+      # API documentation is published for x.y.z only, so a dry run or a
+      # prerelease builds it under its base version.
+      docs_version: ${{ steps.validate.outputs.release_base_version }}
       test_matrix: ${{ steps.bundles.outputs.test_matrix }}
       nightly_tag: ${{ steps.nightly.outputs.tag }}
 
@@ -75,6 +77,8 @@ jobs:
         with:
           release_version: ${{ github.event_name == 'workflow_dispatch' && inputs.release_version || '' }}
           dry_run: ${{ github.event_name != 'workflow_dispatch' }}
+          # Roc rejects 0.0.0 in a package URL, so this is the lowest version.
+          dry_run_version: 0.0.1-dry-run
           github_token: ${{ github.token }}
 
       - name: Check the scripts, package, examples and release artifacts
@@ -133,7 +137,7 @@ jobs:
 
       - name: Package the API documentation
         env:
-          DOCS_VERSION: ${{ steps.validate.outputs.docs_version }}
+          DOCS_VERSION: ${{ steps.validate.outputs.release_base_version }}
         run: blueprint run package-docs
 
       - name: Record the compilers for the release notes
@@ -211,9 +215,18 @@ jobs:
           name: release-bundles
           path: .release/test-bundles
 
-      - name: Test the examples against the bundle
+      - name: Download the examples archive
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-assets
+          path: dist
+
+      # The archive names the release URL of the bundle, which does not exist
+      # yet: the bundle is served from a loopback address in its place.
+      - name: Test the examples archive, unchanged, against the bundle
         env:
           BUNDLE_PATH: .release/test-bundles/${{ matrix.artifact_file }}
+          EXAMPLES_ARCHIVE: dist/roc-ansi-examples-${{ needs.build.outputs.release_version }}.zip
         run: blueprint run test-bundle
 
   # Holds the write token, and runs no code from this repository.
