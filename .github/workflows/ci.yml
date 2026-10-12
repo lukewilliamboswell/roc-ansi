@@ -44,10 +44,3 @@ jobs:
 
       - name: Check the scripts, package, examples and release artifacts
         run: blueprint run check
-
-      - name: Assemble the site with the archived docs of each release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          FETCH_RELEASE_DOCS: "1"
-          SITE_OUTPUT: ${{ runner.temp }}/site
-        run: blueprint run site

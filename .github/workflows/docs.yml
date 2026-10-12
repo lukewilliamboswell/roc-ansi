@@ -1,28 +1,23 @@
-name: Deploy site and docs to Pages
+name: Documentation
 
+# Renders the manual in docs/ and adds the API reference beside it. A pull
+# request builds the site, so a broken manual fails review, and the result can
+# be downloaded from the run. Only the default branch deploys it.
 on:
   push:
     branches: [main]
-    paths:
-      - ".github/workflows/www.yaml"
-      - "Blueprint.roc"
-      - "Blueprint.lock"
-      - "package/**"
-      - "scripts/build_site.roc"
-      - "scripts/src/**"
-      - "examples/**"
-      - "www/**"
+  pull_request:
   workflow_dispatch:
 
 permissions: {}
 
 concurrency:
-  group: pages
+  group: docs-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   build:
-    name: Assemble the documentation site
+    name: Build the manual and site
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -46,28 +41,44 @@ jobs:
         with:
           version: nightly-new-compiler
 
-      - name: Assemble the site with the archived docs of each release
+      # The first program in the manual names the latest release's bundle URL.
+      - name: Write the parts of the manual that depend on what is released
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: blueprint run install-snippet
+
+      - id: docs
+        name: Render the manual as a site and a PDF
+        uses: lukewilliamboswell/roc-automation/actions/build-docs@7fdb8be46b12da9b119023c3a5aac28a9fdaa72b
+        with:
+          pdf-filename: roc-ansi.pdf
+          docs-version: ${{ github.event_name == 'pull_request' && format('main (pull request {0})', github.event.number) || 'main' }}
+
+      - name: Add the API reference of main and of each release
         env:
           GH_TOKEN: ${{ github.token }}
           FETCH_RELEASE_DOCS: "1"
-          SITE_OUTPUT: pages-site
+          SITE_OUTPUT: ${{ steps.docs.outputs.site-directory }}
         run: blueprint run site
-
-      - name: Setup Pages
-        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
 
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
-          path: pages-site
+          path: ${{ steps.docs.outputs.site-directory }}
 
+  # Holds the Pages permissions, checks out nothing, and deploys the artifact
+  # the build job produced.
   deploy:
-    name: Deploy site and docs
+    name: Deploy the site
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       pages: write
       id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

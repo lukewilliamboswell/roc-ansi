@@ -162,6 +162,23 @@ Release := [].{
 		)
 	}
 
+	## Order `x.y.z` versions from newest to oldest, comparing numbers, not text.
+	newest_first : List(Str) -> List(Str)
+	newest_first = |versions|
+		List.sort_with(versions.map(|version| (numbers(version), version)), |(left, _), (right, _)| compare_numbers(right, left))
+			.map(|(_, version)| version)
+
+	## The part of the manual that links the API reference of every version
+	## on the site: `main`, then each of `versions`, newest first. AsciiDoc.
+	api_versions : List(Str) -> Str
+	api_versions = |versions|
+		Str.join_with(
+			["* ${Release.site}/main/[main], which is not released yet"]
+				.concat(Release.newest_first(versions).map(|version| "* ${Release.site}/${version}/[${version}]"))
+				.append(""),
+			"\n",
+		)
+
 	## The README at the top of the examples archive.
 	examples_readme : Str, Str -> Str
 	examples_readme = |version, url|
@@ -188,6 +205,17 @@ Release := [].{
 			"\n",
 		)
 }
+
+numbers = |version| Str.split_on(version, ".").map(|part| U64.from_str(part).ok_or(0))
+
+compare_numbers = |left, right|
+	match (left, right) {
+		([a, .. as left_rest], [b, .. as right_rest]) =>
+			if a < b Before else if a > b After else compare_numbers(left_rest, right_rest)
+		([], []) => Same
+		([], _) => Before
+		(_, []) => After
+	}
 
 example_file = |file_name| file_name.ends_with(".roc") and Text.is_plain(file_name.drop_suffix(".roc"), "-_")
 
@@ -238,3 +266,5 @@ expect !Release.valid_docs_entry("0.14.0", "../escape") and !Release.valid_docs_
 expect !Release.valid_docs_entry("0.14.0", "0.13.0/index.html") and !Release.valid_docs_entry("0.14.0", "0.14.0//index.html") and !Release.valid_docs_entry("0.14.0", "0.14.0/a\\b") and !Release.valid_docs_entry("0.14.0", "")
 expect Release.install_snippet("0.14.0", url, "roc-ansi-examples-0.14.0.zip").contains("\tansi: \"${url}\",\n")
 expect Release.install_snippet("0.14.0", url, "roc-ansi-examples-0.14.0.zip").contains("* https://lukewilliamboswell.github.io/roc-ansi/0.14.0/[API reference]\n* https://github.com/lukewilliamboswell/roc-ansi/releases/download/0.14.0/roc-ansi-examples-0.14.0.zip[Examples]")
+expect Release.newest_first(["0.9.0", "0.13.1", "0.10.0", "0.13.0"]) == ["0.13.1", "0.13.0", "0.10.0", "0.9.0"]
+expect Release.api_versions(["0.9.0", "0.10.0"]) == "* https://lukewilliamboswell.github.io/roc-ansi/main/[main], which is not released yet\n* https://lukewilliamboswell.github.io/roc-ansi/0.10.0/[0.10.0]\n* https://lukewilliamboswell.github.io/roc-ansi/0.9.0/[0.9.0]\n"

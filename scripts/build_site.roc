@@ -8,17 +8,18 @@ import cli.Path
 import src/Script
 import src/Site
 
-## Assemble the GitHub Pages site.
+## Add the API reference to the documentation site.
 ##
 ##     scripts/build_site.roc
 ##     FETCH_RELEASE_DOCS=1 SITE_OUTPUT=pages-site scripts/build_site.roc
 ##
-## Writes to `.roc-ansi-tmp/site`, or to the directory named by `SITE_OUTPUT`.
-## With `FETCH_RELEASE_DOCS=1` the archived docs of every release are restored
-## from its assets, which needs `gh` to be authenticated.
+## Works on `.docs-out/site`, where the build-docs action renders the manual,
+## or on the directory named by `SITE_OUTPUT`. With `FETCH_RELEASE_DOCS=1` the
+## archived docs of every release are restored from its assets, which needs
+## `gh` to be authenticated.
 main! = |_args| {
 	roc = Script.roc!()?
-	output = Path.absolute!(Path.utf8(Script.env_or!("SITE_OUTPUT", ".roc-ansi-tmp/site")?))?
+	output = Path.absolute!(Path.utf8(Script.env_or!("SITE_OUTPUT", ".docs-out/site")?))?
 	releases = match Script.env_or!("FETCH_RELEASE_DOCS", "")? {
 		"" | "0" => SkipReleaseDocs
 		_ => FetchReleaseDocs

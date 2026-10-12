@@ -383,11 +383,24 @@ jobs:
           version: nightly-new-compiler
           nightly-tag: ${{ needs.build.outputs.nightly_tag }}
 
-      - name: Assemble the site with the archived docs of each release
+      # The release is published, so it is now the latest one the manual names.
+      - name: Write the parts of the manual that depend on what is released
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: blueprint run install-snippet
+
+      - id: docs
+        name: Render the manual
+        uses: lukewilliamboswell/roc-automation/actions/build-docs@7fdb8be46b12da9b119023c3a5aac28a9fdaa72b
+        with:
+          pdf-filename: roc-ansi.pdf
+          docs-version: main
+
+      - name: Add the API reference of main and of each release
         env:
           GH_TOKEN: ${{ github.token }}
           FETCH_RELEASE_DOCS: "1"
-          SITE_OUTPUT: pages-site
+          SITE_OUTPUT: ${{ steps.docs.outputs.site-directory }}
         run: blueprint run site
 
       - name: Setup Pages
@@ -396,7 +409,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
-          path: pages-site
+          path: ${{ steps.docs.outputs.site-directory }}
 
   deploy-pages:
     name: Deploy versioned docs

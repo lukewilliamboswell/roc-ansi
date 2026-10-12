@@ -43,9 +43,10 @@ config = [
 	Task("record-compilers", [Use("dev"), Run(["scripts/record_compilers.roc"])]),
 	# The latest release's examples, as published, on the current compiler.
 	Task("test-published", [Use("dev"), Run(["scripts/test_published.roc"])]),
-	# The part of the manual that names the latest release; see docs/contributing.adoc.
+	# The parts of the manual that depend on what is released; see docs/contributing.adoc.
 	Task("install-snippet", [Use("dev"), Run(["scripts/write_install_snippet.roc"])]),
-	# The GitHub Pages site: build it, or build it and preview it locally.
+	# The API reference of the GitHub Pages site: add it to the rendered manual,
+	# or add it and preview the site locally.
 	Task("site", [Use("dev"), Run(["scripts/build_site.roc"])]),
 	Task("serve", [Use("dev"), Run(["scripts/serve_site.roc"])]),
 ]

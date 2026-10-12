@@ -5,20 +5,23 @@ app [main!] {
 }
 
 import cli.Path
+import src/Html
 import src/Preview
 import src/Script
 import src/Site
 
-## Assemble the GitHub Pages site and preview it locally.
+## Add the API reference to the documentation site and preview it locally.
 ##
 ##     scripts/serve_site.roc
 ##     SITE_PORT=8000 FETCH_RELEASE_DOCS=1 scripts/serve_site.roc
 ##
 ## Takes the same `SITE_OUTPUT` and `FETCH_RELEASE_DOCS` as `build_site.roc`,
-## and serves on a free port unless `SITE_PORT` names one.
+## and serves on a free port unless `SITE_PORT` names one. The manual is
+## previewed too when it has been rendered there first; docs/contributing.adoc
+## says how.
 main! = |_args| {
 	roc = Script.roc!()?
-	output = Path.absolute!(Path.utf8(Script.env_or!("SITE_OUTPUT", ".roc-ansi-tmp/site")?))?
+	output = Path.absolute!(Path.utf8(Script.env_or!("SITE_OUTPUT", ".docs-out/site")?))?
 	releases = match Script.env_or!("FETCH_RELEASE_DOCS", "")? {
 		"" | "0" => SkipReleaseDocs
 		_ => FetchReleaseDocs
@@ -29,5 +32,8 @@ main! = |_args| {
 		Err(_) => return Script.fail!("SITE_PORT must be between 0 and 65535, not ${requested}")
 	}
 	Site.assemble!(roc, output, releases)?
+	if !Path.is_file!(Path.join(output, "index.html"))? {
+		Script.info!("NOTE", "the manual has not been rendered into ${Path.display(output)}, so only the API reference is served: open ${Html.base_path}/main/")?
+	}
 	Preview.serve!(output, port)
 }

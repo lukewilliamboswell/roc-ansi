@@ -29,3 +29,10 @@ codes that switch the colour on, and a reset that switches it off again.
 * xref:examples.adoc#learn-from-the-examples[Learn from the examples] has a
   short program for each part of the package.
 * The API reference linked above lists every function of every module.
+
+== API reference for every version
+
+Each release keeps its own API reference, so the pages for the version you
+depend on never change under you.
+
+include::generated/api-versions.adoc[]

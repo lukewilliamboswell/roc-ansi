@@ -23,9 +23,9 @@ which gives the reasons behind each practice.
 | Daily
 | The latest release's examples archive still works on the latest nightly
 
-| `www.yaml`
-| Pushes to `main`
-| Deploys the documentation site
+| `docs.yml`
+| Pull requests, pushes to `main`
+| The manual and site build; `main` deploys them
 |===
 
 The package is pure Roc, so every job runs on Linux only.
@@ -69,18 +69,20 @@ version `0.0.1-dry-run`, and publishes nothing.
 
 == How the site is put together
 
-Generated API documentation is never committed. Each release attaches its
-documentation as `roc-ansi-docs-<version>.zip`, and the site is assembled from
-those archives and from fresh documentation for `main`. The address of each
-release's documentation therefore keeps working without its HTML being stored
-in Git.
+The site is this manual, rendered by the shared build-docs action, with the
+API reference added beside it by `blueprint run site`:
 
-[source,sh]
-----
-blueprint run serve                        # main only; no downloads
-FETCH_RELEASE_DOCS=1 blueprint run serve   # also restore every release's docs
-----
+* `main/` holds fresh API documentation for the working tree.
+* Each release's API documentation sits under its version, such as `0.13.1/`,
+  restored from the archive that release attached. Its address keeps working
+  without its HTML being stored in Git, and generated documentation is never
+  committed.
 
-The preview picks a free port, or the one named by `SITE_PORT`.
-`FETCH_RELEASE_DOCS=1` downloads release assets with `gh`, which must be
-authenticated. `blueprint run site` assembles the same site without serving it.
+The manual leads with the latest release: its first program, its API reference
+and its examples archive. Those parts are written by
+`blueprint run install-snippet` before the manual is rendered, because a bundle
+URL holds a hash nobody can write by hand.
+
+`docs.yml` builds the site on every pull request and deploys it from `main`.
+`release.yml` rebuilds and deploys it after publishing, since a release changes
+which one is the latest.

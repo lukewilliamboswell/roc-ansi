@@ -152,14 +152,20 @@ platform because its host counts allocations. Nothing is fuzzed there.
 
 The manual is the AsciiDoc under `docs/`, one chapter per file, rendered by the
 shared https://lukewilliamboswell.github.io/roc-automation/#build-docs[build-docs]
-action. To build it yourself you need Docker and a checkout of roc-automation:
+action. Every pull request builds it, and the site can be downloaded from the
+`Documentation` workflow run. To build it yourself you need Docker and a
+checkout of roc-automation:
 
 [source,sh]
 ----
 blueprint run install-snippet
 python3 ../roc-automation/actions/build-docs/build_docs.py --workspace . --pdf-filename roc-ansi.pdf
+blueprint run serve
 ----
 
-The first command writes the install snippet for the latest release into
-`docs/generated/`, which needs `gh` to be authenticated. The second writes the
-site and the PDF to `.docs-out/site`.
+The first command writes the parts of the manual that depend on what has been
+released into `docs/generated/`, which needs `gh` to be authenticated. The
+second renders the site and the PDF into `.docs-out/site`. The last adds the
+API reference for `main` and serves the site on a free port, or the one named
+by `SITE_PORT`; with `FETCH_RELEASE_DOCS=1` it also restores the API reference
+of every release.
