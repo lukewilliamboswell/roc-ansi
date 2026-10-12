@@ -10,13 +10,36 @@ import Text
 ## The examples archive attached to each release.
 ##
 ## It holds complete copies of the examples in which the package dependency is
-## that release's bundle URL, so they keep working exactly as published. The
-## examples in the repository always depend on the working tree instead.
+## that release's bundle URL, so they keep working exactly as published, and
+## the specification of what they print. The examples in the repository always
+## depend on the working tree instead.
 Archive := [].{
+
+	## The specification of what the working tree's examples print.
+	spec : Path
+	spec = "tests/spec.json"
+
+	## The archive named by `EXAMPLES_ARCHIVE`, or the only one in `directory`
+	## when that is unset.
+	selected! = |directory| {
+		match Script.env_or!("EXAMPLES_ARCHIVE", "")? {
+			"" => {}
+			named => return Ok(Path.utf8(named))
+		}
+		entries = if Path.is_dir!(directory)? Path.list!(directory)? else []
+		match entries.keep_if(|path| Path.display(path).ends_with(".zip") and Path.display(path).contains("${Release.name}-examples-")) {
+			[archive] => Ok(archive)
+			[] => Script.fail!("no examples archive in ${Path.display(directory)}: package one first, or set EXAMPLES_ARCHIVE")
+			_ => Script.fail!("several examples archives in ${Path.display(directory)}: set EXAMPLES_ARCHIVE to choose one")
+		}
+	}
 
 	## Write the archive for the release `version`, whose bundle is named
 	## `bundle_file`, into `output_dir`. Returns the path of the archive.
 	pack! = |version, bundle_file, output_dir| {
+		if Release.valid_version(version) and !Release.publishable_version(version) {
+			return Script.fail!("version ${version} is reserved by Roc: the lowest publishable version is 0.0.1")
+		}
 		url = match Release.bundle_url(version, bundle_file) {
 			Ok(value) => value
 			Err(InvalidVersion(_)) => return Script.fail!("not a release version: ${version}")
@@ -37,7 +60,8 @@ Archive := [].{
 				Path.create_all!(staged_examples)?
 				names = stage_examples!(Files.direct_roc_files!("examples")?, staged_examples, url, [])?
 				Path.write_utf8!(Path.join(stage, "README.md"), Release.examples_readme(version, url))?
-				entries = ["${root}/README.md"].concat(names.map(|name| "${root}/examples/${name}"))
+				Path.copy!(Archive.spec, Path.join(stage, "spec.json"))?
+				entries = ["${root}/README.md", "${root}/spec.json"].concat(names.map(|name| "${root}/examples/${name}"))
 				# -X leaves out owner and timestamp extras; -@ reads the entries to add.
 				_ = Script.command("zip").capture!(["-q", "-X", Path.to_os_str(archive), "-@"], temporary, Str.to_utf8(Str.join_with(entries, "\n")))?
 				Ok({})
@@ -49,7 +73,9 @@ Archive := [].{
 
 	## Unpack `archive` into `destination`, which must not exist yet, after
 	## checking that it holds nothing but examples of one roc-ansi release.
-	## Returns the directory of examples and the bundle URL they depend on.
+	## Returns the directory of examples, the bundle URL they depend on, and
+	## what to compare their output with: the archived specification, or
+	## `ExitCodeOnly` for a release published before archives carried one.
 	unpack! = |archive, destination| {
 		Script.require_file!(archive)?
 		file_name = Script.file_name(archive)?
@@ -61,6 +87,8 @@ Archive := [].{
 		} else {
 			return Script.fail!("not an examples archive: ${file_name}")
 		}
+		archived_spec = Path.join(Path.join(destination, file_name.drop_suffix(".zip")), "spec.json")
+		expected = if Path.is_file!(archived_spec)? Recorded(archived_spec) else ExitCodeOnly
 
 		sources = Files.roc_sources!(examples)?
 		urls = sources.map_try(|example| Headers.dependency(example.source, Release.shorthand))?
@@ -81,7 +109,7 @@ Archive := [].{
 				return Script.fail!("archived examples must not pin a Roc compiler")
 			}
 		}
-		Ok({ examples, url, version })
+		Ok({ examples, url, version, expected })
 	}
 }
 

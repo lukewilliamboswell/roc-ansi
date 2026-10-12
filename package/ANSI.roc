@@ -705,3 +705,24 @@ join_pixels = |{ row_strs, prev }, curr| {
 
 	{ row_strs: row_strs.append(pixel_str), prev: curr }
 }
+
+## Arrow key input renders a readable description.
+expect ANSI.input_to_str(ANSI.Input.Arrow(ANSI.Arrow.Up)) == "Arrow Up"
+
+## Coloring text wraps it in foreground and background escapes, then resets.
+expect ANSI.color("green", { fg: Standard(Green), bg: Default }) == "\u(001b)[32m\u(001b)[49mgreen\u(001b)[0m"
+
+## Parsed input values support derived equality and hashing.
+expect {
+	input = ANSI.Input.Arrow(ANSI.Arrow.Up)
+
+	input == ANSI.Input.Arrow(ANSI.Arrow.Up) and Set.contains(Set.single(input), input)
+}
+
+## Escape values support derived equality and hashing through nested nominal types.
+expect {
+	red = ColorPkg.Color.C16(Standard(Red))
+	escape = ANSI.Escape.Control(ControlPkg.Control.Style(StylePkg.Style.Foreground(red)))
+
+	Set.contains(Set.single(escape), escape)
+}

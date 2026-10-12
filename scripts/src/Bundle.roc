@@ -1,19 +1,19 @@
+import Archive
 import cli.Env
 import cli.OsStr
 import cli.Path
 import Examples
 import Files
-import Headers
 import Loopback
 import Release
 import Script
 
-## Building the package bundle, and testing the examples against one.
+## Building the package bundle, and testing an examples archive against one.
 Bundle := [].{
 
-	## Bundle the working-tree package into `output_dir` with `roc_nightly`,
+	## Bundle the working-tree package into `output_dir` with `roc`,
 	## returning the path of the archive it created.
-	build! = |roc_nightly, output_dir| {
+	build! = |roc, output_dir| {
 		modules = Files.direct_roc_files!("package")?.map_try(Script.file_name)?
 		if !modules.contains("main.roc") {
 			return Script.fail!("package/main.roc does not exist")
@@ -25,7 +25,7 @@ Bundle := [].{
 		args = ["bundle", "main.roc"]
 			.concat(modules.keep_if(|name| name != "main.roc").map(OsStr.from_str))
 			.concat(["--output-dir", Path.to_os_str(output)])
-		report = roc_nightly.capture_utf8!(args, "package")?
+		report = roc.capture_utf8!(args, "package")?
 		match Str.split_on(report, "\n").keep_oks(|line| if line.starts_with("Created: ") Ok(line.drop_prefix("Created: ").trim()) else Err(NotCreated)) {
 			[created] => {
 				bundle = Path.utf8(created)
@@ -52,26 +52,38 @@ Bundle := [].{
 		}
 	}
 
-	## Run the examples against `bundle`, served from a loopback address. Only
-	## temporary copies of the examples are pointed at it.
-	test! = |roc_nightly, bundle| {
+	## Run the examples in `archive`, exactly as archived, against `bundle`.
+	##
+	## The archived examples name the release URL of the bundle, which does not
+	## exist before the release does. So the bundle is served from a loopback
+	## address and Roc is told to load it wherever that URL is declared. The
+	## files under test are the files a release would publish.
+	test! = |roc, bundle, archive| {
 		Script.require_file!(bundle)?
-		server = Loopback.start!(bundle)?
-		Script.info!("SERVE", server.url)?
 		result = Env.with_temp_dir!(
 			|temporary| {
-				examples = Path.join(temporary, "examples")
-				Path.copy_dir!("examples", examples)?
-				for example in Files.direct_roc_files!(examples)? {
-					source = Path.read_utf8!(example)?
-					Path.write_utf8!(example, Headers.with_dependency(source, Release.shorthand, server.url)?)?
+				unpacked = Archive.unpack!(archive, Path.join(temporary, "unpacked"))?
+				if !unpacked.url.ends_with("/${Script.file_name(bundle)?}") {
+					return Script.fail!("${Path.display(archive)} depends on ${unpacked.url}, which is not ${Path.display(bundle)}")
 				}
+				server = Loopback.start!(bundle)?
+				Script.info!("SERVE", "${server.url} in place of ${unpacked.url}")?
 				# An empty package cache makes Roc fetch the bundle from the server.
-				fetching = roc_nightly.with_empty_package_cache(Path.join(temporary, "cache"))
-				Examples.exercise!(fetching, examples, Served(server))
+				fetching = roc.with_empty_package_cache(Path.join(temporary, "cache"))
+				ran = Examples.run!(
+					fetching,
+					{
+						directory: unpacked.examples,
+						source: Served(server),
+						expected: unpacked.expected,
+						mode: Compare,
+						roc_args: ["--replace-dep", OsStr.from_str(unpacked.url), OsStr.from_str(server.url)],
+					},
+				)
+				Loopback.stop!(server)?
+				ran
 			},
 		)
-		Loopback.stop!(server)?
 		result
 	}
 }

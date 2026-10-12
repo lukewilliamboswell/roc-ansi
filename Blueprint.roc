@@ -32,15 +32,23 @@ config = [
 	Shell("default", [Use("dev")]),
 	# Everything CI checks.
 	Task("check", [Use("dev"), Run(["scripts/check_all.roc"])]),
+	# The examples alone, compared with tests/spec.json. To record new output:
+	# blueprint shell, then scripts/test_examples.roc -- --update
+	Task("examples", [Use("dev"), Run(["scripts/test_examples.roc"])]),
 	# The steps of a release, which .github/workflows/release.yml runs in order.
 	Task("bundle", [Use("dev"), Run(["scripts/build_bundle.roc"])]),
 	Task("test-bundle", [Use("dev"), Run(["scripts/test_bundle.roc"])]),
 	Task("package-examples", [Use("dev"), Run(["scripts/package_examples.roc"])]),
 	Task("package-docs", [Use("dev"), Run(["scripts/package_docs.roc"])]),
-	Task("record-compilers", [Use("dev"), Run(["scripts/record_compilers.roc"])]),
+	Task("check-version", [Use("dev"), Run(["scripts/check_version.roc"])]),
+	Task("release-notes", [Use("dev"), Run(["scripts/render_release_notes.roc"])]),
 	# The latest release's examples, as published, on the current compiler.
+	Task("fetch-published", [Use("dev"), Run(["scripts/fetch_published.roc"])]),
 	Task("test-published", [Use("dev"), Run(["scripts/test_published.roc"])]),
-	# The GitHub Pages site: build it, or build it and preview it locally.
+	# The parts of the manual that depend on what is released; see docs/contributing.adoc.
+	Task("install-snippet", [Use("dev"), Run(["scripts/write_install_snippet.roc"])]),
+	# The API reference of the GitHub Pages site: add it to the rendered manual,
+	# or add it and preview the site locally.
 	Task("site", [Use("dev"), Run(["scripts/build_site.roc"])]),
 	Task("serve", [Use("dev"), Run(["scripts/serve_site.roc"])]),
 ]

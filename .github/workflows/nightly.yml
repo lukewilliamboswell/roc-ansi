@@ -12,6 +12,15 @@ on:
     # Once daily, about four hours after the upstream 09:00 UTC build.
     - cron: "7 13 * * *"
   workflow_dispatch:
+    inputs:
+      nightly_tag:
+        description: "Nightly release tag to test with, e.g. nightly-2026-10-09-258ab27; empty uses the latest"
+        type: string
+        default: ""
+      release_tag:
+        description: "Release to test, e.g. 0.13.2; empty uses the latest full release"
+        type: string
+        default: ""
 
 permissions: {}
 
@@ -27,36 +36,73 @@ jobs:
     permissions:
       contents: read
     outputs:
-      compiler: ${{ steps.compiler.outputs.version }}
+      nightly: ${{ steps.nightly.outputs.tag }}
+      release: ${{ steps.release.outputs.tag }}
+      # The outcome of the one step that runs the examples. It is empty when
+      # an earlier step failed, which says nothing about compatibility.
+      outcome: ${{ steps.examples.outcome }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - name: Install Nix and blueprint
-        uses: ./.github/actions/setup-blueprint
+      # Resolved once, so the whole run uses one compiler.
+      - name: Resolve the Roc nightly
+        id: nightly
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUESTED: ${{ inputs.nightly_tag }}
+        run: |
+          tag="$REQUESTED"
+          if [ -z "$tag" ]; then
+            tag="$(gh api repos/roc-lang/nightlies/releases/latest --jq .tag_name)"
+          fi
+          case "$tag" in
+            nightly-*) echo "tag=$tag" >> "$GITHUB_OUTPUT" ;;
+            *) echo "::error::not a nightly release tag: $tag"; exit 1 ;;
+          esac
 
-      - name: Install the latest Roc nightly
+      - name: Install Nix and blueprint
+        uses: lukewilliamboswell/roc-automation/actions/setup-blueprint@7fdb8be46b12da9b119023c3a5aac28a9fdaa72b
+        with:
+          # From the roc-blueprint release that the platform URL in Blueprint.roc names.
+          version: 0.4.0
+          sha256-x86_64-linux: 3fe15840aa1ae884a943e1973fbf07d67ae53d7a295edd32916f25c962df6480
+          sha256-aarch64-linux: 008e44c522ece7263d0871817e3b98693a57f8025878931423479638bba0e5bf
+          sha256-aarch64-darwin: 614f58813b91c344c90659cd161fd9afde309a5eab40b85e88ceb0ef4da21743
+
+      - name: Install the Roc nightly
         uses: roc-lang/setup-roc@f5a74bf90aa694b43ab4a7cbfdb19273bc6aa697
         with:
           version: nightly-new-compiler
+          nightly-tag: ${{ steps.nightly.outputs.tag }}
 
-      - name: Record the compiler
-        id: compiler
-        run: echo "version=$(roc version)" >> "$GITHUB_OUTPUT"
-
-      - name: Test the latest release's examples archive as published
+      # Before anything has been released this reports no archive, and the
+      # run passes with a notice.
+      - name: Download the release's examples archive
+        id: release
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          OUTPUT_DIR: ${{ runner.temp }}/published
+        run: blueprint run fetch-published
+
+      - name: Test the examples archive as published
+        id: examples
+        if: steps.release.outputs.archive != ''
+        env:
+          EXAMPLES_ARCHIVE: ${{ steps.release.outputs.archive }}
         run: blueprint run test-published
 
   # Keeps one tracking issue: opened on the first failure, updated on later
   # failures, closed on the next pass. It checks out nothing and runs no code
-  # from this repository or from a release.
+  # from this repository or from a release. It acts only on the result of
+  # running the examples: a run that failed before then, in setup or in the
+  # download, says nothing about the release and opens no issue.
   report:
     name: Track the result in an issue
     needs: test
-    if: ${{ !cancelled() && (needs.test.result == 'success' || needs.test.result == 'failure') }}
+    if: ${{ always() && (needs.test.outputs.outcome == 'success' || needs.test.outputs.outcome == 'failure') }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -65,8 +111,9 @@ jobs:
       - name: Open, update or close the tracking issue
         env:
           GH_TOKEN: ${{ github.token }}
-          RESULT: ${{ needs.test.result }}
-          COMPILER: ${{ needs.test.outputs.compiler }}
+          OUTCOME: ${{ needs.test.outputs.outcome }}
+          NIGHTLY: ${{ needs.test.outputs.nightly }}
+          RELEASE: ${{ needs.test.outputs.release }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           TITLE: The latest release fails on the latest Roc nightly
         run: |
@@ -77,17 +124,16 @@ jobs:
               jq --raw-output --arg title "$TITLE" \
                 '[.[] | select(.title == $title and .author.is_bot)][0].number // empty'
           )
-          compiler=${COMPILER:-"the latest nightly (its version was not recorded)"}
-          if [ "$RESULT" = success ]; then
+          if [ "$OUTCOME" = success ]; then
             if [ -n "$number" ]; then
               gh issue close "$number" --repo "$GITHUB_REPOSITORY" \
-                --comment "The latest release passes again with $compiler: $RUN_URL"
+                --comment "Release $RELEASE passes with $NIGHTLY: $RUN_URL"
             fi
           elif [ -n "$number" ]; then
             gh issue comment "$number" --repo "$GITHUB_REPOSITORY" \
-              --body "Still failing with $compiler: $RUN_URL"
+              --body "Release $RELEASE still fails with $NIGHTLY: $RUN_URL"
           else
-            gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body "The examples archive of the latest release failed with $compiler: $RUN_URL
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body "The examples archive of release $RELEASE failed with $NIGHTLY: $RUN_URL
 
           The archive is immutable, so the fix is a patch release that works with this compiler. This issue is updated by each failing run of the Nightly compatibility workflow and closed by the next passing one."
           fi

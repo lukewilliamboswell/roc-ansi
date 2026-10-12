@@ -1,0 +1,136 @@
+= Maintain and release
+
+This chapter is for a maintainer: what each workflow shows, how the tooling is
+updated, and how a release is made. The repository follows the
+https://lukewilliamboswell.github.io/roc-automation/[roc-automation manual],
+which gives the reasons behind each practice.
+
+== What each workflow shows
+
+[cols="1,2,3",options="header"]
+|===
+| Workflow | Runs on | What it shows
+
+| `ci.yml`
+| Pull requests, pushes to `main`
+| The working tree passes `blueprint run check` on the latest nightly
+
+| `release.yml`
+| Manual dispatch; pull requests as a dry run
+| The exact bundle, examples archive and documentation proposed for publication work
+
+| `nightly.yml`
+| Daily
+| The latest release's examples archive still works on the latest nightly
+
+| `docs.yml`
+| Pull requests, pushes to `main`
+| The manual and site build; `main` deploys them
+|===
+
+The package is pure Roc, so every job runs on Linux only.
+
+`nightly.yml` keeps one tracking issue: opened on the first failure, updated by
+later failures, and closed by the next pass. A failure there means the latest
+release needs a patch release. A published archive is never edited. A run that
+fails before any example ran, such as a failed download, opens no issue.
+
+To re-run a past combination, dispatch `nightly.yml` with a `nightly_tag`, a
+`release_tag`, or both. Left empty, they mean the latest nightly and the latest
+full release.
+
+== Update the tooling
+
+Nothing updates the tooling automatically. Each of these is a pull request.
+
+Refresh the lock:: Run `blueprint update` and commit `Blueprint.lock`.
+Change the tooling compiler:: Change the tag in `Command("roc-stable", ...)` in
+`Blueprint.roc` and the `roc` field of every script to the same nightly. The
+check fails until they agree. Run `blueprint update roc` if the lock predates
+that nightly, and fix any script the new compiler breaks.
+Upgrade Blueprint:: Change the platform URL at the top of `Blueprint.roc`, and
+the `version` and `sha256-*` inputs the workflows pass to `setup-blueprint`,
+from the same roc-blueprint release.
+Update a script dependency:: Change its URL in every script header and under
+`RocPackages` in `Blueprint.roc`, then run `blueprint update`.
+
+== Make a release
+
+. Choose the version. `roc bump` compares the package with the latest release
+  and says how far the version must move:
++
+[source,sh]
+----
+roc bump --old <latest release bundle URL> package/main.roc
+----
+. Write the notes in `docs/releases/<version>.adoc`, add them to the top of
+  `docs/releases.adoc`, and merge that pull request. Write them for someone
+  deciding whether and how to upgrade. Use `+{package-url}+` wherever the
+  release's bundle URL belongs.
+. Dispatch the *Release* workflow from `main` with that version.
+
+The workflow then:
+
+. Rejects a version that already exists, one with no notes, and one that
+  `roc bump --expect` says understates the change.
+. Runs `blueprint run check`.
+. Builds the bundle, the examples archive, the documentation archive and this
+  manual as a PDF, and renders the notes with the real bundle URL and the
+  versions of `roc` and `roc-stable` it used. That record replaces a header
+  pin as the statement of what the release was built and tested with.
+. Tests the examples archive, unchanged, against the bundle.
+. Publishes. A separate job, which checks out nothing and runs no code from
+  the repository, creates a draft release at the tested commit, uploads every
+  asset, downloads each back and compares it with the tested file, and only
+  then publishes.
+. Rebuilds and deploys the site, unless the version is a release candidate.
+
+A release holds:
+
+[cols="1,2",options="header"]
+|===
+| Asset | Purpose
+
+| `<hash>.tar.zst`
+| The bundle users depend on. Its name is its content hash.
+
+| `roc-ansi-examples-<version>.zip`
+| The examples, depending on this bundle, with the output they printed
+
+| `roc-ansi-docs-<version>.zip`
+| The API reference for this version, which the site restores
+
+| `roc-ansi-<version>.pdf`
+| This manual
+|===
+
+No follow-up pull request is needed, because nothing on `main` names its own
+release. A published release is never changed: if one is wrong, publish a new
+version.
+
+On a pull request the workflow builds and tests the same things under the
+version `0.0.1-dry-run`, renders the newest notes, and publishes nothing.
+
+A release candidate, such as `0.14.0-rc1`, goes through the same workflow. It
+is marked as a prerelease, is never the latest release, and needs its own
+notes file.
+
+== How the site is put together
+
+The site is this manual, rendered by the shared build-docs action, with the
+API reference added beside it by `blueprint run site`:
+
+* `main/` holds fresh API documentation for the working tree.
+* Each release's API documentation sits under its version, such as `0.13.1/`,
+  restored from the archive that release attached. Its address keeps working
+  without its HTML being stored in Git, and generated documentation is never
+  committed.
+
+The manual leads with the latest release: its first program, its API reference
+and its examples archive. Those parts are written by
+`blueprint run install-snippet` before the manual is rendered, because a bundle
+URL holds a hash nobody can write by hand.
+
+`docs.yml` builds the site on every pull request and deploys it from `main`.
+`release.yml` rebuilds and deploys it after publishing, since a release changes
+which one is the latest.

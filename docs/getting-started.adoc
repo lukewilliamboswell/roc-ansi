@@ -1,0 +1,38 @@
+= Get started
+
+This chapter takes you from nothing to a program that prints coloured text. You
+need a current Roc https://github.com/roc-lang/nightlies/releases[nightly]
+installed as `roc`.
+
+== Add the package
+
+A Roc application names its packages in its header, each by the URL of a
+release. Save this as `hello.roc`:
+
+include::generated/latest-release.adoc[]
+
+The URL ends in a hash of the package's contents. Roc checks what it downloads
+against that hash, so the URL can only ever mean one thing.
+
+== Run it
+
+[source,sh]
+----
+roc hello.roc
+----
+
+The word `hello` is printed in green. `ANSI.color` wrapped it in the escape
+codes that switch the colour on, and a reset that switches it off again.
+
+== Where to go next
+
+* xref:examples.adoc#learn-from-the-examples[Learn from the examples] has a
+  short program for each part of the package.
+* The API reference linked above lists every function of every module.
+
+== API reference for every version
+
+Each release keeps its own API reference, so the pages for the version you
+depend on never change under you.
+
+include::generated/api-versions.adoc[]

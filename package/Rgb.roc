@@ -30,3 +30,6 @@ expect Rgb.from_hex(0x0000FF) == (0, 0, 255)
 
 ## Out-of-range hex values clamp to white.
 expect Rgb.from_hex(0xFFFFFFFF) == (255, 255, 255)
+
+## Hex color parsing keeps the expected teal RGB channels.
+expect Rgb.from_hex(0x008080) == (0, 128, 128)

@@ -422,3 +422,15 @@ expect Layout.draw_table(test_rows, Layout.auto_sizes(test_rows), Layout.pretty_
 	],
 	"\n",
 )
+
+## Grid drawing renders single-character cells inside a squared border.
+expect Layout.draw_grid([["A", "B"], ["C", "D"]], [1, 1], Layout.squared_border, Layout.default_spacing) == Str.join_with(
+	[
+		"┌─┬─┐",
+		"│A│B│",
+		"├─┼─┤",
+		"│C│D│",
+		"└─┴─┘",
+	],
+	"\n",
+)

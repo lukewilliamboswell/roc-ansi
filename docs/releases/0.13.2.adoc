@@ -1,0 +1,29 @@
+= roc-ansi 0.13.2
+
+This release changes nothing in the package's API. It is the first whose
+examples archive records what each example prints, so the daily compatibility
+check compares output as well as building and running.
+
+== Use this release
+
+[source,roc]
+----
+app [main!] {
+	ansi: "{package-url}",
+}
+----
+
+== Examples
+
+* `text-editor.roc` is now `piece-table.roc` and `tui-menu.roc` is now
+  `menu.roc`. Each prints one frame, and its name now says so.
+* Every example carries comments that walk through it.
+* The archive `roc-ansi-examples-0.13.2.zip` holds `spec.json`, the exact
+  output each example printed when this release was made.
+
+== Documentation
+
+* The project now has a manual, published as a site and attached to each
+  release as a PDF.
+* The documentation archive is `roc-ansi-docs-0.13.2.zip`. Earlier releases
+  attached a `.tar.gz`.

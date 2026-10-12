@@ -43,3 +43,10 @@ expect Spacing.apply(Padding(Bottom, 3))("Hello") == "Hello\n\n\n"
 
 ## Left padding prepends spaces.
 expect Spacing.apply(Padding(Left, 2))("Hello") == "  Hello"
+
+## Spacing values support derived equality and hashing.
+expect {
+	spacing = Spacing.padding(Spacing.Side.Left, 2)
+
+	spacing == Spacing.padding(Spacing.Side.Left, 2) and Set.contains(Set.single(spacing), spacing)
+}

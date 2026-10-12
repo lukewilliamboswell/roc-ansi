@@ -1,0 +1,88 @@
+name: Documentation
+
+# Renders the manual in docs/ and adds the API reference beside it. A pull
+# request builds the site, so a broken manual fails review, and the result can
+# be downloaded from the run. Only the default branch deploys it.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build the manual and site
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Nix and blueprint
+        uses: lukewilliamboswell/roc-automation/actions/setup-blueprint@7fdb8be46b12da9b119023c3a5aac28a9fdaa72b
+        with:
+          # From the roc-blueprint release that the platform URL in Blueprint.roc names.
+          version: 0.4.0
+          sha256-x86_64-linux: 3fe15840aa1ae884a943e1973fbf07d67ae53d7a295edd32916f25c962df6480
+          sha256-aarch64-linux: 008e44c522ece7263d0871817e3b98693a57f8025878931423479638bba0e5bf
+          sha256-aarch64-darwin: 614f58813b91c344c90659cd161fd9afde309a5eab40b85e88ceb0ef4da21743
+
+      - name: Install the latest Roc nightly
+        uses: roc-lang/setup-roc@f5a74bf90aa694b43ab4a7cbfdb19273bc6aa697
+        with:
+          version: nightly-new-compiler
+
+      # The first program in the manual names the latest release's bundle URL.
+      - name: Write the parts of the manual that depend on what is released
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: blueprint run install-snippet
+
+      - id: docs
+        name: Render the manual as a site and a PDF
+        uses: lukewilliamboswell/roc-automation/actions/build-docs@7fdb8be46b12da9b119023c3a5aac28a9fdaa72b
+        with:
+          pdf-filename: roc-ansi.pdf
+          docs-version: ${{ github.event_name == 'pull_request' && format('main (pull request {0})', github.event.number) || 'main' }}
+
+      - name: Add the API reference of main and of each release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FETCH_RELEASE_DOCS: "1"
+          SITE_OUTPUT: ${{ steps.docs.outputs.site-directory }}
+        run: blueprint run site
+
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: ${{ steps.docs.outputs.site-directory }}
+
+  # Holds the Pages permissions, checks out nothing, and deploys the artifact
+  # the build job produced.
+  deploy:
+    name: Deploy the site
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

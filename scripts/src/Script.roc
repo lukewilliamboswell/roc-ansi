@@ -70,10 +70,11 @@ Script := [].{
 	roc_stable! : () => Try(Command, _)
 	roc_stable! = || compiler!("ROC_STABLE", "roc-stable")
 
-	## The compiler the package and examples are checked with: `ROC_NIGHTLY`, or
-	## the `roc` on PATH. It is never the tooling compiler.
-	roc_nightly! : () => Try(Command, _)
-	roc_nightly! = || compiler!("ROC_NIGHTLY", "roc")
+	## The compiler the package and examples are checked with: the `roc` on
+	## PATH, which is meant to be the latest nightly. It is never the tooling
+	## compiler.
+	roc! : () => Try(Command, _)
+	roc! = || Ok(Script.command("roc"))
 
 	## A UTF-8 environment variable, or `fallback` when it is unset or empty.
 	env_or! : OsStr, Str => Try(Str, _)
