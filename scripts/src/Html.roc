@@ -36,8 +36,8 @@ Html := [].{
 		("animals", "Animals"),
 		("colors", "Colors"),
 		("styles", "Styles"),
-		("tui-menu", "TUI menu"),
-		("text-editor", "Text editor"),
+		("menu", "Menu"),
+		("piece-table", "Piece table"),
 	]
 
 	## The relative link from `page` to the site root, ending in a slash.

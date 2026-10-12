@@ -20,17 +20,17 @@ Run with `roc examples/styles.roc`
 
 ![example output showing terminal styles](examples/styles.png)
 
-## Example - TUI Menu
+## Example - Menu
 
-Run with `roc examples/tui-menu.roc`
+Run with `roc examples/menu.roc`
 
-![example output showing a styled menu preview](examples/tui-menu.png)
+![example output showing a styled menu preview](examples/menu.png)
 
 ## Example - Piece Table
 
-Run with `roc examples/text-editor.roc`
+Run with `roc examples/piece-table.roc`
 
-![example output showing a piece table edit preview](examples/text-editor.png)
+![example output showing a piece table edit preview](examples/piece-table.png)
 
 ## Development
 
