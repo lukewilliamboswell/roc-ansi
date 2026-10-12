@@ -1,6 +1,7 @@
 #!/usr/bin/env roc-stable
 app [main!] {
 	cli: platform "https://github.com/roc-lang/basic-cli/releases/download/0.25.0/CZsY7tYZwR3rj9kYbpaCfxki2yVAaRL8bBwMLvB2xkbA.tar.zst",
+	roc: "nightly-2026-10-09-258ab27",
 }
 
 import cli.Env
@@ -42,8 +43,9 @@ main! = |_args| {
 	Script.command("git").run!(["diff", "--check"])
 }
 
-# The tooling compiler is named in Blueprint.roc and the package compiler
-# floats, so a pin anywhere else is always a mistake.
+# The package compiler floats, so nothing outside scripts/ names a compiler.
+# Each script names the tooling compiler, and Blueprint.roc is the authority:
+# someone who runs a script with another `roc` is then told why it misbehaves.
 check_compiler_pins! = || {
 	Script.section!("Compiler pins")?
 	for stale in [".roc-version", ".github/roc-nightly.json"] {
@@ -51,14 +53,23 @@ check_compiler_pins! = || {
 			return Script.fail!("${stale} must not exist: this repository does not pin the package compiler")
 		}
 	}
-	for directory in ["package", "examples", "scripts"] {
+	for directory in ["package", "examples"] {
 		for file in Files.roc_sources!(Path.utf8(directory))? {
 			if Headers.has_roc_pin(file.source) {
 				return Script.fail!("${Path.display(file.path)}: remove the `roc:` header field")
 			}
 		}
 	}
-	Script.pass!("no Roc compiler pins")
+	tag = match Headers.stable_tag(Path.read_utf8!("Blueprint.roc")?) {
+		Ok(value) => value
+		Err(NoStableCompiler) => return Script.fail!("Blueprint.roc does not name roc-stable with Command(\"roc-stable\", \"rocpkgs.<tag>\")")
+	}
+	for file in Files.roc_sources!("scripts")?.keep_if(|script| Headers.is_app(script.source)) {
+		if Headers.roc_pin(file.source) != Ok(tag) {
+			return Script.fail!("${Path.display(file.path)}: the app header must declare roc: \"${tag}\", the roc-stable release in Blueprint.roc")
+		}
+	}
+	Script.pass!("only the scripts name a compiler, and it is ${tag}")
 }
 
 check_scripts! = |roc_stable| {
