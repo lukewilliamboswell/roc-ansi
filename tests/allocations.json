@@ -1,0 +1,16 @@
+{
+  "cases": [
+    {
+      "name": "100 inserts into the middle",
+      "operation": "insert",
+      "repeat": 100,
+      "ceiling": 307
+    },
+    {
+      "name": "100 deletes from the middle",
+      "operation": "delete",
+      "repeat": 100,
+      "ceiling": 200
+    }
+  ]
+}

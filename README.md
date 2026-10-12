@@ -76,10 +76,12 @@ blueprint shell          # or enter the environment and run scripts directly
 4. Checks and builds every example against the working tree, runs it, and
    compares its output with the cases recorded in `tests/spec.json`.
 5. Builds each fuzz target under `fuzz/` and replays its committed corpus.
-6. Bundles the package and builds the examples archive, then serves the bundle
+6. Counts the allocations of the cases in `tests/allocations.json` and fails
+   if one exceeds its recorded ceiling.
+7. Bundles the package and builds the examples archive, then serves the bundle
    from a loopback address and repeats step 4 on the archived examples,
    unchanged, with `--replace-dep` pointing their release URL at it.
-7. Builds the documentation site and archive.
+8. Builds the documentation site and archive.
 
 | Task | What it does |
 | --- | --- |

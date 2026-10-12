@@ -7,6 +7,7 @@ app [main!] {
 import cli.Env
 import cli.OsStr
 import cli.Path
+import src/Allocations
 import src/Archive
 import src/Bundle
 import src/DocsArchive
@@ -38,6 +39,8 @@ main! = |_args| {
 	check_package!(roc)?
 	check_examples!(roc)?
 	check_fuzz_targets!(roc)?
+	Script.section!("Allocation ceilings")?
+	Allocations.check!(roc)?
 	check_release_artifacts!(roc)?
 	check_site!(roc)?
 
@@ -55,7 +58,7 @@ check_compiler_pins! = || {
 			return Script.fail!("${stale} must not exist: this repository does not pin the package compiler")
 		}
 	}
-	for directory in ["package", "examples", "fuzz"] {
+	for directory in ["package", "examples", "fuzz", "tests"] {
 		for file in Files.roc_sources!(Path.utf8(directory))? {
 			if Headers.has_roc_pin(file.source) {
 				return Script.fail!("${Path.display(file.path)}: remove the `roc:` header field")
@@ -77,7 +80,7 @@ check_compiler_pins! = || {
 check_scripts! = |roc_stable| {
 	Script.section!("Scripts, with the tooling compiler")?
 	# The modules without effects carry the tests of the scripts' logic.
-	for module_name in ["Headers", "Html", "Release", "Report", "Spec", "Text"] {
+	for module_name in ["Headers", "Html", "Ratchet", "Release", "Report", "Spec", "Text"] {
 		roc_stable.run!(["test", "scripts/src/${module_name}.roc"])?
 	}
 	for script in Files.direct_roc_files!("scripts")? {
@@ -88,7 +91,7 @@ check_scripts! = |roc_stable| {
 
 check_package! = |roc| {
 	Script.section!("Package")?
-	roc.run!(["fmt", "--check", "package", "examples", "fuzz"])?
+	roc.run!(["fmt", "--check", "package", "examples", "fuzz", "tests"])?
 	roc.run!(["check", "package/main.roc", "--no-cache"])?
 	roc.run!(["test", "package/main.roc", "--no-cache"])
 }
