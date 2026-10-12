@@ -1,4 +1,5 @@
 import cli.OsStr
+import cli.Path
 import Release
 import Script
 import Text
@@ -37,5 +38,31 @@ Published := [].{
 			},
 		)?
 		Ok(releases.keep_if(|release| Release.valid_docs_version(release.tag) and Release.find_docs_archive(release.tag, release.assets) != Missing).map(|release| release.tag))
+	}
+
+	## The tag of the latest release, or "" when nothing has been released
+	## yet. A draft or a prerelease is never the latest.
+	latest_tag! : () => Try(Str, _)
+	latest_tag! = || {
+		listed = Script.command("gh").capture_utf8!(["release", "list", "--repo", OsStr.from_str(Release.repository), "--limit", "100", "--json", "tagName,isLatest", "--jq", "[.[] | select(.isLatest)][0].tagName // \"\""], ".")?
+		Ok(listed.trim())
+	}
+
+	## Download the examples archive of the release tagged `tag` into
+	## `directory`, exactly as published, and return where it is.
+	download_examples! : Str, Path => Try(Path, _)
+	download_examples! = |tag, directory| {
+		release = Published.release!(tag)?
+		asset = match Release.find_examples_archive(release.tag, release.assets) {
+			Zip(name) => name
+			LegacyTarball(name) => {
+				Script.info!("NOTE", "release ${release.tag} attached its examples as a tarball; later releases attach a zip")?
+				name
+			}
+			Missing => return Script.fail!("release ${release.tag} has no examples archive attached")
+		}
+		Path.create_all!(directory)?
+		Script.command("gh").run!(["release", "download", OsStr.from_str(release.tag), "--repo", OsStr.from_str(Release.repository), "--pattern", OsStr.from_str(asset), "--dir", Path.to_os_str(directory)])?
+		Ok(Path.join(directory, asset))
 	}
 }

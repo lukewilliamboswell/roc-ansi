@@ -32,7 +32,12 @@ The package is pure Roc, so every job runs on Linux only.
 
 `nightly.yml` keeps one tracking issue: opened on the first failure, updated by
 later failures, and closed by the next pass. A failure there means the latest
-release needs a patch release. A published archive is never edited.
+release needs a patch release. A published archive is never edited. A run that
+fails before any example ran, such as a failed download, opens no issue.
+
+To re-run a past combination, dispatch `nightly.yml` with a `nightly_tag`, a
+`release_tag`, or both. Left empty, they mean the latest nightly and the latest
+full release.
 
 == Update the tooling
 

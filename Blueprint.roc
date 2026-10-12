@@ -43,6 +43,7 @@ config = [
 	Task("check-version", [Use("dev"), Run(["scripts/check_version.roc"])]),
 	Task("release-notes", [Use("dev"), Run(["scripts/render_release_notes.roc"])]),
 	# The latest release's examples, as published, on the current compiler.
+	Task("fetch-published", [Use("dev"), Run(["scripts/fetch_published.roc"])]),
 	Task("test-published", [Use("dev"), Run(["scripts/test_published.roc"])]),
 	# The parts of the manual that depend on what is released; see docs/contributing.adoc.
 	Task("install-snippet", [Use("dev"), Run(["scripts/write_install_snippet.roc"])]),

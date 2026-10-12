@@ -5,30 +5,34 @@ app [main!] {
 }
 
 import cli.Env
-import cli.OsStr
 import cli.Path
 import src/Archive
 import src/Examples
+import src/Published
 import src/Release
 import src/Script
 
-## Test the examples archive of the latest release, exactly as published.
+## Test the examples archive of a release, exactly as published.
 ##
 ##     scripts/test_published.roc
+##     RELEASE_TAG=0.13.2 scripts/test_published.roc
 ##     EXAMPLES_ARCHIVE=dist/roc-ansi-examples-0.14.0.zip scripts/test_published.roc
 ##
 ## This answers whether the release people download today works with today's
 ## compiler. Nothing is pointed at the working tree: the archived examples
 ## fetch the published bundle and are compared with the output archived
 ## beside them. A release published before archives carried that is only
-## required to build and exit cleanly. `EXAMPLES_ARCHIVE` names a local archive to test
-## instead, which the release workflow uses before attaching one.
+## required to build and exit cleanly.
+##
+## Tests the latest release, or the one `RELEASE_TAG` names. `EXAMPLES_ARCHIVE`
+## names an archive that has already been downloaded, which is how the nightly
+## workflow keeps a failed download apart from a failed example.
 main! = |_args| {
 	roc = Script.roc!()?
 	Env.with_temp_dir!(
 		|temporary| {
 			archive = match Script.env_or!("EXAMPLES_ARCHIVE", "")? {
-				"" => download_latest!(Path.join(temporary, "download"))?
+				"" => Published.download_examples!(Script.env_or!("RELEASE_TAG", "")?, Path.join(temporary, "download"))?
 				local => Path.utf8(local)
 			}
 			unpacked = Archive.unpack!(archive, Path.join(temporary, "unpacked"))?
@@ -40,24 +44,4 @@ main! = |_args| {
 			Examples.run!(fetching, { directory: unpacked.examples, source: Direct, expected: unpacked.expected, mode: Compare, roc_args: [] })
 		},
 	)
-}
-
-download_latest! = |directory| {
-	gh = Script.command("gh")
-	repository = OsStr.from_str(Release.repository)
-	# Without a tag, gh selects the latest published release.
-	listing = gh.capture_utf8!(["release", "view", "--repo", repository, "--json", "tagName,assets", "--jq", "{tag: .tagName, assets: [.assets[].name]}"], ".")?
-	release : { tag : Str, assets : List(Str) }
-	release = Json.parse(listing).map_err(|_| UnreadableReleaseListing(listing))?
-	asset = match Release.find_examples_archive(release.tag, release.assets) {
-		Zip(name) => name
-		LegacyTarball(name) => {
-			Script.info!("NOTE", "release ${release.tag} attached its examples as a tarball; later releases attach a zip")?
-			name
-		}
-		Missing => return Script.fail!("release ${release.tag} has no examples archive attached")
-	}
-	Path.create_all!(directory)?
-	gh.run!(["release", "download", OsStr.from_str(release.tag), "--repo", repository, "--pattern", OsStr.from_str(asset), "--dir", Path.to_os_str(directory)])?
-	Ok(Path.join(directory, asset))
 }
