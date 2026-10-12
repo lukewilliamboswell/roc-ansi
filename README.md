@@ -75,10 +75,11 @@ blueprint shell          # or enter the environment and run scripts directly
 3. Formats, checks and tests the package with `roc`.
 4. Checks and builds every example against the working tree, runs it, and
    compares its output with the cases recorded in `tests/spec.json`.
-5. Bundles the package and builds the examples archive, then serves the bundle
+5. Builds each fuzz target under `fuzz/` and replays its committed corpus.
+6. Bundles the package and builds the examples archive, then serves the bundle
    from a loopback address and repeats step 4 on the archived examples,
    unchanged, with `--replace-dep` pointing their release URL at it.
-6. Builds the examples archive and the documentation site and archive.
+7. Builds the documentation site and archive.
 
 | Task | What it does |
 | --- | --- |

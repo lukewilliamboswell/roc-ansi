@@ -5,6 +5,7 @@ app [main!] {
 }
 
 import cli.Env
+import cli.OsStr
 import cli.Path
 import src/Archive
 import src/Bundle
@@ -36,6 +37,7 @@ main! = |_args| {
 	check_scripts!(roc_stable)?
 	check_package!(roc)?
 	check_examples!(roc)?
+	check_fuzz_targets!(roc)?
 	check_release_artifacts!(roc)?
 	check_site!(roc)?
 
@@ -53,7 +55,7 @@ check_compiler_pins! = || {
 			return Script.fail!("${stale} must not exist: this repository does not pin the package compiler")
 		}
 	}
-	for directory in ["package", "examples"] {
+	for directory in ["package", "examples", "fuzz"] {
 		for file in Files.roc_sources!(Path.utf8(directory))? {
 			if Headers.has_roc_pin(file.source) {
 				return Script.fail!("${Path.display(file.path)}: remove the `roc:` header field")
@@ -86,7 +88,7 @@ check_scripts! = |roc_stable| {
 
 check_package! = |roc| {
 	Script.section!("Package")?
-	roc.run!(["fmt", "--check", "package", "examples"])?
+	roc.run!(["fmt", "--check", "package", "examples", "fuzz"])?
 	roc.run!(["check", "package/main.roc", "--no-cache"])?
 	roc.run!(["test", "package/main.roc", "--no-cache"])
 }
@@ -101,6 +103,36 @@ check_examples! = |roc| {
 		}
 	}
 	Examples.run!(roc, { directory: "examples", source: Direct, expected: Recorded("tests/spec.json"), mode: Compare, roc_args: [] })
+}
+
+# A target that is never built goes stale, so each one is built on every pull
+# request and replays its committed corpus. Searching for new inputs is left
+# to a longer run: `<target> run fuzz/<name>/corpus`.
+check_fuzz_targets! = |roc| {
+	Script.section!("Fuzz targets, replaying their corpus")?
+	Env.with_temp_dir!(
+		|build| {
+			for directory in Files.sort_paths(Path.list!("fuzz")?) {
+				name = Script.file_name(directory)?
+				target = Path.join(directory, "main.roc")
+				match Headers.dependency(Path.read_utf8!(target)?, Release.shorthand) {
+					Ok("../../package/main.roc") => {}
+					_ => return Script.fail!("${Path.display(target)}: the app header must declare ${Release.shorthand}: \"../../package/main.roc\"")
+				}
+				inputs = Files.all_files!(Path.join(directory, "corpus"))?
+				if inputs.is_empty() {
+					return Script.fail!("${Path.display(directory)}: commit at least one input under corpus")
+				}
+				executable = Path.join(build, name)
+				roc.run!(["build", "--fuzz", Path.to_os_str(target), OsStr.from_str("--output=${Path.display(executable)}"), "--no-cache"])?
+				for input in inputs {
+					_ = Script.command(Path.to_os_str(executable)).capture!(["replay", Path.to_os_str(input)], ".", [])?
+				}
+				Script.pass!("${name} replayed ${inputs.len().to_str()} inputs")?
+			}
+			Ok({})
+		},
+	)
 }
 
 # Build what a release would publish, and test those files instead of the
