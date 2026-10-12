@@ -36,7 +36,6 @@ main! = |_args| {
 			}
 			examples = match Release.find_examples_archive(latest.tag, latest.assets) {
 				Zip(name) => name
-				LegacyTarball(name) => name
 				Missing => return Script.fail!("release ${latest.tag} has no examples archive attached")
 			}
 			(Release.install_snippet(latest.tag, bundle_url!(latest.tag, bundle_file)?, examples), documented)

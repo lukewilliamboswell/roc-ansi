@@ -105,7 +105,7 @@ check_examples! = |roc| {
 			_ => return Script.fail!("${Path.display(example.path)}: the app header must declare ${Release.shorthand}: \"../package/main.roc\"")
 		}
 	}
-	Examples.run!(roc, { directory: "examples", source: Direct, expected: Recorded("tests/spec.json"), mode: Compare, roc_args: [] })
+	Examples.run!(roc, { directory: "examples", source: Direct, spec: "tests/spec.json", mode: Compare, roc_args: [] })
 }
 
 # A target that is never built goes stale, so each one is built on every pull
@@ -156,9 +156,8 @@ check_release_artifacts! = |roc| {
 					return Script.fail!("the archived ${Path.display(example.path)} differs by more than its package dependency")
 				}
 			}
-			match unpacked.expected {
-				Recorded(archived_spec) if Path.read_utf8!(archived_spec)? == Path.read_utf8!(Archive.spec)? => {}
-				_ => return Script.fail!("the examples archive does not hold ${Path.display(Archive.spec)} unchanged")
+			if Path.read_utf8!(unpacked.spec)? != Path.read_utf8!(Archive.spec)? {
+				return Script.fail!("the examples archive does not hold ${Path.display(Archive.spec)} unchanged")
 			}
 			Script.pass!("archived examples differ from the repository's only in the package dependency")
 		},

@@ -74,21 +74,20 @@ Archive := [].{
 	## Unpack `archive` into `destination`, which must not exist yet, after
 	## checking that it holds nothing but examples of one roc-ansi release.
 	## Returns the directory of examples, the bundle URL they depend on, and
-	## what to compare their output with: the archived specification, or
-	## `ExitCodeOnly` for a release published before archives carried one.
+	## the archived specification of what they print.
 	unpack! = |archive, destination| {
 		Script.require_file!(archive)?
 		file_name = Script.file_name(archive)?
 		Path.create_all!(destination)?
-		examples = if file_name.ends_with(".zip") {
-			unzip!(archive, file_name.drop_suffix(".zip"), destination)?
-		} else if file_name.ends_with(".tar.gz") {
-			untar!(archive, destination)?
-		} else {
+		if !file_name.ends_with(".zip") {
 			return Script.fail!("not an examples archive: ${file_name}")
 		}
-		archived_spec = Path.join(Path.join(destination, file_name.drop_suffix(".zip")), "spec.json")
-		expected = if Path.is_file!(archived_spec)? Recorded(archived_spec) else ExitCodeOnly
+		root = file_name.drop_suffix(".zip")
+		examples = unzip!(archive, root, destination)?
+		archived_spec = Path.join(Path.join(destination, root), "spec.json")
+		if !Path.is_file!(archived_spec)? {
+			return Script.fail!("${file_name} holds no spec.json, so there is nothing to compare its examples with")
+		}
 
 		sources = Files.roc_sources!(examples)?
 		urls = sources.map_try(|example| Headers.dependency(example.source, Release.shorthand))?
@@ -101,15 +100,13 @@ Archive := [].{
 			Ok(value) => value
 			Err(_) => return Script.fail!("archived examples must depend on a published ${Release.name} release bundle, not ${url}")
 		}
-		if file_name.ends_with(".zip") {
-			if file_name != Release.examples_archive(version) {
-				return Script.fail!("${file_name} holds examples of release ${version}")
-			}
-			if sources.any(|example| Headers.has_roc_pin(example.source)) {
-				return Script.fail!("archived examples must not pin a Roc compiler")
-			}
+		if file_name != Release.examples_archive(version) {
+			return Script.fail!("${file_name} holds examples of release ${version}")
 		}
-		Ok({ examples, url, version, expected })
+		if sources.any(|example| Headers.has_roc_pin(example.source)) {
+			return Script.fail!("archived examples must not pin a Roc compiler")
+		}
+		Ok({ examples, url, version, spec: archived_spec })
 	}
 }
 
@@ -134,21 +131,4 @@ unzip! = |archive, root, destination| {
 	}
 	_ = unzip.capture!(["-q", Path.to_os_str(archive), "-d", Path.to_os_str(destination)], ".", [])?
 	Ok(Path.join(Path.join(destination, root), "examples"))
-}
-
-# Releases up to 0.13.1 attached a flat tarball of `examples/*.roc`.
-untar! = |archive, destination| {
-	tar = Script.command("tar")
-	entries = Text.lines(tar.capture_utf8!(["-tzf", Path.to_os_str(archive)], ".")?)
-	# The verbose listing starts each line with the entry type; `-` is a regular file.
-	kinds = Text.lines(tar.capture_utf8!(["-tvzf", Path.to_os_str(archive)], ".")?)
-	if kinds.len() != entries.len() or kinds.any(|kind| !kind.starts_with("-")) {
-		return Script.fail!("the examples archive must hold only regular files")
-	}
-	match entries.keep_if(|entry| !Release.valid_legacy_examples_entry(entry)) {
-		[] => {}
-		[entry, ..] => return Script.fail!("unexpected entry in the examples archive: ${entry}")
-	}
-	_ = tar.capture!(["-xzf", Path.to_os_str(archive), "-C", Path.to_os_str(destination)], ".", [])?
-	Ok(Path.join(destination, "examples"))
 }

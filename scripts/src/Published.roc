@@ -55,10 +55,6 @@ Published := [].{
 		release = Published.release!(tag)?
 		asset = match Release.find_examples_archive(release.tag, release.assets) {
 			Zip(name) => name
-			LegacyTarball(name) => {
-				Script.info!("NOTE", "release ${release.tag} attached its examples as a tarball; later releases attach a zip")?
-				name
-			}
 			Missing => return Script.fail!("release ${release.tag} has no examples archive attached")
 		}
 		Path.create_all!(directory)?

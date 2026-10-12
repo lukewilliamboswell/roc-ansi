@@ -75,7 +75,7 @@ Bundle := [].{
 					{
 						directory: unpacked.examples,
 						source: Served(server),
-						expected: unpacked.expected,
+						spec: unpacked.spec,
 						mode: Compare,
 						roc_args: ["--replace-dep", OsStr.from_str(unpacked.url), OsStr.from_str(server.url)],
 					},
