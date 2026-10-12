@@ -64,8 +64,51 @@ roc bump --old <latest release bundle URL> package/main.roc
   release's bundle URL belongs.
 . Dispatch the *Release* workflow from `main` with that version.
 
+The workflow then:
+
+. Rejects a version that already exists, one with no notes, and one that
+  `roc bump --expect` says understates the change.
+. Runs `blueprint run check`.
+. Builds the bundle, the examples archive, the documentation archive and this
+  manual as a PDF, and renders the notes with the real bundle URL and the
+  versions of `roc` and `roc-stable` it used. That record replaces a header
+  pin as the statement of what the release was built and tested with.
+. Tests the examples archive, unchanged, against the bundle.
+. Publishes. A separate job, which checks out nothing and runs no code from
+  the repository, creates a draft release at the tested commit, uploads every
+  asset, downloads each back and compares it with the tested file, and only
+  then publishes.
+. Rebuilds and deploys the site, unless the version is a release candidate.
+
+A release holds:
+
+[cols="1,2",options="header"]
+|===
+| Asset | Purpose
+
+| `<hash>.tar.zst`
+| The bundle users depend on. Its name is its content hash.
+
+| `roc-ansi-examples-<version>.zip`
+| The examples, depending on this bundle, with the output they printed
+
+| `roc-ansi-docs-<version>.zip`
+| The API reference for this version, which the site restores
+
+| `roc-ansi-<version>.pdf`
+| This manual
+|===
+
+No follow-up pull request is needed, because nothing on `main` names its own
+release. A published release is never changed: if one is wrong, publish a new
+version.
+
 On a pull request the workflow builds and tests the same things under the
-version `0.0.1-dry-run`, and publishes nothing.
+version `0.0.1-dry-run`, renders the newest notes, and publishes nothing.
+
+A release candidate, such as `0.14.0-rc1`, goes through the same workflow. It
+is marked as a prerelease, is never the latest release, and needs its own
+notes file.
 
 == How the site is put together
 

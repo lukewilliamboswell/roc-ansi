@@ -23,7 +23,7 @@ app [main!] {
 
 == Documentation
 
-* The project now has this manual, published as a site and attached to each
+* The project now has a manual, published as a site and attached to each
   release as a PDF.
 * The documentation archive is `roc-ansi-docs-0.13.2.zip`. Earlier releases
   attached a `.tar.gz`.

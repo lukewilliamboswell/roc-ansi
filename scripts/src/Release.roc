@@ -28,6 +28,18 @@ Release := [].{
 	valid_docs_version : Str -> Bool
 	valid_docs_version = |value| core_version(value)
 
+	## The `x.y.z` that `version` is a release or a prerelease of.
+	base_version : Str -> Str
+	base_version = |version|
+		match Str.split_first(version, "-") {
+			Ok({ before, .. }) => before
+			Err(_) => version
+		}
+
+	## Where the notes of the release `version` are written.
+	notes_file : Str -> Str
+	notes_file = |version| "docs/releases/${version}.adoc"
+
 	## Whether `value` is the file name `roc bundle` gives a package archive.
 	valid_bundle_file : Str -> Bool
 	valid_bundle_file = |value| value.ends_with(".tar.zst") and Text.is_alphanumeric(value.drop_suffix(".tar.zst"))
@@ -268,3 +280,5 @@ expect Release.install_snippet("0.14.0", url, "roc-ansi-examples-0.14.0.zip").co
 expect Release.install_snippet("0.14.0", url, "roc-ansi-examples-0.14.0.zip").contains("* https://lukewilliamboswell.github.io/roc-ansi/0.14.0/[API reference]\n* https://github.com/lukewilliamboswell/roc-ansi/releases/download/0.14.0/roc-ansi-examples-0.14.0.zip[Examples]")
 expect Release.newest_first(["0.9.0", "0.13.1", "0.10.0", "0.13.0"]) == ["0.13.1", "0.13.0", "0.10.0", "0.9.0"]
 expect Release.api_versions(["0.9.0", "0.10.0"]) == "* https://lukewilliamboswell.github.io/roc-ansi/main/[main], which is not released yet\n* https://lukewilliamboswell.github.io/roc-ansi/0.10.0/[0.10.0]\n* https://lukewilliamboswell.github.io/roc-ansi/0.9.0/[0.9.0]\n"
+expect Release.base_version("0.14.0") == "0.14.0" and Release.base_version("1.0.0-rc.1") == "1.0.0"
+expect Release.notes_file("0.14.0") == "docs/releases/0.14.0.adoc"

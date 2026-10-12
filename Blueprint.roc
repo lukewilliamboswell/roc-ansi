@@ -40,7 +40,8 @@ config = [
 	Task("test-bundle", [Use("dev"), Run(["scripts/test_bundle.roc"])]),
 	Task("package-examples", [Use("dev"), Run(["scripts/package_examples.roc"])]),
 	Task("package-docs", [Use("dev"), Run(["scripts/package_docs.roc"])]),
-	Task("record-compilers", [Use("dev"), Run(["scripts/record_compilers.roc"])]),
+	Task("check-version", [Use("dev"), Run(["scripts/check_version.roc"])]),
+	Task("release-notes", [Use("dev"), Run(["scripts/render_release_notes.roc"])]),
 	# The latest release's examples, as published, on the current compiler.
 	Task("test-published", [Use("dev"), Run(["scripts/test_published.roc"])]),
 	# The parts of the manual that depend on what is released; see docs/contributing.adoc.

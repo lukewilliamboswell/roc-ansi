@@ -17,8 +17,8 @@ DocsArchive := [].{
 	## returning the archive. Packing the same files twice gives the same
 	## bytes, so a retried release can tell its asset is already published.
 	pack! = |docs_root, version, output_dir| {
-		if !Release.valid_docs_version(version) {
-			return Script.fail!("not a documentation version: ${version}")
+		if !Release.valid_version(version) {
+			return Script.fail!("not a release version: ${version}")
 		}
 		source = Path.join(docs_root, version)
 		Script.require_file!(Path.join(source, "index.html"))?
@@ -57,8 +57,8 @@ DocsArchive := [].{
 	## so an archive cannot write outside that directory or create links. The
 	## archive is a zip, or the tarball that releases up to 0.13.1 attached.
 	restore! = |archive, version, output| {
-		if !Release.valid_docs_version(version) {
-			return Script.fail!("not a documentation version: ${version}")
+		if !Release.valid_version(version) {
+			return Script.fail!("not a release version: ${version}")
 		}
 		tarball = Path.display(archive).ends_with(".tar.gz")
 		listed = if tarball list_tarball!(archive)? else list_zip!(archive)?

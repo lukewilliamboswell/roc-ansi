@@ -80,7 +80,7 @@ check_compiler_pins! = || {
 check_scripts! = |roc_stable| {
 	Script.section!("Scripts, with the tooling compiler")?
 	# The modules without effects carry the tests of the scripts' logic.
-	for module_name in ["Headers", "Html", "Ratchet", "Release", "Report", "Spec", "Text"] {
+	for module_name in ["Headers", "Html", "Notes", "Ratchet", "Release", "Report", "Spec", "Text"] {
 		roc_stable.run!(["test", "scripts/src/${module_name}.roc"])?
 	}
 	for script in Files.direct_roc_files!("scripts")? {
@@ -172,15 +172,15 @@ check_site! = |roc| {
 			Site.assemble!(roc, Path.join(temporary, "site"), SkipReleaseDocs)?
 
 			docs_root = Path.join(temporary, "docs")
-			Site.docs!(roc, Path.join(docs_root, "0.0.0"))?
-			first = DocsArchive.pack!(docs_root, "0.0.0", Path.join(temporary, "first"))?
-			second = DocsArchive.pack!(docs_root, "0.0.0", Path.join(temporary, "second"))?
+			Site.docs!(roc, Path.join(docs_root, Release.dry_run_version))?
+			first = DocsArchive.pack!(docs_root, Release.dry_run_version, Path.join(temporary, "first"))?
+			second = DocsArchive.pack!(docs_root, Release.dry_run_version, Path.join(temporary, "second"))?
 			if Path.read_bytes!(first)? != Path.read_bytes!(second)? {
 				return Script.fail!("packing the same documentation twice gave different archives")
 			}
 			restored = Path.join(temporary, "restored")
-			DocsArchive.restore!(first, "0.0.0", restored)?
-			Script.require_file!(Path.join(Path.join(restored, "0.0.0"), "index.html"))?
+			DocsArchive.restore!(first, Release.dry_run_version, restored)?
+			Script.require_file!(Path.join(Path.join(restored, Release.dry_run_version), "index.html"))?
 			Script.pass!("documentation archive is reproducible and restores")
 		},
 	)
