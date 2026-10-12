@@ -32,6 +32,9 @@ config = [
 	Shell("default", [Use("dev")]),
 	# Everything CI checks.
 	Task("check", [Use("dev"), Run(["scripts/check_all.roc"])]),
+	# The examples alone, compared with tests/spec.json. To record new output:
+	# blueprint shell, then scripts/test_examples.roc -- --update
+	Task("examples", [Use("dev"), Run(["scripts/test_examples.roc"])]),
 	# The steps of a release, which .github/workflows/release.yml runs in order.
 	Task("bundle", [Use("dev"), Run(["scripts/build_bundle.roc"])]),
 	Task("test-bundle", [Use("dev"), Run(["scripts/test_bundle.roc"])]),

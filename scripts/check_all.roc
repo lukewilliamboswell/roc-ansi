@@ -75,7 +75,7 @@ check_compiler_pins! = || {
 check_scripts! = |roc_stable| {
 	Script.section!("Scripts, with the tooling compiler")?
 	# The modules without effects carry the tests of the scripts' logic.
-	for module_name in ["Headers", "Html", "Release", "Text"] {
+	for module_name in ["Headers", "Html", "Release", "Report", "Spec", "Text"] {
 		roc_stable.run!(["test", "scripts/src/${module_name}.roc"])?
 	}
 	for script in Files.direct_roc_files!("scripts")? {
@@ -100,7 +100,7 @@ check_examples! = |roc| {
 			_ => return Script.fail!("${Path.display(example.path)}: the app header must declare ${Release.shorthand}: \"../package/main.roc\"")
 		}
 	}
-	Examples.exercise!(roc, "examples", Direct)
+	Examples.run!(roc, { directory: "examples", source: Direct, expected: Recorded("tests/spec.json"), mode: Compare, roc_args: [] })
 }
 
 # Build what a release would publish, and test that instead of the source tree.

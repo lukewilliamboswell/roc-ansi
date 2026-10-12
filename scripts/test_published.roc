@@ -35,7 +35,9 @@ main! = |_args| {
 			# An empty package cache makes Roc fetch the published bundle, as it
 			# would for someone using this release for the first time.
 			fetching = roc.with_empty_package_cache(Path.join(temporary, "cache"))
-			Examples.exercise!(fetching, unpacked.examples, Direct)
+			# Releases up to 0.13.1 recorded no expected output, so their examples
+			# can only be required to build and exit cleanly.
+			Examples.run!(fetching, { directory: unpacked.examples, source: Direct, expected: ExitCodeOnly, mode: Compare, roc_args: [] })
 		},
 	)
 }

@@ -68,7 +68,7 @@ Bundle := [].{
 				}
 				# An empty package cache makes Roc fetch the bundle from the server.
 				fetching = roc.with_empty_package_cache(Path.join(temporary, "cache"))
-				Examples.exercise!(fetching, examples, Served(server))
+				Examples.run!(fetching, { directory: examples, source: Served(server), expected: Recorded("tests/spec.json"), mode: Compare, roc_args: [] })
 			},
 		)
 		Loopback.stop!(server)?

@@ -73,7 +73,8 @@ blueprint shell          # or enter the environment and run scripts directly
 1. Fails if a `roc:` header pin or `.roc-version` has come back.
 2. Tests, checks and formats the scripts with `roc-stable`.
 3. Formats, checks and tests the package with `roc`.
-4. Checks, tests, runs and builds every example against the working tree.
+4. Checks and builds every example against the working tree, runs it, and
+   compares its output with the cases recorded in `tests/spec.json`.
 5. Bundles the package, serves that bundle from a loopback address, and repeats
    step 4 against it in temporary copies of the examples.
 6. Builds the examples archive and the documentation site and archive.
@@ -82,6 +83,7 @@ blueprint shell          # or enter the environment and run scripts directly
 | --- | --- |
 | `blueprint run check` | Everything CI checks |
 | `blueprint run bundle` | Bundle the package into `dist` |
+| `blueprint run examples` | Run the examples and compare their output with `tests/spec.json`; `scripts/test_examples.roc -- --update` re-records it |
 | `blueprint run test-bundle` | Test the examples against the bundle in `dist`, or `BUNDLE_PATH` |
 | `blueprint run test-published` | Test the latest release's examples archive, as published |
 | `blueprint run site` | Assemble the documentation site |
