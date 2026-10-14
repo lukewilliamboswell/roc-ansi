@@ -1,4 +1,4 @@
-# Development environment and tasks for roc-ansi, realised by roc-blueprint with Nix.
+# Development environment and tasks for roc-ansi, realised by roc-blueprint without Nix.
 #
 #     blueprint run check    # everything CI checks
 #     blueprint run serve    # build the documentation site and preview it
@@ -9,16 +9,16 @@
 # release named below; it runs the scripts under scripts/. The package and the
 # examples are checked with whatever `roc` is on PATH, which is meant to be the
 # latest nightly, so nothing here provides a bare `roc`.
-app [config] { pf: platform "https://github.com/lukewilliamboswell/roc-blueprint/releases/download/0.4.0/4jmnCGtQeuXTJJYc1rPrnA1pQFPRqUecY5oau1te8cYn.tar.zst" }
+app [config] { pf: platform "https://github.com/lukewilliamboswell/roc-blueprint/releases/download/0.6.0-rc1/UMnTgKxbYavSsoeQUGPM7Vde2WHEFzES2VaFcX1qtYj.tar.zst" }
+
+import pf.Recipes
 
 config = [
 	Name("roc-ansi"),
-	Overlay("roc", "github:roc-lang/roc-overlay"),
 	Environment(
 		"dev",
 		[
-			Overlays(["roc"]),
-			Command("roc-stable", "rocpkgs.nightly-2026-10-09-258ab27"),
+			Programs([Fetch("roc-stable", Recipes.roc_nightly("nightly-2026-10-09-258ab27"))]),
 			# Every bundle the scripts depend on, including dependencies of
 			# dependencies: `roc-stable deps scripts/check_all.roc` lists them.
 			RocPackages([
@@ -26,7 +26,7 @@ config = [
 				"https://github.com/roc-lang/http/releases/download/1.0.0/6ZUwqYhCS8PU9Mo6MF7oV82ET2o7KYb57CLKDq4cq4sS.tar.zst",
 			]),
 			# Programs the scripts start.
-			Tools(["coreutils", "gh", "git", "gnutar", "gzip", "unzip", "zip"]),
+			Expect(["chmod", "gh", "git", "gzip", "roc", "shasum", "tar", "touch", "unzip", "zip"]),
 		],
 	),
 	Shell("default", [Use("dev")]),

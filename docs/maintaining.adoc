@@ -28,7 +28,11 @@ which gives the reasons behind each practice.
 | The manual and site build; `main` deploys them
 |===
 
-The package is pure Roc, so every job runs on Linux only.
+The package is pure Roc, so every job runs on Linux only. Blueprint fetches
+its tooling compiler directly; no workflow installs Nix. The local setup action
+caches only Blueprint's downloaded artifacts, keyed on the lock and installer.
+Extracted trees are rebuilt from verified artifacts. CI checks that every task
+reports no package provider and runs with no `nix` on `PATH`.
 
 `nightly.yml` keeps one tracking issue: opened on the first failure, updated by
 later failures, and closed by the next pass. A failure there means the latest
@@ -44,15 +48,16 @@ full release.
 Nothing updates the tooling automatically. Each of these is a pull request.
 
 Refresh the lock:: Run `blueprint update` and commit `Blueprint.lock`.
-Change the tooling compiler:: Change the tag in `Command("roc-stable", ...)` in
+Change the tooling compiler:: Change the tag in `Fetch("roc-stable", Recipes.roc_nightly(...))` in
 `Blueprint.roc` and the `roc` field of every script to the same nightly. The
-check fails until they agree. Run `blueprint update roc` if the lock predates
-that nightly, and fix any script the new compiler breaks.
+check fails until they agree. Run `blueprint update roc-stable` and fix any
+script the new compiler breaks.
 Upgrade Blueprint:: Change the platform URL at the top of `Blueprint.roc`, and
-the `version` and `sha256-*` inputs the workflows pass to `setup-blueprint`,
-from the same roc-blueprint release.
+the version and reviewed checksums in `.github/actions/setup-blueprint/install.sh`
+from the same roc-blueprint release. Run `blueprint update` and review the new lock.
 Update a script dependency:: Change its URL in every script header and under
-`RocPackages` in `Blueprint.roc`, then run `blueprint update`.
+`RocPackages` in `Blueprint.roc`. Task-only Roc bundles are content-addressed
+and are not recorded in the lock.
 
 == Make a release
 
