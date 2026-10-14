@@ -1,0 +1,21 @@
+name: Set up Blueprint without Nix
+description: Install the reviewed Blueprint release and cache its downloaded artifacts.
+
+runs:
+  using: composite
+  steps:
+    - name: Download and verify Blueprint
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/install.sh"
+
+    - name: Locate the artifact cache
+      id: store
+      shell: bash
+      run: echo "artifacts=${XDG_CACHE_HOME:-$HOME/.cache}/blueprint/v1/artifacts" >> "$GITHUB_OUTPUT"
+
+    # Cache bytes only. Blueprint verifies them before rebuilding extracted trees.
+    - name: Cache Blueprint downloads
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ steps.store.outputs.artifacts }}
+        key: blueprint-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('Blueprint.lock', '.github/actions/setup-blueprint/install.sh') }}

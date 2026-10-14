@@ -67,7 +67,7 @@ check_compiler_pins! = || {
 	}
 	tag = match Headers.stable_tag(Path.read_utf8!("Blueprint.roc")?) {
 		Ok(value) => value
-		Err(NoStableCompiler) => return Script.fail!("Blueprint.roc does not name roc-stable with Command(\"roc-stable\", \"rocpkgs.<tag>\")")
+		Err(NoStableCompiler) => return Script.fail!("Blueprint.roc does not name roc-stable with Fetch(\"roc-stable\", Recipes.roc_nightly(\"<tag>\"))")
 	}
 	for file in Files.roc_sources!("scripts")?.keep_if(|script| Headers.is_app(script.source)) {
 		if Headers.roc_pin(file.source) != Ok(tag) {

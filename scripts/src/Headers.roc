@@ -15,8 +15,11 @@ Headers := [].{
 
 	## The release tag that the text of `Blueprint.roc` names as `roc-stable`.
 	stable_tag : Str -> Try(Str, [NoStableCompiler])
-	stable_tag = |blueprint|
-		match Str.split_on(blueprint, "Command(\"roc-stable\", \"rocpkgs.") {
+	stable_tag = |blueprint| {
+		# Whitespace may change when roc fmt wraps the Fetch declaration.
+		lines = Str.split_on(blueprint, "\n").map(|line| line.trim()).keep_if(|line| !line.starts_with("#"))
+		compact = Str.join_with(Str.split_on(Str.join_with(lines, ""), " "), "")
+		match Str.split_on(compact, "Fetch(\"roc-stable\",Recipes.roc_nightly(\"") {
 			[_, after] =>
 				match Str.split_first(after, "\"") {
 					Ok({ before, .. }) if before != "" => Ok(before)
@@ -24,6 +27,7 @@ Headers := [].{
 				}
 			_ => Err(NoStableCompiler)
 		}
+	}
 
 	## The quoted source declared for the dependency named `shorthand`.
 	dependency : Str, Str -> Try(Str, [MissingDependency(Str), DuplicateDependency(Str), InvalidDependency(Str)])
@@ -94,9 +98,14 @@ expect Headers.roc_pin("#!/usr/bin/env roc-stable\napp [main!] {\n\tcli: platfor
 expect Headers.roc_pin(example) == Err(MissingDependency("roc"))
 expect Headers.is_app(example) and Headers.is_app("#!/usr/bin/env roc-stable\napp [main!] {}\n")
 expect !Headers.is_app("package [ANSI] {}\n") and !Headers.is_app("Files := [].{\n\tapp = 1\n}\n")
-expect Headers.stable_tag("\t\t\tOverlays([\"roc\"]),\n\t\t\tCommand(\"roc-stable\", \"rocpkgs.nightly-2026-10-09-258ab27\"),\n") == Ok("nightly-2026-10-09-258ab27")
+stable_declaration = "Fetch(\"roc-stable\", Recipes.roc_nightly(\"nightly-2026-10-09-258ab27\"))"
+expect Headers.stable_tag(stable_declaration) == Ok("nightly-2026-10-09-258ab27")
+expect Headers.stable_tag("Programs([\n\tFetch(\n\t\t\"roc-stable\",\n\t\tRecipes.roc_nightly(\"nightly-2026-10-09-258ab27\"),\n\t),\n])") == Ok("nightly-2026-10-09-258ab27")
 expect Headers.stable_tag("# `roc-stable` is the release named below\n") == Err(NoStableCompiler)
-expect Headers.stable_tag("Command(\"roc-stable\", \"rocpkgs.\")") == Err(NoStableCompiler)
+expect Headers.stable_tag("Fetch(\"roc-stable\", Recipes.roc_nightly(\"\"))") == Err(NoStableCompiler)
+expect Headers.stable_tag("${stable_declaration}\n${stable_declaration}") == Err(NoStableCompiler)
+expect Headers.stable_tag("# ${stable_declaration}\n") == Err(NoStableCompiler)
+expect Headers.stable_tag("# ${stable_declaration}\n${stable_declaration}") == Ok("nightly-2026-10-09-258ab27")
 expect Headers.dependency(example, "ansi") == Ok("../package/main.roc")
 expect Headers.dependency(example, "pf") == Ok("https://example.com/cli.tar.zst")
 expect Headers.dependency(example, "weaver") == Err(MissingDependency("weaver"))
