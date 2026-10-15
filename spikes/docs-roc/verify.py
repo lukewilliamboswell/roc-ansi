@@ -1,0 +1,137 @@
+"""Verify the spike's output and measure the already-built renderer.
+
+Run from the repository root; needs Poppler's pdfinfo/pdftotext/pdfimages.
+Python and Poppler are verification tools, not renderer dependencies.
+"""
+
+import hashlib
+import json
+import platform
+import re
+import statistics
+import subprocess
+import sys
+import time
+from html.parser import HTMLParser
+from pathlib import Path
+
+
+class Page(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.ids = []
+        self.links = []
+        self.code = []
+        self.in_pre = False
+        self.tables = 0
+        self.images = []
+
+    def handle_starttag(self, tag, attributes):
+        attrs = dict(attributes)
+        if "id" in attrs:
+            self.ids.append(attrs["id"])
+        if tag == "a":
+            self.links.append(attrs["href"])
+        if tag == "pre":
+            self.in_pre = True
+            self.code.append("")
+        if tag == "table":
+            self.tables += 1
+        if tag == "img":
+            self.images.append(attrs)
+
+    def handle_endtag(self, tag):
+        if tag == "pre":
+            self.in_pre = False
+
+    def handle_data(self, data):
+        if self.in_pre:
+            self.code[-1] += data
+
+
+binary = str(Path(sys.argv[1]).resolve())
+root = Path(".roc-ansi-tmp/docs-roc-verification")
+root.mkdir(parents=True, exist_ok=True)
+source = Path("spikes/docs-roc/chapter.md")
+records = []
+
+
+def run(input_path, directory):
+    timer = ["/usr/bin/time", "-l" if platform.system() == "Darwin" else "-v"]
+    start = time.monotonic()
+    result = subprocess.run(
+        timer + [binary, str(input_path), str(directory)],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    wall = time.monotonic() - start
+    if platform.system() == "Darwin":
+        rss = int(re.search(r"(\d+)\s+maximum resident set size", result.stderr)[1])
+    else:
+        rss = int(re.search(r"Maximum resident set size \(kbytes\):\s*(\d+)", result.stderr)[1]) * 1024
+    stages = {key: int(value) for key, value in re.findall(r"(\w+)=(\d+)ms", result.stdout)}
+    pages = int(re.search(r"pages=(\d+)", result.stdout)[1])
+    record = {"wall_seconds": wall, "peak_rss_bytes": rss, "pages": pages, "stages_ms": stages}
+    records.append(record)
+    return directory / "manual.pdf"
+
+
+pdfs = [run(source, root / f"run-{index}") for index in range(3)]
+assert len({hashlib.sha256(pdf.read_bytes()).hexdigest() for pdf in pdfs}) == 1
+page = Page()
+page.feed((root / "run-0/index.html").read_text())
+assert len(page.ids) == len(set(page.ids))
+assert all(link[1:] in page.ids for link in page.links if link.startswith("#"))
+expected_code = re.findall(r"```[^\n]*\n(.*?)```", source.read_text(), re.S)
+assert page.code == expected_code, "HTML must preserve source code exactly"
+assert page.tables == 2 and len(page.images) == 1 and page.images[0]["alt"]
+assert (root / "run-0/animals.png").read_bytes() == Path("docs/images/animals.png").read_bytes()
+info = subprocess.check_output(["pdfinfo", str(pdfs[0])], text=True)
+assert "PDF version:     2.0" in info
+assert "Tagged:          yes" in info
+text = subprocess.check_output(["pdftotext", "-layout", str(pdfs[0]), "-"], text=True)
+for expected in ["Get started", "Run the checks", "Where tests live", "Release and maintain"]:
+    assert expected in text, expected
+images = subprocess.check_output(["pdfimages", "-list", str(pdfs[0])], text=True)
+assert re.search(r"\b658\s+102\b", images), "Screenshot must be embedded at original pixel dimensions"
+destinations = subprocess.check_output(["pdfinfo", "-dests", str(pdfs[0])], text=True)
+assert '"get-started"' in destinations and '"run-the-checks"' in destinations
+print("PASS deterministic PDF, exact HTML code, local anchors, tables, screenshot, PDF tags/text/destinations")
+
+stress = root / "pagination.md"
+stress.write_text(
+    "# Pagination probe\n\n| Unique repeated header | Value |\n| --- | --- |\n"
+    + "".join(f"| Row {index} | Checked item {index} |\n" for index in range(120))
+)
+stress_pdf = run(stress, root / "pagination")
+stress_text = subprocess.check_output(["pdftotext", "-layout", str(stress_pdf), "-"], text=True)
+assert records[-1]["pages"] > 1
+assert stress_text.count("Unique repeated header") >= records[-1]["pages"]
+assert "Row 119" in stress_text
+print(f"PASS continuing table: {records[-1]['pages']} pages with repeated headers and final row retained")
+
+for name, content in [
+    ("html", "# Bad input\n\n<script>alert(1)</script>\n"),
+    ("image", "# Bad input\n\n![Unknown](missing.png)\n"),
+    ("unicode-code", "# Bad input\n\n```\nλ\n```\n"),
+]:
+    input_path = root / f"rejected-{name}.md"
+    input_path.write_text(content)
+    output = root / f"rejected-{name}"
+    result = subprocess.run([binary, str(input_path), str(output)], capture_output=True, text=True)
+    assert result.returncode != 0
+    assert not (output / "manual.pdf").exists()
+print("PASS unsupported HTML, unknown images and non-ASCII code fail without publishing output")
+
+summary = {
+    "platform": platform.platform(),
+    "compiler": "nightly-2026-10-14-38a3029",
+    "representative_runs": records[:3],
+    "representative_median_wall_seconds": statistics.median(r["wall_seconds"] for r in records[:3]),
+    "pagination_run": records[3],
+    "pdf_sha256": hashlib.sha256(pdfs[0].read_bytes()).hexdigest(),
+    "pdf_bytes": pdfs[0].stat().st_size,
+}
+(root / "measurements.json").write_text(json.dumps(summary, indent=2) + "\n")
+print(json.dumps(summary, indent=2))

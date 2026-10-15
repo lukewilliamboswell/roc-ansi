@@ -1,0 +1,64 @@
+name: Documentation renderer spike
+
+# Isolated experiment; the production documentation workflows stay in place.
+on:
+  push:
+    branches: [spike/roc-docs]
+    paths:
+      - spikes/docs-roc/**
+      - .github/workflows/docs-spike.yml
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: roc-lang/setup-roc@f5a74bf90aa694b43ab4a7cbfdb19273bc6aa697
+        with:
+          version: nightly-new-compiler
+          nightly-tag: nightly-2026-10-14-38a3029
+
+      - name: Install verification tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends poppler-utils
+
+      - name: Build and measure the renderer
+        run: |
+          mkdir -p .roc-ansi-tmp/docs-roc-ci
+          roc version | tee .roc-ansi-tmp/docs-roc-ci/compiler.txt
+          roc fmt --check spikes/docs-roc/main.roc
+          if command -v nix; then
+            echo "This spike must run without Nix" >&2
+            exit 1
+          fi
+          /usr/bin/time -v roc build spikes/docs-roc/main.roc --no-cache --output="$RUNNER_TEMP/docs-roc" 2>&1 | tee .roc-ansi-tmp/docs-roc-ci/build.log
+
+      - name: Verify outputs and measure rendering
+        run: |
+          python3 spikes/docs-roc/prepare_image.py
+          git diff --exit-code -- spikes/docs-roc/assets/animals.rgb
+          python3 spikes/docs-roc/verify.py "$RUNNER_TEMP/docs-roc" | tee .roc-ansi-tmp/docs-roc-ci/verification.log
+          "$RUNNER_TEMP/docs-roc"
+          pdftoppm -png -scale-to 1400 .roc-ansi-tmp/docs-roc/manual.pdf .roc-ansi-tmp/docs-roc/page
+
+      - name: Upload previews and measurements
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: roc-docs-spike
+          path: |
+            .roc-ansi-tmp/docs-roc/
+            .roc-ansi-tmp/docs-roc-ci/
+            .roc-ansi-tmp/docs-roc-verification/measurements.json
+          include-hidden-files: true
+          retention-days: 7
