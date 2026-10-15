@@ -8,11 +8,18 @@ on:
       - spikes/docs-roc/**
       - .github/workflows/docs-spike.yml
   workflow_dispatch:
+    inputs:
+      native:
+        description: Also measure full native compilation
+        type: boolean
+        default: false
 
 permissions: {}
 
 jobs:
   measure:
+    name: Native compilation and rendering
+    if: github.event_name == 'workflow_dispatch' && inputs.native
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -59,6 +66,52 @@ jobs:
           path: |
             .roc-ansi-tmp/docs-roc/
             .roc-ansi-tmp/docs-roc-ci/
+            .roc-ansi-tmp/docs-roc-verification/measurements.json
+          include-hidden-files: true
+          retention-days: 7
+
+  source:
+    name: Direct source execution
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: roc-lang/setup-roc@f5a74bf90aa694b43ab4a7cbfdb19273bc6aa697
+        with:
+          version: nightly-new-compiler
+          nightly-tag: nightly-2026-10-14-38a3029
+
+      - name: Install verification tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends poppler-utils
+
+      - name: Verify and measure direct source execution
+        run: |
+          mkdir -p .roc-ansi-tmp/docs-roc-ci
+          roc fmt --check spikes/docs-roc/main.roc
+          if command -v nix; then
+            echo "This spike must run without Nix" >&2
+            exit 1
+          fi
+          printf '%s\n' '#!/bin/sh' 'exec roc spikes/docs-roc/main.roc -- "$@"' > "$RUNNER_TEMP/docs-roc-source"
+          chmod +x "$RUNNER_TEMP/docs-roc-source"
+          python3 spikes/docs-roc/verify.py "$RUNNER_TEMP/docs-roc-source" | tee .roc-ansi-tmp/docs-roc-ci/source-verification.log
+
+      - name: Upload previews and source measurements
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: roc-docs-source-spike
+          path: |
+            .roc-ansi-tmp/docs-roc-ci/
+            .roc-ansi-tmp/docs-roc-verification/run-0/
+            .roc-ansi-tmp/docs-roc-verification/pagination/
             .roc-ansi-tmp/docs-roc-verification/measurements.json
           include-hidden-files: true
           retention-days: 7

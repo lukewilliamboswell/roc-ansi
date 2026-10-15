@@ -17,8 +17,15 @@ From the repository root, with published Roc
 `nightly-2026-10-14-38a3029` on PATH:
 
 ```sh
+mkdir -p .roc-ansi-tmp
 roc build spikes/docs-roc/main.roc --no-cache --output=.roc-ansi-tmp/docs-roc-renderer
 .roc-ansi-tmp/docs-roc-renderer
+```
+
+Or run the source directly, avoiding the full native executable build:
+
+```sh
+roc spikes/docs-roc/main.roc
 ```
 
 Open `.roc-ansi-tmp/docs-roc/index.html` or `manual.pdf`. Optional arguments
@@ -45,9 +52,10 @@ before output is published. Measurements go into
 `.roc-ansi-tmp/docs-roc-verification/measurements.json`.
 
 The isolated `Documentation renderer spike` workflow runs only for this spike
-branch or a manual dispatch. It measures an uncached build and rendering on
-Linux, and uploads the previews and logs. Its Poppler installation is test
-overhead, separate from renderer runtime.
+branch or a manual dispatch. It verifies and measures direct source execution
+on Linux and uploads the previews and logs. A manual dispatch with `native`
+enabled also measures full native compilation. Its Poppler installation is
+test overhead, separate from renderer runtime.
 
 ## Initial Apple Silicon measurements
 
@@ -59,6 +67,8 @@ end-to-end benchmark of the complete manual:
 | --- | ---: | ---: |
 | Build with `--no-cache` | 72.67 s | 4.13 GB |
 | First normal build using compiler caches | 72.52 s | 4.78 GB |
+| Direct `roc main.roc`, empty compiler cache, downloaded packages present | 6.39 s | 2.77 GB |
+| Direct `roc main.roc`, existing compiler caches | 6.72 s | 2.73 GB |
 | Render the two-page sample, median of three processes | 34.9 ms | 13.4–15.1 MB |
 | Render the three-page, 120-row table probe | 27.9 ms | 11.9 MB |
 
@@ -70,13 +80,18 @@ file writes and process startup. Memory values are decimal bytes from
 `/usr/bin/time`, not allocation counters or macOS's broader memory-footprint
 metric.
 
-**The useful result is fast, small rendering after compilation.** Compiling
-the PDF package on every documentation job is expensive. A production design
-should build the renderer once for its source/dependency/font/asset version,
-then reuse an integrity-verified executable for changing Markdown inputs.
+**Direct source execution is a plausible simple replacement; a prebuilt
+renderer gives the lowest startup time and memory.** Compiling the whole
+native executable in every documentation job is expensive, while running
+`roc main.roc` took about six seconds on the sample and retained byte-identical
+PDF output. A production design can instead build the renderer once for its
+source/dependency/font/asset version, then reuse an integrity-verified
+executable for changing Markdown inputs.
 roc-pdf's own tests use `--no-cache` because the pinned compiler can reuse
 procedures whose allocation behaviour depends on previous builds; this spike
-does not establish compiler caches as a safe performance solution.
+does not establish compiler caches as a safe performance solution. Explicit
+interpreter mode with `--no-cache` did not complete within a 90-second cap;
+it was stopped and is not a supported timing result.
 
 ## Deliberate limits and migration work
 
@@ -105,7 +120,7 @@ does not establish compiler caches as a safe performance solution.
 - The PDF uses rc3's default Archive profile. This spike checks tags and
   rendering with Poppler, not independent PDF/A or accessibility conformance.
 
-The next decision is whether to adopt Markdown and a reusable renderer
-executable. Once that is settled, convert all chapters and generated snippets,
+The next decision is whether to adopt Markdown and direct Roc execution or a
+reusable renderer executable. Once that is settled, convert all chapters and generated snippets,
 implement the missing layout/indexing/image rules, and measure the complete
 manual on Linux before replacing the production action.
