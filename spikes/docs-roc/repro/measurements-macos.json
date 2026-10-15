@@ -1,0 +1,47 @@
+{
+  "compiler": "Roc compiler version nightly-2026-10-14-38a3029",
+  "platform": "macOS-26.3.1-arm64-arm-64bit-Mach-O",
+  "cache_policy": "Each case has an empty compiler cache and shares only downloaded package sources.",
+  "cases": {
+    "hello-check": {
+      "peak_rss_bytes": 165429248,
+      "stdout": "No errors found in 156ms for spikes/docs-roc/repro/hello.roc"
+    },
+    "hello-run": {
+      "peak_rss_bytes": 159875072,
+      "stdout": "hello"
+    },
+    "markdown-check": {
+      "peak_rss_bytes": 515096576,
+      "stdout": "No errors found in 923ms for spikes/docs-roc/repro/markdown.roc"
+    },
+    "markdown-run": {
+      "peak_rss_bytes": 510033920,
+      "stdout": "1 Markdown blocks"
+    },
+    "pdf-check": {
+      "peak_rss_bytes": 3515088896,
+      "stdout": "No errors found in 9964ms for spikes/docs-roc/repro/pdf.roc"
+    },
+    "pdf-run": {
+      "peak_rss_bytes": 3569369088,
+      "stdout": "8659 PDF bytes"
+    },
+    "import-only-check": {
+      "peak_rss_bytes": 2245591040,
+      "stdout": "No errors found in 6223ms for spikes/docs-roc/repro/import-only.roc"
+    },
+    "import-only-run": {
+      "peak_rss_bytes": 786415616,
+      "stdout": "hello"
+    },
+    "runtime-pdf-check": {
+      "peak_rss_bytes": 2909421568,
+      "stdout": "No errors found in 7709ms for spikes/docs-roc/repro/runtime-pdf.roc"
+    },
+    "runtime-pdf-run": {
+      "peak_rss_bytes": 2725740544,
+      "stdout": "8659 PDF bytes"
+    }
+  }
+}

@@ -93,6 +93,36 @@ does not establish compiler caches as a safe performance solution. Explicit
 interpreter mode with `--no-cache` did not complete within a 90-second cap;
 it was stopped and is not a supported timing result.
 
+## Linux CI results and memory attribution
+
+Both [native rendering](https://github.com/lukewilliamboswell/roc-ansi/actions/runs/38693005605)
+and [direct source execution](https://github.com/lukewilliamboswell/roc-ansi/actions/runs/38693414084)
+passed the output verifier on Ubuntu x86_64. The native and direct-source PDF
+SHA-256 matches the macOS output exactly.
+
+| Linux operation | Wall time | Peak RSS |
+| --- | ---: | ---: |
+| Native build, including initial package setup | 127.0 s | 5.67 GB |
+| Already-built renderer, median of three processes | 51.6 ms | 12.3 MB |
+| Direct source, first invocation on a fresh runner | 18.08 s | 2.84 GB |
+| Direct source, subsequent invocations | 9.79–9.98 s | 3.66–3.72 GB |
+
+The GB-scale source-execution numbers include compiler/runner work. They are
+not the standalone PDF renderer's memory requirement. On macOS, the same
+compiled renderer uses 9 MB for a one-paragraph control and about 16 MB for the
+representative chapter; direct source execution uses about 3.5 GB for either
+input. `roc check` of the full renderer alone uses about 1.7 GB with existing
+compiler caches. `probe_memory.py` reproduces that separation with the chosen
+compiler and native renderer executables.
+
+The smaller standalone programs in `repro/` isolate this further using only
+published dependencies and no fonts, screenshot, Markdown fixture or repo-local
+modules. Each measurement uses a fresh compiler cache while sharing downloaded
+package sources; the recorded controls are in `repro/measurements-macos.json`.
+The October 14 nightly was still the latest published nightly when checked,
+and the binary in `~/roc_nightly-macos_apple_silicon-2026-10-14-38a3029/roc`
+matched the tested compiler byte-for-byte.
+
 ## Deliberate limits and migration work
 
 - This is a representative chapter, not a converted complete manual. It
