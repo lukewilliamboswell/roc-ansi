@@ -1,0 +1,54 @@
+{
+  "pdf_sha256": "f716959fad334ba9c413b3bef55e4cb63661a833ff187dc7996e20832601ebe7",
+  "pdf_bytes": 148022,
+  "pages": 14,
+  "headings": 34,
+  "code_blocks": 8,
+  "tables": 6,
+  "images": 5,
+  "image_dimensions": [
+    [
+      658,
+      102
+    ],
+    [
+      568,
+      522
+    ],
+    [
+      417,
+      298
+    ],
+    [
+      439,
+      270
+    ],
+    [
+      478,
+      102
+    ]
+  ],
+  "markdown_sha256": "c0f53b32d77c8362e9241f0d2d2683ac74aa5467e4f5bf1832d715f51451bb58",
+  "source_inputs": 10,
+  "platform": "macOS-26.3.1-arm64",
+  "compiler": "nightly-2026-10-14-38a3029",
+  "native_build": {
+    "optimization": "speed",
+    "compiler_cache": false,
+    "reported_seconds": 74
+  },
+  "native_render": {
+    "run": "first render after build; filesystem caches not flushed",
+    "wall_seconds_rounded": 0.17,
+    "peak_rss_bytes": 37208064,
+    "stages_ms": {
+      "parse": 0,
+      "html": 0,
+      "lower_and_fonts": 13,
+      "prepare": 29,
+      "emit": 122,
+      "total": 166
+    }
+  },
+  "source_native_pdf_identical": true
+}

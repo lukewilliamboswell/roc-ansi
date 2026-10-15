@@ -1,0 +1,20 @@
+.The latest release is 0.13.2
+[source,roc]
+----
+app [main!] {
+	ansi: "https://github.com/lukewilliamboswell/roc-ansi/releases/download/0.13.2/7yixATpLmwqtNujvYk1sKvZHmgFBMm7B9y7amxVZAhAn.tar.zst",
+}
+
+import ansi.ANSI
+
+main! = |_args| {
+	echo!(ANSI.color("hello", { fg: Standard(Green), bg: Default }))
+	Ok({})
+}
+----
+
+For release 0.13.2:
+
+* https://lukewilliamboswell.github.io/roc-ansi/0.13.2/[API reference]
+* https://github.com/lukewilliamboswell/roc-ansi/releases/download/0.13.2/roc-ansi-examples-0.13.2.zip[Examples], each depending on this release
+* https://github.com/lukewilliamboswell/roc-ansi/releases/tag/0.13.2[Release notes]

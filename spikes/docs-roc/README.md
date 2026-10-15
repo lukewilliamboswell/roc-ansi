@@ -11,6 +11,29 @@ screenshot, tables, and ordered/unordered lists. One Markdown AST feeds both
 HTML and PDF. The app reads Markdown at runtime: editing the chapter does not
 require rebuilding the renderer.
 
+## Whole real manual
+
+`manual.md` assembles the current `docs/index.adoc` include tree: all six
+chapters, release 0.13.2, and both generated release/API includes. The bounded
+stdlib converter preserves wording and exact fenced-code bytes. It records
+source hashes, structural coverage and presentation adaptations in
+`manual-coverage.json`; it fails on unsupported structure or unresolved links.
+Generated includes are snapshotted under `manual-inputs/` for offline reproduction.
+When `docs/generated/` exists, conversion refreshes those snapshots from the
+production Blueprint task's output.
+
+```sh
+python3 spikes/docs-roc/convert_manual.py
+roc spikes/docs-roc/main.roc -- spikes/docs-roc/manual.md .roc-ansi-tmp/docs-roc-full-manual
+python3 spikes/docs-roc/verify_manual.py .roc-ansi-tmp/docs-roc-full-manual
+```
+
+Coverage: 10 input files, 34 headings, eight code blocks, six tables and all
+five original screenshots. The full PDF has a separate cover and linked
+contents page. This remains a spike; production uses the existing Asciidoctor
+workflow. Conversion changes presentation constructs such as description lists
+and captions, not the source wording. The manifest documents those choices.
+
 ## Run
 
 From the repository root, with published Roc
@@ -273,32 +296,30 @@ same byte-identical PDF and three-page table continuation probe.
 
 ## Deliberate limits and migration work
 
-- This is a representative chapter, not a converted complete manual. It
-  does not replace AsciiDoc includes, release attributes, generated release
-  snippets, multi-page website navigation, or the existing release-note
-  parser. Preserve public URLs/anchors when doing that migration.
+- The full current manual is converted with a repository-specific adapter.
+  This does not replace multi-page website navigation, the production release
+  generator, or the existing release-note parser. Preserve public URLs and
+  anchors before adopting it in production.
 - HTML code remains exact and scrolls horizontally. PDF code is monochrome,
   tabs expand to four spaces, each source line is a paragraph, and lines over
   83 ASCII characters are visually wrapped. PDF-extracted code gains line
   boundaries and is not copy-exact. Non-ASCII code is rejected rather than
   split through UTF-8. A production preformatted-code layout needs explicit
   typography, spacing, wrapping and copy/paste policy.
-- The only image is `animals.png`. roc-pdf accepts decoded RGB pixels, so
-  `assets/animals.rgb` is a one-time lossless conversion of the existing PNG.
-  `prepare_image.py` reproduces it with Python's standard library and checks
-  the fixed screenshot encoding and chunk CRCs. It is not called by the
-  renderer. A general PNG decoder or an authored image-preparation stage is
-  still needed for other images.
+- The five manual screenshots are embedded as losslessly decoded RGB pixels.
+  `prepare_image.py` reproduces all five fixtures with Python's standard library,
+  checking the supported PNG encoding and chunk CRCs. It is not called by the
+  renderer. Other image encodings still need a decoder or preparation stage.
 - Heading IDs use a small ASCII slug policy; duplicate IDs, Unicode IDs and
   cross-chapter link resolution need a complete document-index policy.
 - Only the demonstrated Markdown subset is accepted. Unsupported blocks,
   inline HTML, unknown images, task lists and inline strikethrough fail
   explicitly. Syntax highlighting, printed contents page references,
-  chapter-aware running headers and full manual assembly are unfinished.
+  chapter-aware running headers are unfinished.
 - The PDF uses rc3's default Archive profile. This spike checks tags and
   rendering with Poppler, not independent PDF/A or accessibility conformance.
 
 The next decision is whether to adopt Markdown and direct Roc execution or a
-reusable renderer executable. Once that is settled, convert all chapters and generated snippets,
-implement the missing layout/indexing/image rules, and measure the complete
-manual on Linux before replacing the production action.
+reusable renderer executable. The chapter conversion is now demonstrated; complete the remaining website,
+layout and indexing work and measure the full manual on Linux before replacing
+the production action.

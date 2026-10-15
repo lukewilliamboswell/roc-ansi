@@ -3,8 +3,10 @@
 This experiment replaces the presentation of an Asciidoctor manual with a
 renderer written in Roc. It evaluates the published **roc-pdf 0.1.0-rc3**
 facade, not private `Kernel*` modules. Production documentation workflows
-remain unchanged. The source is a representative Markdown chapter, not a
-complete conversion of the released 18-page manual.
+remain unchanged. The original sample is retained alongside a conversion of the whole current
+manual: 10 included inputs, 34 headings, eight code blocks, six tables and five
+screenshots. This is the current repository manual, so its content differs
+from the released 18-page Asciidoctor PDF.
 
 Tested on macOS arm64 with the published Roc compiler
 `nightly-2026-10-14-38a3029`, basic-cli 0.26.0-rc2 and roc-parser 2.0.0.
@@ -297,3 +299,31 @@ This is a local experience report and issue-drafting material. New roc-pdf
 issues have not been filed as part of this experiment. The existing open
 [roc-pdf#40](https://github.com/lukewilliamboswell/roc-pdf/issues/40) concerns
 repository/tooling alignment rather than these document-authoring features.
+
+
+## Whole-manual exercise
+
+The same renderer now handles the complete current AsciiDoc include tree via
+an isolated, bounded conversion step. All source wording, fenced-code bytes,
+screenshots and internal references are checked against a coverage manifest.
+The complete A4 output is 14 pages and 148,022 bytes on macOS. A dedicated cover
+and contents page avoid a contents spill. Screenshots are scaled from their
+original dimensions at 96 dpi, capped to the available text width.
+
+This larger exercise required no changes to roc-pdf. It reinforces the need
+for page-numbered contents, chapter-aware furniture, code fragmentation and
+more local typography control. Pagination leaves a sparse final page; the
+adapter does not yet implement manual-specific balancing. AsciiDoc table
+column weights are recorded but Markdown tables use content-sensitive widths.
+The cover contributor credit is retained. Source heading numbering and syntax
+highlighting remain presentation gaps. These are migration/authoring gaps,
+not newly established package defects. Production workflows remain unchanged.
+
+
+An explicit `build --opt=speed --no-cache` completed in the compiler-reported
+74 seconds. Its first full-manual render took 0.17 seconds wall time and
+37,208,064 bytes peak RSS (35.5 MiB); filesystem caches were not flushed.
+The native PDF is byte-identical to direct dev source execution. These are
+render-time memory measurements, not compiler peak memory. The original
+sample's full regression suite still passes unchanged. Machine-readable
+coverage and this single-run measurement are in `full-manual-macos.json`.

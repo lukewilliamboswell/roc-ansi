@@ -6,6 +6,7 @@ on:
     branches: [spike/roc-docs]
     paths:
       - spikes/docs-roc/**
+      - docs/**
       - .github/workflows/docs-spike.yml
   workflow_dispatch:
     inputs:
@@ -53,8 +54,12 @@ jobs:
       - name: Verify outputs and measure rendering
         run: |
           python3 spikes/docs-roc/prepare_image.py
-          git diff --exit-code -- spikes/docs-roc/assets/animals.rgb
+          git diff --exit-code -- spikes/docs-roc/assets/
           python3 spikes/docs-roc/verify.py "$RUNNER_TEMP/docs-roc" | tee .roc-ansi-tmp/docs-roc-ci/verification.log
+          python3 spikes/docs-roc/convert_manual.py
+          git diff --exit-code -- spikes/docs-roc/manual.md spikes/docs-roc/manual-coverage.json
+          "$RUNNER_TEMP/docs-roc" spikes/docs-roc/manual.md .roc-ansi-tmp/docs-roc-full-manual
+          python3 spikes/docs-roc/verify_manual.py .roc-ansi-tmp/docs-roc-full-manual
           "$RUNNER_TEMP/docs-roc"
           pdftoppm -png -scale-to 1400 .roc-ansi-tmp/docs-roc/manual.pdf .roc-ansi-tmp/docs-roc/page
 
@@ -65,6 +70,7 @@ jobs:
           name: roc-docs-spike
           path: |
             .roc-ansi-tmp/docs-roc/
+            .roc-ansi-tmp/docs-roc-full-manual/
             .roc-ansi-tmp/docs-roc-ci/
             .roc-ansi-tmp/docs-roc-verification/measurements.json
           include-hidden-files: true
@@ -102,6 +108,12 @@ jobs:
           printf '%s\n' '#!/bin/sh' 'exec roc spikes/docs-roc/main.roc -- "$@"' > "$RUNNER_TEMP/docs-roc-source"
           chmod +x "$RUNNER_TEMP/docs-roc-source"
           python3 spikes/docs-roc/verify.py "$RUNNER_TEMP/docs-roc-source" | tee .roc-ansi-tmp/docs-roc-ci/source-verification.log
+          python3 spikes/docs-roc/prepare_image.py
+          git diff --exit-code -- spikes/docs-roc/assets/
+          python3 spikes/docs-roc/convert_manual.py
+          git diff --exit-code -- spikes/docs-roc/manual.md spikes/docs-roc/manual-coverage.json
+          "$RUNNER_TEMP/docs-roc-source" spikes/docs-roc/manual.md .roc-ansi-tmp/docs-roc-full-manual
+          python3 spikes/docs-roc/verify_manual.py .roc-ansi-tmp/docs-roc-full-manual
 
       - name: Upload previews and source measurements
         if: always()
@@ -110,6 +122,7 @@ jobs:
           name: roc-docs-source-spike
           path: |
             .roc-ansi-tmp/docs-roc-ci/
+            .roc-ansi-tmp/docs-roc-full-manual/
             .roc-ansi-tmp/docs-roc-verification/run-0/
             .roc-ansi-tmp/docs-roc-verification/pagination/
             .roc-ansi-tmp/docs-roc-verification/measurements.json

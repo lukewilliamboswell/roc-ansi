@@ -23,6 +23,14 @@ import "fonts/NotoSans-Bold.ttf" as bold_bytes : List(U8)
 import "fonts/SourceCodePro-Regular.ttf" as mono_bytes : List(U8)
 import "assets/animals.rgb" as animal_pixels : List(U8)
 import "../../docs/images/animals.png" as animal_png : List(U8)
+import "assets/colors.rgb" as colors_pixels : List(U8)
+import "../../docs/images/colors.png" as colors_png : List(U8)
+import "assets/styles.rgb" as styles_pixels : List(U8)
+import "../../docs/images/styles.png" as styles_png : List(U8)
+import "assets/menu.rgb" as menu_pixels : List(U8)
+import "../../docs/images/menu.png" as menu_png : List(U8)
+import "assets/piece-table.rgb" as piece_table_pixels : List(U8)
+import "../../docs/images/piece-table.png" as piece_table_png : List(U8)
 
 main! = |args| {
 	(input, output) = match args.map(OsStr.display) {
@@ -49,7 +57,10 @@ main! = |args| {
 	Path.create_all!(directory)?
 	Path.write_utf8!(Path.join(directory, "index.html"), html)?
 	Path.write_bytes!(Path.join(directory, "manual.pdf"), bytes)?
-	Path.write_bytes!(Path.join(directory, "animals.png"), animal_png)?
+	for name in ["animals.png", "colors.png", "styles.png", "menu.png", "piece-table.png"] {
+		asset = image_asset(name)?
+		Path.write_bytes!(Path.join(directory, asset.name), asset.png)?
+	}
 	Stdout.line!("parse=${ms(started, parsed)}ms html=${ms(parsed, html_done)}ms lower_and_fonts=${ms(html_done, lowered)}ms prepare=${ms(lowered, planned)}ms emit=${ms(planned, emitted)}ms total=${ms(started, emitted)}ms pages=${prepared.report.facts.pages.len().to_str()} pdf_bytes=${bytes.len().to_str()}")?
 	Stdout.line!("Wrote ${output}/index.html and ${output}/manual.pdf")
 }
@@ -65,6 +76,18 @@ register_fonts = || {
 	italic = add(bold.registry, italic_bytes)?
 	mono = add(italic.registry, mono_bytes)?
 	Ok({ regular: regular.face, bold: bold.face, italic: italic.face, mono: mono.face, registry: mono.registry })
+}
+
+image_asset : Str -> Try({ dimensions : Image.Dimensions, name : Str, pixels : List(U8), png : List(U8), size : Layout.Size }, _)
+image_asset = |path| {
+	match path.drop_prefix("images/") {
+		"animals.png" => Ok({ name: "animals.png", dimensions: { width: 658, height: 102 }, size: { width: 471, height: 73.012 }, pixels: animal_pixels, png: animal_png })
+		"colors.png" => Ok({ name: "colors.png", dimensions: { width: 568, height: 522 }, size: { width: 426, height: 391.500 }, pixels: colors_pixels, png: colors_png })
+		"styles.png" => Ok({ name: "styles.png", dimensions: { width: 417, height: 298 }, size: { width: 312.75, height: 223.500 }, pixels: styles_pixels, png: styles_png })
+		"menu.png" => Ok({ name: "menu.png", dimensions: { width: 439, height: 270 }, size: { width: 329.25, height: 202.500 }, pixels: menu_pixels, png: menu_png })
+		"piece-table.png" => Ok({ name: "piece-table.png", dimensions: { width: 478, height: 102 }, size: { width: 358.5, height: 76.500 }, pixels: piece_table_pixels, png: piece_table_png })
+		_ => Err(UnsupportedImage(path))
+	}
 }
 
 rgb = |red, green, blue| Color.srgb8({ red, green, blue })
@@ -110,6 +133,12 @@ page_templates = || {
 
 front_matter = |blocks| {
 	var $title = "The roc-ansi manual"
+	separate_cover = blocks.keep_if(
+		|block| match block {
+			Heading({ .. }) => True
+			_ => False
+		},
+	).len() > 12
 	for block in blocks {
 		match block {
 			Heading({ level: One, content }) => {
@@ -127,9 +156,11 @@ front_matter = |blocks| {
 		Pdf.decoration({ drawing: Scene.Drawing.empty.rectangle({ origin: { x: 0, y: 0 }, size: { width: 70, height: 4 } }, rgb(22, 91, 160)), below: 18 }),
 		Pdf.paragraph("A pure Roc package for expressive command-line interfaces."),
 		Pdf.spacer(24),
-		Pdf.heading(1, "Contents"),
-		Pdf.spacer(6),
 	]
+	if separate_cover {
+		$contents = $contents.concat([Pdf.paragraph("The roc-ansi contributors"), Pdf.spacer(24), Pdf.paragraph("Experimental edition · rendered entirely with Roc, roc-parser and roc-pdf."), Pdf.page_break])
+	}
+	$contents = $contents.concat([Pdf.heading(1, "Contents"), Pdf.spacer(6)])
 	for block in blocks {
 		match block {
 			Heading({ level, content }) if level_number(level) == 2 => {
@@ -141,7 +172,7 @@ front_matter = |blocks| {
 			_ => {}
 		}
 	}
-	$contents.append(Pdf.spacer(24)).append(Pdf.paragraph("Experimental edition · rendered entirely with Roc, roc-parser and roc-pdf."))
+	if separate_cover $contents else $contents.append(Pdf.spacer(24)).append(Pdf.paragraph("Experimental edition · rendered entirely with Roc, roc-parser and roc-pdf."))
 }
 
 plain : List(Markdown.Inline) -> Str
@@ -207,12 +238,11 @@ pdf_blocks = |blocks, options, in_list| {
 				}
 			}
 			Paragraph([Image({ alt, target })]) => {
-				if target.href != "animals.png" {
-					return Err(UnsupportedImage(target.href))
-				}
-				image = Image.Source.rgb8({ dimensions: { width: 658, height: 102 }, pixels: animal_pixels, row_stride: 1974, alpha: NoAlpha })
-				drawing = Scene.Drawing.empty.image(image, { origin: { x: 0, y: 0 }, size: { width: 471, height: 73.012 } })
-				$result = $result.append(Pdf.figure({ drawing, alt: plain(alt), caption: Pdf.caption(plain(alt)) })).append(Pdf.spacer(6))
+				asset = image_asset(target.href)?
+				image = Image.Source.rgb8({ dimensions: asset.dimensions, pixels: asset.pixels, row_stride: asset.dimensions.width.to_u64() * 3, alpha: NoAlpha })
+				drawing = Scene.Drawing.empty.image(image, { origin: { x: 0, y: 0 }, size: asset.size })
+				caption = if target.href.starts_with("images/") Pdf.no_caption else Pdf.caption(plain(alt))
+				$result = $result.append(Pdf.figure({ drawing, alt: plain(alt), caption })).append(Pdf.spacer(6))
 			}
 			Paragraph(inlines) => {
 				paragraph = Pdf.rich_paragraph(pdf_inlines(inlines)?)
@@ -377,10 +407,8 @@ html_inlines = |inlines| {
 				"<a href=\"${escape(target.href)}\">${html_inlines(label)?}</a>"
 			}
 			Image({ alt, target }) => {
-				if target.href != "animals.png" {
-					return Err(UnsupportedImage(target.href))
-				}
-				"<img src=\"animals.png\" alt=\"${escape(plain(alt))}\">"
+				asset = image_asset(target.href)?
+				"<img src=\"${asset.name}\" alt=\"${escape(plain(alt))}\">"
 			}
 			HardBreak => "<br>"
 			_ => return Err(UnsupportedMarkdown("inline: ${Str.inspect(inline)}"))

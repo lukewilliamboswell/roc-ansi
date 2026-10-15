@@ -1,0 +1,491 @@
+{
+  "entrypoint": "docs/index.adoc",
+  "output": "spikes/docs-roc/manual.md",
+  "generated_snapshots": {
+    "generated/latest-release.adoc": {
+      "production_source": "docs/generated/latest-release.adoc",
+      "snapshot": "spikes/docs-roc/manual-inputs/generated/latest-release.adoc",
+      "sha256": "5cf771acb1cec894e056779be32a171a39019d5cfaa3c8147d29de5c060af668"
+    },
+    "generated/api-versions.adoc": {
+      "production_source": "docs/generated/api-versions.adoc",
+      "snapshot": "spikes/docs-roc/manual-inputs/generated/api-versions.adoc",
+      "sha256": "2c859c0552e668297a9778b220e1f37e7270787d8794b752c7e19ecb78feeb91"
+    }
+  },
+  "output_sha256": "c0f53b32d77c8362e9241f0d2d2683ac74aa5467e4f5bf1832d715f51451bb58",
+  "document_attributes": {
+    "doctype": "book",
+    "author": "The roc-ansi contributors",
+    "revnumber": "{docs-version}",
+    "toc": "left",
+    "toclevels": "2",
+    "sectnums": "",
+    "sectanchors": "",
+    "icons": "font",
+    "source-highlighter": "rouge"
+  },
+  "sources": {
+    "index.adoc": {
+      "source": "docs/index.adoc",
+      "generated": false,
+      "sha256": "23b8710c98df6074d02387b20d74d09516edb0e8f480ac5f57b595c898ca1b9d",
+      "lines": 42
+    },
+    "overview.adoc": {
+      "source": "docs/overview.adoc",
+      "generated": false,
+      "sha256": "d1cea413ce93c01930a8a8dc8c7d30507b45b0138a5acb5b8b78eee7abf8fd8c",
+      "lines": 69
+    },
+    "getting-started.adoc": {
+      "source": "docs/getting-started.adoc",
+      "generated": false,
+      "sha256": "577afc32b65e9553fc72702e9872b1a200e7e04d7acddc92bb402f2c7fe89877",
+      "lines": 38
+    },
+    "generated/latest-release.adoc": {
+      "source": "docs/generated/latest-release.adoc",
+      "generated": true,
+      "sha256": "5cf771acb1cec894e056779be32a171a39019d5cfaa3c8147d29de5c060af668",
+      "lines": 20
+    },
+    "generated/api-versions.adoc": {
+      "source": "docs/generated/api-versions.adoc",
+      "generated": true,
+      "sha256": "2c859c0552e668297a9778b220e1f37e7270787d8794b752c7e19ecb78feeb91",
+      "lines": 8
+    },
+    "examples.adoc": {
+      "source": "docs/examples.adoc",
+      "generated": false,
+      "sha256": "0a4843ae5e8cd999894d60738f8f36ed7a17d7c325fd6afbffb93e02b4148e54",
+      "lines": 49
+    },
+    "contributing.adoc": {
+      "source": "docs/contributing.adoc",
+      "generated": false,
+      "sha256": "dafbbf2a4e2d97500e5015e9f73b4760b20e5b2e7d671d97ba393f4ca2222bb5",
+      "lines": 178
+    },
+    "maintaining.adoc": {
+      "source": "docs/maintaining.adoc",
+      "generated": false,
+      "sha256": "55139cbd061adeb132ed08ee5127487b8933524be48281878639e145d7cf6e2e",
+      "lines": 141
+    },
+    "releases.adoc": {
+      "source": "docs/releases.adoc",
+      "generated": false,
+      "sha256": "f772cb10bec7c22808b3e8f25568bdd940873c60c4d296b95562e1cc04adadb4",
+      "lines": 7
+    },
+    "releases/0.13.2.adoc": {
+      "source": "docs/releases/0.13.2.adoc",
+      "generated": false,
+      "sha256": "37978a603a30748ae34ac0a5dd31f6c93ccc825b7ad0a4bf4b69688eb6424f44",
+      "lines": 29
+    }
+  },
+  "headings": [
+    {
+      "source": "index.adoc",
+      "line": 1,
+      "level": 1,
+      "title": "The roc-ansi manual",
+      "id": "the-roc-ansi-manual"
+    },
+    {
+      "source": "overview.adoc",
+      "line": 1,
+      "level": 2,
+      "title": "What roc-ansi is",
+      "id": "what-roc-ansi-is"
+    },
+    {
+      "source": "overview.adoc",
+      "line": 12,
+      "level": 3,
+      "title": "What it covers",
+      "id": "what-it-covers"
+    },
+    {
+      "source": "overview.adoc",
+      "line": 37,
+      "level": 3,
+      "title": "What it looks like",
+      "id": "what-it-looks-like"
+    },
+    {
+      "source": "overview.adoc",
+      "line": 48,
+      "level": 3,
+      "title": "What it does not do",
+      "id": "what-it-does-not-do"
+    },
+    {
+      "source": "overview.adoc",
+      "line": 55,
+      "level": 3,
+      "title": "Compatibility",
+      "id": "compatibility"
+    },
+    {
+      "source": "overview.adoc",
+      "line": 63,
+      "level": 3,
+      "title": "Where to ask and report",
+      "id": "where-to-ask-and-report"
+    },
+    {
+      "source": "getting-started.adoc",
+      "line": 1,
+      "level": 2,
+      "title": "Get started",
+      "id": "get-started"
+    },
+    {
+      "source": "getting-started.adoc",
+      "line": 7,
+      "level": 3,
+      "title": "Add the package",
+      "id": "add-the-package"
+    },
+    {
+      "source": "getting-started.adoc",
+      "line": 17,
+      "level": 3,
+      "title": "Run it",
+      "id": "run-it"
+    },
+    {
+      "source": "getting-started.adoc",
+      "line": 27,
+      "level": 3,
+      "title": "Where to go next",
+      "id": "where-to-go-next"
+    },
+    {
+      "source": "getting-started.adoc",
+      "line": 33,
+      "level": 3,
+      "title": "API reference for every version",
+      "id": "api-reference-for-every-version"
+    },
+    {
+      "source": "examples.adoc",
+      "line": 1,
+      "level": 2,
+      "title": "Learn from the examples",
+      "id": "learn-from-the-examples"
+    },
+    {
+      "source": "examples.adoc",
+      "line": 26,
+      "level": 3,
+      "title": "Which copy to use",
+      "id": "which-copy-to-use"
+    },
+    {
+      "source": "examples.adoc",
+      "line": 40,
+      "level": 3,
+      "title": "What the output looks like",
+      "id": "what-the-output-looks-like"
+    },
+    {
+      "source": "contributing.adoc",
+      "line": 1,
+      "level": 2,
+      "title": "Contribute",
+      "id": "contribute"
+    },
+    {
+      "source": "contributing.adoc",
+      "line": 10,
+      "level": 3,
+      "title": "Set up",
+      "id": "set-up"
+    },
+    {
+      "source": "contributing.adoc",
+      "line": 30,
+      "level": 3,
+      "title": "Two compilers",
+      "id": "two-compilers"
+    },
+    {
+      "source": "contributing.adoc",
+      "line": 54,
+      "level": 3,
+      "title": "Run the checks",
+      "id": "run-the-checks"
+    },
+    {
+      "source": "contributing.adoc",
+      "line": 81,
+      "level": 3,
+      "title": "Where tests live",
+      "id": "where-tests-live"
+    },
+    {
+      "source": "contributing.adoc",
+      "line": 108,
+      "level": 3,
+      "title": "Change an example",
+      "id": "change-an-example"
+    },
+    {
+      "source": "contributing.adoc",
+      "line": 128,
+      "level": 3,
+      "title": "Search for inputs nobody thought of",
+      "id": "search-for-inputs-nobody-thought-of"
+    },
+    {
+      "source": "contributing.adoc",
+      "line": 144,
+      "level": 3,
+      "title": "Keep allocations from creeping up",
+      "id": "keep-allocations-from-creeping-up"
+    },
+    {
+      "source": "contributing.adoc",
+      "line": 158,
+      "level": 3,
+      "title": "Build this manual",
+      "id": "build-this-manual"
+    },
+    {
+      "source": "maintaining.adoc",
+      "line": 1,
+      "level": 2,
+      "title": "Maintain and release",
+      "id": "maintain-and-release"
+    },
+    {
+      "source": "maintaining.adoc",
+      "line": 8,
+      "level": 3,
+      "title": "What each workflow shows",
+      "id": "what-each-workflow-shows"
+    },
+    {
+      "source": "maintaining.adoc",
+      "line": 46,
+      "level": 3,
+      "title": "Update the tooling",
+      "id": "update-the-tooling"
+    },
+    {
+      "source": "maintaining.adoc",
+      "line": 62,
+      "level": 3,
+      "title": "Make a release",
+      "id": "make-a-release"
+    },
+    {
+      "source": "maintaining.adoc",
+      "line": 123,
+      "level": 3,
+      "title": "How the site is put together",
+      "id": "how-the-site-is-put-together"
+    },
+    {
+      "source": "releases.adoc",
+      "line": 1,
+      "level": 2,
+      "title": "Release notes",
+      "id": "release-notes"
+    },
+    {
+      "source": "releases/0.13.2.adoc",
+      "line": 1,
+      "level": 3,
+      "title": "roc-ansi 0.13.2",
+      "id": "roc-ansi-0132"
+    },
+    {
+      "source": "releases/0.13.2.adoc",
+      "line": 7,
+      "level": 4,
+      "title": "Use this release",
+      "id": "use-this-release"
+    },
+    {
+      "source": "releases/0.13.2.adoc",
+      "line": 16,
+      "level": 4,
+      "title": "Examples",
+      "id": "examples"
+    },
+    {
+      "source": "releases/0.13.2.adoc",
+      "line": 24,
+      "level": 4,
+      "title": "Documentation",
+      "id": "documentation"
+    }
+  ],
+  "code_blocks": [
+    {
+      "source": "generated/latest-release.adoc",
+      "line": 2,
+      "language": "roc",
+      "sha256": "fdb107311337113a3c83512c1be79d0db25cb9668e0ed2b72252d5e9ea0cb29f",
+      "lines": 10
+    },
+    {
+      "source": "getting-started.adoc",
+      "line": 19,
+      "language": "sh",
+      "sha256": "c3c85ddc0d7240f2ead0d4d6d87da9335e70cdc2a050ec6c8e4e718654534253",
+      "lines": 1
+    },
+    {
+      "source": "contributing.adoc",
+      "line": 56,
+      "language": "sh",
+      "sha256": "4abf1b6f81d09cb7a474d693cb398275d930e775d739620e8274b4e6b3980913",
+      "lines": 3
+    },
+    {
+      "source": "contributing.adoc",
+      "line": 113,
+      "language": "sh",
+      "sha256": "00deaefb12334944d5ebaddd85527b869af8a12a4a35d307a7898284dee0e8db",
+      "lines": 2
+    },
+    {
+      "source": "contributing.adoc",
+      "line": 135,
+      "language": "sh",
+      "sha256": "eb6eb48c831955440262f8b67b98c0ae530a95c11e39d7296d130e90a39da49f",
+      "lines": 2
+    },
+    {
+      "source": "contributing.adoc",
+      "line": 166,
+      "language": "sh",
+      "sha256": "bad9ba86b46eed270ac266eb71936fcaa563d5d0f70ed7ec36aa53fa35eeddff",
+      "lines": 3
+    },
+    {
+      "source": "maintaining.adoc",
+      "line": 67,
+      "language": "sh",
+      "sha256": "b60224d62ed70ccfbabad069065ca89002789d1a7a73716c2829034172b5aa97",
+      "lines": 1
+    },
+    {
+      "source": "releases/0.13.2.adoc",
+      "line": 9,
+      "language": "roc",
+      "sha256": "0a1111625b81672a0965dfa35b269b532ed1ccc9e15fa064cc84debb67d5611a",
+      "lines": 3
+    }
+  ],
+  "tables": [
+    {
+      "source": "overview.adoc",
+      "line": 14,
+      "columns": 2,
+      "body_rows": 6,
+      "source_column_weights": "1,3"
+    },
+    {
+      "source": "examples.adoc",
+      "line": 6,
+      "columns": 2,
+      "body_rows": 5,
+      "source_column_weights": "1,3"
+    },
+    {
+      "source": "contributing.adoc",
+      "line": 32,
+      "columns": 3,
+      "body_rows": 2,
+      "source_column_weights": "1,2,3"
+    },
+    {
+      "source": "contributing.adoc",
+      "line": 83,
+      "columns": 3,
+      "body_rows": 5,
+      "source_column_weights": "1,2,3"
+    },
+    {
+      "source": "maintaining.adoc",
+      "line": 10,
+      "columns": 3,
+      "body_rows": 4,
+      "source_column_weights": "1,2,3"
+    },
+    {
+      "source": "maintaining.adoc",
+      "line": 95,
+      "columns": 2,
+      "body_rows": 4,
+      "source_column_weights": "1,2"
+    }
+  ],
+  "images": [
+    {
+      "source": "overview.adoc",
+      "line": 39,
+      "path": "images/animals.png",
+      "alt": "A sentence with three words coloured green, blue and red"
+    },
+    {
+      "source": "overview.adoc",
+      "line": 41,
+      "path": "images/colors.png",
+      "alt": "Lines of text in the 16 named colours, 256-colour and RGB"
+    },
+    {
+      "source": "overview.adoc",
+      "line": 43,
+      "path": "images/styles.png",
+      "alt": "Lines of bold, faint, italic, strikethrough, underlined and inverted text"
+    },
+    {
+      "source": "examples.adoc",
+      "line": 43,
+      "path": "images/menu.png",
+      "alt": "A menu with a bold title and its first entry highlighted in green"
+    },
+    {
+      "source": "examples.adoc",
+      "line": 46,
+      "path": "images/piece-table.png",
+      "alt": "One line of text showing a document after an insertion and a deletion"
+    }
+  ],
+  "internal_links": [
+    "add-the-package",
+    "change-an-example",
+    "contribute",
+    "get-started",
+    "keep-allocations-from-creeping-up",
+    "learn-from-the-examples",
+    "maintain-and-release",
+    "release-notes",
+    "search-for-inputs-nobody-thought-of",
+    "what-roc-ansi-is"
+  ],
+  "exclusions": [
+    {
+      "source": "index.adoc",
+      "line": 17,
+      "reason": "HTML-only download/GitHub links excluded from PDF"
+    }
+  ],
+  "warnings": [
+    "HTML-only download/GitHub links intentionally follow the PDF backend conditional.",
+    "Description-list terms become bold labels in Markdown bullet lists; wording is retained.",
+    "Source block captions become bold paragraphs; screenshot captions retain their source labels.",
+    "The continued code block in Make a release separates ordered groups; numbering resumes at 2.",
+    "Release-note {package-url} is intentionally literal, matching the current AsciiDoc manual.",
+    "AsciiDoc column weights are recorded here; the Markdown renderer currently chooses content widths."
+  ]
+}
