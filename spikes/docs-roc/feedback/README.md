@@ -122,6 +122,27 @@ an undecorated measured block should be supported. Either accept the empty
 default as no decoration, or make the mandatory drawing requirement visible
 in the public type and documentation.
 
+### Known limit: independently styled header and footer text
+
+The layout-only pass tried to make page furniture smaller and less prominent
+than the body. `Pdf.furniture_text` inherits the body text style and has no
+independent size/leading parameter. `Scene.Drawing.text` does offer an explicit
+label size, but using that drawing with `Pdf.furniture_image` rejects:
+
+```text
+layout.furniture_drawing at templates.first.header.start[0]:
+A furniture drawing is not a supported decorative drawing:
+text labels are not supported in furniture drawings; use furniture text.
+```
+
+The standalone `small-furniture-label` probe uses an 8 pt drawing label in an
+18 pt header region and reproduces the rejection under dev `--no-cache`.
+This is an explicit facade limitation, not a new rendering defect. A typed
+furniture text style (face, size, leading and colour), measured with the same
+fit checks as body content, would support standard running-head treatments.
+The renderer retains ordinary text rather than misusing a `Code` or `Emphasis`
+role merely to obtain a smaller visual font.
+
 ### Known limit: generated references and running chapter headings
 
 `Pdf.page_number` and `Pdf.total_pages` work in page furniture. Putting a page
@@ -148,6 +169,7 @@ roc spikes/docs-roc/feedback/probe.roc -- body-page-field
 roc spikes/docs-roc/feedback/probe.roc -- footer-page-field
 roc spikes/docs-roc/feedback/probe.roc -- tall-panel
 roc spikes/docs-roc/feedback/probe.roc -- default-empty-panel
+roc --no-cache spikes/docs-roc/feedback/probe.roc -- small-furniture-label
 roc --no-cache spikes/docs-roc/feedback/probe.roc -- blank-breaks
 roc --no-cache spikes/docs-roc/feedback/probe.roc -- short-ascii-break
 
@@ -161,14 +183,16 @@ roc build --opt=speed --no-cache spikes/docs-roc/feedback/probe.roc --output=/tm
 | `footer-page-field` | Accepted; 11,167 PDF bytes generated |
 | `tall-panel` | `layout.oversize_block`: 800 pt panel versus 698 pt page flow |
 | `default-empty-panel` | `layout.custom_block_drawing`: the default drawing has no commands |
+| `small-furniture-label` | `layout.furniture_drawing`: text labels cannot be used in furniture drawings |
 | `blank-breaks` | `text.unsupported_cluster` despite ASCII-only text |
 | `short-ascii-break` | Accepted; 8,421 PDF bytes generated |
 | `ascii-break` | A word wider than the default body frame gets `pipeline.lines.line_layout.unbreakable`; its diagnostic describes an internal precondition/package defect |
 
 Each probe catches and prints the result so the process exits successfully
 even for expected preparation rejection. See `probe-results.json` for the
-recorded output, including all cases run using an optimized executable built
-with `--no-cache`. The wide-word diagnostic is a secondary error-reporting
+recorded output, including the original seven cases run using an optimized
+executable built with `--no-cache` and the later furniture-label probe run
+using dev `--no-cache`. The wide-word diagnostic is a secondary error-reporting
 rough edge; the sample does exceed the available line width and we do not
 claim it should fit without wrapping. None of the rejection cases emits
 partial PDF bytes.
@@ -183,9 +207,9 @@ A documented bridge from a PNG decoder to the RGB8 source would make this
 common documentation use case easier. Our one-image filename mapping and
 fixed dimensions remain adapter limitations.
 
-## Final artifact and validation
+## First polished artifact and validation
 
-The reviewed artifact is `.roc-ansi-tmp/docs-roc-polished-final/manual.pdf`:
+The first reviewed artifact is `.roc-ansi-tmp/docs-roc-polished-final/manual.pdf`:
 **four pages, 51,524 bytes**, SHA-256
 `a1e82e51ed1d07be662c98c9641bc42e20250e9cf6ac635afaa9f8eaaaf1344b`.
 It includes cover/contents, the real Get started explanations, sample screenshot
@@ -210,6 +234,44 @@ Rasterization/text checks use Poppler; no independent conformance validator
 was run. The earlier apparent missing furniture/overlap in intermediate PNG
 previews did not reproduce when the same PDFs were freshly rasterized; those
 preview artifacts are not reported as package defects.
+
+## Second layout pass: fixed wording, larger type and better balance
+
+The next reviewed artifact is `.roc-ansi-tmp/docs-roc-polished-v2/manual.pdf`:
+**four pages, 51,774 bytes**, SHA-256
+`f9f758be04f259bdbca0e1b9a5bd36a735b6c4b486804affffec7292b75f75bd`.
+The first polished PDF remains available for comparison.
+
+This pass changes presentation only. Source Markdown and rendered HTML are
+byte-for-byte identical to the first polished edition. Body text is now
+11 pt with 15 pt leading, in a 471 pt column instead of 491 pt. The larger
+text and narrower measure improve reading comfort. Layout uses a consistent
+6/12/18 pt spacing scheme, with an explicit 6 pt gap after headings. Tables
+flow onto the last page more evenly, avoiding the earlier dense third page
+and sparse fourth page. Mono text stays approximately 9 pt (82% of the body
+size); its visual wrapping budget is 83 columns. Code leading still follows
+the body because independent per-block leading remains a facade limit.
+
+The PDF chapter headings are now `H1` and subsections `H2`, while the cover
+uses `Title`; Contents is a separate `H1`, rather than the apparent parent
+of all chapters. Outline depths are adjusted consistently. The verifier now
+inspects the recognized heading sequence as well as destinations and text.
+Poppler's warnings about the newer PDF 2.0 `Title`, `Strong` and `Em` roles
+are not treated as proof of an invalid PDF or a full accessibility verdict.
+
+Two additional visual review rounds checked this pass before an explicit
+`--opt=speed --no-cache` build. The full verifier passes, and the dev and
+optimized PDFs match byte-for-byte. The larger body makes the 120-row table
+probe six pages including its cover; all rows and repeated headers survive.
+The native renderer's median runtime is 42.5 ms at 14.1–14.3 MB peak RSS;
+compilation is excluded. Exact measurements are in
+`layout-pass2-measurements-macos.json`.
+
+The settings are informed by [Butterick's typography guidance](https://practicaltypography.com/typography-in-ten-minutes.html),
+which gives useful ranges for body size, leading and line length. They are
+layout choices for this manual, not claims of compliance with a formal
+publication standard. Smaller independent running-head typography remains
+blocked by the furniture limitation reproduced above.
 
 ## Fonts and provenance
 

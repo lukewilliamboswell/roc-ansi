@@ -30,6 +30,16 @@ main! = |args| {
 				title: "Footer page field control",
 			})
 		}
+		"small-furniture-label" => {
+			drawing = Scene.Drawing.empty.text({ origin: { x: 0, y: 3 }, size: 8, text: "Quiet running header" })
+			header = Pdf.region({ height: 18, start: [Pdf.furniture_image(drawing)] })
+			Pdf.document({
+				contents: [Pdf.paragraph("Body text")],
+				language: "en",
+				page_templates: Templates({ first: Pdf.first_page_template({ header, gap: 12 }), continuation: Pdf.page_template({ header, gap: 12 }) }),
+				title: "Explicitly sized furniture drawing label",
+			})
+		}
 		"tall-panel" => Pdf.document({
 			contents: [
 				Pdf.custom_block({

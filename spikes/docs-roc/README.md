@@ -68,7 +68,11 @@ and total page numbers. The fixture now includes the real Get started
 explanations and run command. It is a four-page representative sample, not
 the complete released manual.
 
-The polished review artifact is `.roc-ansi-tmp/docs-roc-polished-final/manual.pdf`.
+The latest reviewed artifact is `.roc-ansi-tmp/docs-roc-polished-v2/manual.pdf`.
+The second layout pass uses 11/15 pt body text, a narrower 471 pt measure,
+consistent heading spacing and corrected PDF H1/H2 semantics. The first
+polished version remains in `.roc-ansi-tmp/docs-roc-polished-final/`. Source
+wording and generated HTML are unchanged between those layout passes.
 [The roc-pdf experience report](feedback/README.md) separates features already
 supported by rc3 from application work, documented package limits, reproduced
 rough edges and candidate upstream issue material. `feedback/probe.roc` is a
@@ -275,7 +279,7 @@ same byte-identical PDF and three-page table continuation probe.
   parser. Preserve public URLs/anchors when doing that migration.
 - HTML code remains exact and scrolls horizontally. PDF code is monochrome,
   tabs expand to four spaces, each source line is a paragraph, and lines over
-  86 ASCII characters are visually wrapped. PDF-extracted code gains line
+  83 ASCII characters are visually wrapped. PDF-extracted code gains line
   boundaries and is not copy-exact. Non-ASCII code is rejected rather than
   split through UTF-8. A production preformatted-code layout needs explicit
   typography, spacing, wrapping and copy/paste policy.

@@ -76,16 +76,16 @@ renderer_options = |fonts| {
 		page_size: A4,
 		theme: {
 			face: fonts.regular,
-			body: { color: rgb(43, 49, 61), size: 10, leading: 14 },
+			body: { color: rgb(43, 49, 61), size: 11, leading: 15 },
 			paragraph_spacing: 0,
-			page_margin: { top: 40, right: 52, bottom: 38, left: 52 },
+			page_margin: { top: 40, right: 62, bottom: 38, left: 62 },
 			title: { face: Face(fonts.bold), color: rgb(23, 53, 90), size: 34, leading: 42 },
 			headings: {
 				all: { face: Face(fonts.bold), color: rgb(23, 53, 90), size: 13, leading: 18 },
-				h1: Own({ face: Face(fonts.bold), color: rgb(23, 53, 90), size: 24, leading: 31 }),
-				h2: Own({ face: Face(fonts.bold), color: rgb(23, 53, 90), size: 18, leading: 25 }),
+				h1: Own({ face: Face(fonts.bold), color: rgb(23, 53, 90), size: 20, leading: 27 }),
+				h2: Own({ face: Face(fonts.bold), color: rgb(23, 53, 90), size: 14, leading: 21 }),
 			},
-			inline: { code: { font: Face(fonts.mono), scale: Percent(90), color: Themed(rgb(39, 62, 94)) }, strong: { font: Face(fonts.bold) }, emphasis: { font: Face(fonts.italic) } },
+			inline: { code: { font: Face(fonts.mono), scale: Percent(82), color: Themed(rgb(39, 62, 94)) }, strong: { font: Face(fonts.bold) }, emphasis: { font: Face(fonts.italic) } },
 			link: { color: Themed(rgb(22, 91, 160)), underline: Underline({ offset: 1, thickness: 0.4 }) },
 			table: {
 				cell_padding: 7,
@@ -102,10 +102,10 @@ renderer_options = |fonts| {
 }
 
 page_templates = || {
-	rule = Scene.Drawing.empty.rectangle({ origin: { x: 0, y: 0 }, size: { width: 491, height: 0.5 } }, rgb(202, 213, 228))
+	rule = Scene.Drawing.empty.rectangle({ origin: { x: 0, y: 0 }, size: { width: 471, height: 0.5 } }, rgb(202, 213, 228))
 	header = Pdf.region({ height: 22, slot_inset: 6, backdrop: Backdrop(rule), start: [Pdf.furniture_text([Pdf.text("roc-ansi / Manual")])], end: [Pdf.furniture_text([Pdf.text("0.13.2")])] })
 	footer = Pdf.region({ height: 22, slot_inset: 6, backdrop: Backdrop(rule), start: [Pdf.furniture_text([Pdf.text("Roc documentation experiment")])], end: [Pdf.furniture_text([Pdf.page_number(Decimal), Pdf.text(" / "), Pdf.total_pages(Decimal)])] })
-	{ first: Pdf.first_page_template({ footer, gap: 14 }), continuation: Pdf.page_template({ header, footer, gap: 14 }) }
+	{ first: Pdf.first_page_template({ footer, gap: 12 }), continuation: Pdf.page_template({ header, footer, gap: 12 }) }
 }
 
 front_matter = |blocks| {
@@ -120,27 +120,28 @@ front_matter = |blocks| {
 	}
 	var $contents = [
 		Pdf.paragraph("ROC PACKAGE MANUAL · 0.13.2"),
-		Pdf.spacer(30),
+		Pdf.spacer(24),
 		Pdf.title($title),
 		Pdf.destination_paragraph(slug($title), "Colour, style and interaction for terminal applications."),
-		Pdf.spacer(20),
-		Pdf.decoration({ drawing: Scene.Drawing.empty.rectangle({ origin: { x: 0, y: 0 }, size: { width: 70, height: 4 } }, rgb(22, 91, 160)), below: 22 }),
+		Pdf.spacer(18),
+		Pdf.decoration({ drawing: Scene.Drawing.empty.rectangle({ origin: { x: 0, y: 0 }, size: { width: 70, height: 4 } }, rgb(22, 91, 160)), below: 18 }),
 		Pdf.paragraph("A pure Roc package for expressive command-line interfaces."),
-		Pdf.spacer(30),
+		Pdf.spacer(24),
 		Pdf.heading(1, "Contents"),
+		Pdf.spacer(6),
 	]
 	for block in blocks {
 		match block {
 			Heading({ level, content }) if level_number(level) == 2 => {
-				$contents = $contents.append(Pdf.rich_paragraph([Pdf.inline_internal_link([Pdf.strong([Pdf.text(plain(content))])], slug(plain(content)))])).append(Pdf.spacer(7))
+				$contents = $contents.append(Pdf.rich_paragraph([Pdf.inline_internal_link([Pdf.strong([Pdf.text(plain(content))])], slug(plain(content)))])).append(Pdf.spacer(6))
 			}
 			Heading({ level: Three, content }) => {
-				$contents = $contents.append(Pdf.rich_paragraph([Pdf.text("    "), Pdf.inline_internal_link([Pdf.text(plain(content))], slug(plain(content)))])).append(Pdf.spacer(7))
+				$contents = $contents.append(Pdf.rich_paragraph([Pdf.text("    "), Pdf.inline_internal_link([Pdf.text(plain(content))], slug(plain(content)))])).append(Pdf.spacer(6))
 			}
 			_ => {}
 		}
 	}
-	$contents.append(Pdf.spacer(25)).append(Pdf.paragraph("Experimental edition · rendered entirely with Roc, roc-parser and roc-pdf."))
+	$contents.append(Pdf.spacer(24)).append(Pdf.paragraph("Experimental edition · rendered entirely with Roc, roc-parser and roc-pdf."))
 }
 
 plain : List(Markdown.Inline) -> Str
@@ -176,7 +177,7 @@ slug = |text| {
 outline : List(Markdown) -> List(Document.OutlineEntry)
 outline = |blocks| blocks.keep_oks(
 	|block| match block {
-		Heading({ level, content }) => Ok({ depth: level_number(level).to_u64() - 1, destination: slug(plain(content)), open: True, title: plain(content) })
+		Heading({ level, content }) => Ok({ depth: if level_number(level) == 1 0 else level_number(level).to_u64() - 2, destination: slug(plain(content)), open: True, title: plain(content) })
 		_ => Err(NotHeading)
 	},
 )
@@ -199,10 +200,10 @@ pdf_blocks = |blocks, options, in_list| {
 		match block {
 			Heading({ level, content }) => {
 				if level_number(level) > 1 {
-					$result = $result.append(Pdf.spacer(if level_number(level) == 2 14 else 7))
+					$result = $result.append(Pdf.spacer(if level_number(level) == 2 18 else 12))
 				}
 				if level_number(level) != 1 {
-					$result = $result.append(Pdf.destination_heading(slug(plain(content)), level_number(level), plain(content)))
+					$result = $result.append(Pdf.destination_heading(slug(plain(content)), level_number(level) - 1, plain(content))).append(Pdf.spacer(6))
 				}
 			}
 			Paragraph([Image({ alt, target })]) => {
@@ -210,8 +211,8 @@ pdf_blocks = |blocks, options, in_list| {
 					return Err(UnsupportedImage(target.href))
 				}
 				image = Image.Source.rgb8({ dimensions: { width: 658, height: 102 }, pixels: animal_pixels, row_stride: 1974, alpha: NoAlpha })
-				drawing = Scene.Drawing.empty.image(image, { origin: { x: 0, y: 0 }, size: { width: 491, height: 76.112 } })
-				$result = $result.append(Pdf.figure({ drawing, alt: plain(alt), caption: Pdf.caption(plain(alt)) })).append(Pdf.spacer(7))
+				drawing = Scene.Drawing.empty.image(image, { origin: { x: 0, y: 0 }, size: { width: 471, height: 73.012 } })
+				$result = $result.append(Pdf.figure({ drawing, alt: plain(alt), caption: Pdf.caption(plain(alt)) })).append(Pdf.spacer(6))
 			}
 			Paragraph(inlines) => {
 				paragraph = Pdf.rich_paragraph(pdf_inlines(inlines)?)
@@ -221,7 +222,7 @@ pdf_blocks = |blocks, options, in_list| {
 				}
 				$result = $result.append(if followed_by_image Pdf.keep_with_next(Required, paragraph) else paragraph)
 				if !in_list and !followed_by_image {
-					$result = $result.append(Pdf.spacer(7))
+					$result = $result.append(Pdf.spacer(6))
 				}
 			}
 			Code({ pre, .. }) => {
@@ -256,7 +257,7 @@ pdf_blocks = |blocks, options, in_list| {
 					header_rows: [Pdf.row($headers)],
 					body_rows: $rows,
 				})
-				$result = $result.append(if rows.len() <= 8 Pdf.keep_together([table]) else table).append(Pdf.spacer(7))
+				$result = $result.append(if rows.len() <= 8 Pdf.keep_together([table]) else table).append(Pdf.spacer(6))
 			}
 			ListBlock({ kind, items, .. }) => {
 				var $items = []
@@ -298,8 +299,8 @@ code_panel = |source, options| {
 		}
 	}
 	contents = $contents
-	height = Pdf.measure_custom_content(options, { contents, language: "en-AU", width: 471 }).map_err(|error| PdfRejected(error))?
-	size = { width: Layout.Unit.points(491), height: Layout.Unit.from_raw(height.raw() + 20000) }
+	height = Pdf.measure_custom_content(options, { contents, language: "en-AU", width: 451 }).map_err(|error| PdfRejected(error))?
+	size = { width: Layout.Unit.points(471), height: Layout.Unit.from_raw(height.raw() + 20000) }
 	panel = Scene.Drawing.empty.rectangle({ origin: { x: 0, y: 0 }, size }, rgb(244, 246, 249))
 	Ok(Pdf.custom_block({ contents, inset: 10, name: "Source code", panel, size }))
 }
@@ -319,8 +320,8 @@ wrap_code = |line| {
 	var $prefix = ""
 	var $remaining = Str.to_utf8(line)
 	var $lines = []
-	while $remaining.len() + Str.to_utf8($prefix).len() > 86 {
-		limit = 86 - Str.to_utf8($prefix).len()
+	while $remaining.len() + Str.to_utf8($prefix).len() > 83 {
+		limit = 83 - Str.to_utf8($prefix).len()
 		var $split = limit
 		for candidate in $remaining.take_first(limit).map_with_index(|byte, index| { byte, index }) {
 			if candidate.index >= limit // 2 and (candidate.byte == '/' or candidate.byte == ' ' or candidate.byte == ',') {

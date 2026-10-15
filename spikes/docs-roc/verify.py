@@ -108,6 +108,15 @@ images = subprocess.check_output(["pdfimages", "-list", str(pdfs[0])], text=True
 assert re.search(r"\b658\s+102\b", images), "Screenshot must be embedded at original pixel dimensions"
 destinations = subprocess.check_output(["pdfinfo", "-dests", str(pdfs[0])], text=True)
 assert '"get-started"' in destinations and '"run-the-checks"' in destinations
+# The visible cover title is PDF 2.0 Title, not an extra heading level.
+# Poppler versions predating those new roles warn about Title/Strong/Em;
+# inspect their recognized heading hierarchy without treating that as validity.
+structure = subprocess.run(["pdfinfo", "-struct-text", str(pdfs[0])], capture_output=True, text=True, check=True)
+h1 = re.findall(r'  H1 \(block\)\n    "([^"]+)"', structure.stdout)
+h2 = re.findall(r'  H2 \(block\)\n    "([^"]+)"', structure.stdout)
+assert h1 == ["Contents", "Get started", "Run the checks", "Release and maintain"], h1
+assert "Add the package" in h2 and "Where tests live" in h2, h2
+assert "  H3 (block)" not in structure.stdout
 print("PASS deterministic PDF, exact HTML code, local anchors, tables, screenshot, PDF tags/text/destinations")
 
 stress = root / "pagination.md"
