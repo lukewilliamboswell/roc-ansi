@@ -1,0 +1,13 @@
+{
+  "body-page-field": "body-page-field: Pdf.Error.InvalidDocument (1 diagnostic):\n  document.generated_reference at contents[0].inlines[1]: Page fields and reserved widths are page furniture only: they may appear in a template region's furniture text, never in body content. Generated references in the body are scheduled for Gate 8. No PDF bytes were emitted.",
+  "footer-page-field": "footer-page-field: accepted (11167 bytes)",
+  "tall-panel": "tall-panel: Pdf.Error.InvalidDocument (1 diagnostic):\n  layout.oversize_block at contents[0]: A custom block is unsplittable and needs 800 pt, but a page flow region holds at most 698 pt; it is never split, clipped, or shrunk. No PDF bytes were emitted.",
+  "default-empty-panel": "default-empty-panel: Pdf.Error.InvalidDocument (1 diagnostic):\n  layout.custom_block_drawing at contents[0]: A custom block's panel is not a supported panel drawing: it has no commands. No PDF bytes were emitted.",
+  "speed-no-cache-body-page-field": "body-page-field: Pdf.Error.InvalidDocument (1 diagnostic):\n  document.generated_reference at contents[0].inlines[1]: Page fields and reserved widths are page furniture only: they may appear in a template region's furniture text, never in body content. Generated references in the body are scheduled for Gate 8. No PDF bytes were emitted.",
+  "speed-no-cache-footer-page-field": "footer-page-field: accepted (11167 bytes)",
+  "speed-no-cache-tall-panel": "tall-panel: Pdf.Error.InvalidDocument (1 diagnostic):\n  layout.oversize_block at contents[0]: A custom block is unsplittable and needs 800 pt, but a page flow region holds at most 698 pt; it is never split, clipped, or shrunk. No PDF bytes were emitted.",
+  "speed-no-cache-default-empty-panel": "default-empty-panel: Pdf.Error.InvalidDocument (1 diagnostic):\n  layout.custom_block_drawing at contents[0]: A custom block's panel is not a supported panel drawing: it has no commands. No PDF bytes were emitted.",
+  "speed-no-cache-short-ascii-break": "short-ascii-break: accepted (8421 bytes)",
+  "speed-no-cache-ascii-break": "ascii-break: Pdf.Error.InvalidDocument (1 diagnostic):\n  pipeline.lines.line_layout.unbreakable at Lines.LineLayout.Unbreakable: A compiler stage rejected an internal precondition (Lines.LineLayout.Unbreakable: ({ cluster_end: 76, cluster_start: 0 })). This is a package defect, not an authoring error; please report it with the document. No PDF bytes were emitted.",
+  "speed-no-cache-blank-breaks": "blank-breaks: Pdf.Error.InvalidDocument (1 diagnostic):\n  text.unsupported_cluster at contents[0].inlines[4].inlines[0]: An inline boundary falls inside a multi-scalar grapheme cluster, which the convenience shaper does not support. No PDF bytes were emitted."
+}

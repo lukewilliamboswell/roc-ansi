@@ -10,8 +10,14 @@ or the [Roc website](https://www.roc-lang.org/).
 
 ## Get started
 
-Add the released package to an application. This example deliberately retains
-the full dependency URL, which is the longest kind of line in our manual.
+This chapter takes you from nothing to a program that prints coloured text. You
+need a current Roc [nightly](https://github.com/roc-lang/nightlies/releases)
+installed as `roc`.
+
+### Add the package
+
+A Roc application names its packages in its header, each by the URL of a
+release. Save this as `hello.roc`:
 
 ```roc
 app [main!] {
@@ -25,6 +31,23 @@ main! = |_args| {
     Ok({})
 }
 ```
+
+The URL ends in a hash of the package's contents. Roc checks what it downloads
+against that hash, so the URL can only ever mean one thing.
+
+### Run it
+
+```sh
+roc hello.roc
+```
+
+The word `hello` is printed in green. `ANSI.color` wrapped it in the escape
+codes that switch the colour on, and a reset that switches it off again.
+
+### Where to go next
+
+- [Learn from the examples](#learn-from-the-examples) has a short program for each part of the package.
+- [API reference for 0.13.2](https://lukewilliamboswell.github.io/roc-ansi/0.13.2/) lists every function of every module.
 
 ### Learn from the examples
 

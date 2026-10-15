@@ -33,8 +33,10 @@ are an input Markdown file and output directory. The executable embeds its
 fonts and screenshot fixture; rendering starts no other programs and needs
 no Nix, Docker, Node, browser, Python or network access.
 
-Fonts are copied byte-for-byte from the rc3 release's gallery sources and
-retain their OFL notices under `fonts/`.
+The original fonts are copied byte-for-byte from the rc3 release's gallery
+sources and retain their OFL notices under `fonts/`. The polished edition adds
+a static Noto Sans italic font from an immutable official Noto source; its
+matching license and provenance are recorded in [the feedback report](feedback/README.md).
 
 ## Verify and measure
 
@@ -56,6 +58,33 @@ branch or a manual dispatch. It verifies and measures direct source execution
 on Linux and uploads the previews and logs. A manual dispatch with `native`
 enabled also measures full native compilation. Its Poppler installation is
 test overhead, separate from renderer runtime.
+
+## Polished manual experiment, October 16
+
+The current renderer adds a cover with linked contents, differentiated
+headings, an italic face, visible underlined links, measured shaded code
+panels, full-width styled tables, and running headers/footers with current
+and total page numbers. The fixture now includes the real Get started
+explanations and run command. It is a four-page representative sample, not
+the complete released manual.
+
+The polished review artifact is `.roc-ansi-tmp/docs-roc-polished-final/manual.pdf`.
+[The roc-pdf experience report](feedback/README.md) separates features already
+supported by rc3 from application work, documented package limits, reproduced
+rough edges and candidate upstream issue material. `feedback/probe.roc` is a
+small public-API reproduction file with no parent assets or fonts.
+
+Code panels use one paragraph per visual line, with document paragraph spacing
+set to zero and ordinary body paragraph gaps authored explicitly. This avoids
+a reproduced rich-paragraph blank-line rejection while retaining code roles.
+Long panels fail explicitly rather than clipping; native splitting is not
+available for custom blocks. The verifier exercises consecutive blank lines,
+tabs, long tokens, oversize panels, empty/minimal documents and page furniture
+as well as the original content checks.
+
+All timing tables and profiles below describe the **earlier two-page renderer**
+at their linked commits. They are historical baselines, not measurements of
+this polished edition.
 
 ## Initial Apple Silicon measurements
 
@@ -246,7 +275,7 @@ same byte-identical PDF and three-page table continuation probe.
   parser. Preserve public URLs/anchors when doing that migration.
 - HTML code remains exact and scrolls horizontally. PDF code is monochrome,
   tabs expand to four spaces, each source line is a paragraph, and lines over
-  90 ASCII characters are visually wrapped. PDF-extracted code gains line
+  86 ASCII characters are visually wrapped. PDF-extracted code gains line
   boundaries and is not copy-exact. Non-ASCII code is rejected rather than
   split through UTF-8. A production preformatted-code layout needs explicit
   typography, spacing, wrapping and copy/paste policy.
@@ -260,8 +289,8 @@ same byte-identical PDF and three-page table continuation probe.
   cross-chapter link resolution need a complete document-index policy.
 - Only the demonstrated Markdown subset is accepted. Unsupported blocks,
   inline HTML, unknown images, task lists and inline strikethrough fail
-  explicitly. Link titles, PDF table alignment parity, syntax highlighting,
-  an italic font, running headers and visible page numbering are unfinished.
+  explicitly. Syntax highlighting, printed contents page references,
+  chapter-aware running headers and full manual assembly are unfinished.
 - The PDF uses rc3's default Archive profile. This spike checks tags and
   rendering with Poppler, not independent PDF/A or accessibility conformance.
 

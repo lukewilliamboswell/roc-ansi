@@ -9,6 +9,8 @@ import cli.OsStr
 import cli.Path
 import cli.Stdout
 import parser.Markdown
+import pdf.Color
+import pdf.Theme
 import pdf.Document
 import pdf.Font
 import pdf.Image
@@ -16,6 +18,7 @@ import pdf.Layout
 import pdf.Pdf
 import pdf.Scene
 import "fonts/NotoSans-Regular.ttf" as regular_bytes : List(U8)
+import "fonts/NotoSans-Italic.ttf" as italic_bytes : List(U8)
 import "fonts/NotoSans-Bold.ttf" as bold_bytes : List(U8)
 import "fonts/SourceCodePro-Regular.ttf" as mono_bytes : List(U8)
 import "assets/animals.rgb" as animal_pixels : List(U8)
@@ -32,21 +35,11 @@ main! = |args| {
 	parsed = Monotonic.now!()
 	html = html_document(blocks)?
 	html_done = Monotonic.now!()
-	contents = pdf_blocks(blocks)?
 	fonts = register_fonts()?
-	options : Pdf.Options
-	options = {
-		fonts: Registered(fonts.registry),
-		theme: {
-			face: fonts.regular,
-			body: { size: 10, leading: 14 },
-			paragraph_spacing: 4,
-			page_margin: { top: 42, right: 42, bottom: 42, left: 42 },
-			headings: { all: { face: Face(fonts.bold), size: 16, leading: 22 } },
-			inline: { code: { font: Face(fonts.mono), scale: Percent(80) }, strong: { font: Face(fonts.bold) } },
-		},
-	}
-	document = Pdf.document({ contents, language: "en-AU", title: "The roc-ansi manual: Roc rendering spike", outline: outline(blocks) })
+	options = renderer_options(fonts)
+	body = pdf_blocks(blocks, options, False)?
+	contents = if body.is_empty() front_matter(blocks) else front_matter(blocks).append(Pdf.page_break).concat(body)
+	document = Pdf.document({ contents, language: "en-AU", title: "The roc-ansi manual", outline: outline(blocks), page_templates: Templates(page_templates()) })
 	lowered = Monotonic.now!()
 	prepared = Pdf.prepare_with_report(document, options).map_err(|error| PdfRejected(error))?
 	planned = Monotonic.now!()
@@ -69,8 +62,85 @@ register_fonts = || {
 	add = |registry, bytes| registry.register(bytes, { provision: BuiltIn, scripts: latin }, Font.ValidationLimits.default).map_err(|error| FontRejected(error))
 	regular = add(Font.Registry.empty, regular_bytes)?
 	bold = add(regular.registry, bold_bytes)?
-	mono = add(bold.registry, mono_bytes)?
-	Ok({ regular: regular.face, bold: bold.face, mono: mono.face, registry: mono.registry })
+	italic = add(bold.registry, italic_bytes)?
+	mono = add(italic.registry, mono_bytes)?
+	Ok({ regular: regular.face, bold: bold.face, italic: italic.face, mono: mono.face, registry: mono.registry })
+}
+
+rgb = |red, green, blue| Color.srgb8({ red, green, blue })
+
+renderer_options = |fonts| {
+	options : Pdf.Options
+	options = {
+		fonts: Registered(fonts.registry),
+		page_size: A4,
+		theme: {
+			face: fonts.regular,
+			body: { color: rgb(43, 49, 61), size: 10, leading: 14 },
+			paragraph_spacing: 0,
+			page_margin: { top: 40, right: 52, bottom: 38, left: 52 },
+			title: { face: Face(fonts.bold), color: rgb(23, 53, 90), size: 34, leading: 42 },
+			headings: {
+				all: { face: Face(fonts.bold), color: rgb(23, 53, 90), size: 13, leading: 18 },
+				h1: Own({ face: Face(fonts.bold), color: rgb(23, 53, 90), size: 24, leading: 31 }),
+				h2: Own({ face: Face(fonts.bold), color: rgb(23, 53, 90), size: 18, leading: 25 }),
+			},
+			inline: { code: { font: Face(fonts.mono), scale: Percent(90), color: Themed(rgb(39, 62, 94)) }, strong: { font: Face(fonts.bold) }, emphasis: { font: Face(fonts.italic) } },
+			link: { color: Themed(rgb(22, 91, 160)), underline: Underline({ offset: 1, thickness: 0.4 }) },
+			table: {
+				cell_padding: 7,
+				row_gap: 8,
+				header_fill: Fill(rgb(229, 237, 247)),
+				header_color: Themed(rgb(23, 53, 90)),
+				body_fills: { odd: Fill(rgb(247, 249, 252)) },
+				rule: Rule({ color: rgb(173, 192, 215), width: 0.6 }),
+				body_rule: Rule({ color: rgb(225, 231, 238), width: 0.3 }),
+			},
+		},
+	}
+	options
+}
+
+page_templates = || {
+	rule = Scene.Drawing.empty.rectangle({ origin: { x: 0, y: 0 }, size: { width: 491, height: 0.5 } }, rgb(202, 213, 228))
+	header = Pdf.region({ height: 22, slot_inset: 6, backdrop: Backdrop(rule), start: [Pdf.furniture_text([Pdf.text("roc-ansi / Manual")])], end: [Pdf.furniture_text([Pdf.text("0.13.2")])] })
+	footer = Pdf.region({ height: 22, slot_inset: 6, backdrop: Backdrop(rule), start: [Pdf.furniture_text([Pdf.text("Roc documentation experiment")])], end: [Pdf.furniture_text([Pdf.page_number(Decimal), Pdf.text(" / "), Pdf.total_pages(Decimal)])] })
+	{ first: Pdf.first_page_template({ footer, gap: 14 }), continuation: Pdf.page_template({ header, footer, gap: 14 }) }
+}
+
+front_matter = |blocks| {
+	var $title = "The roc-ansi manual"
+	for block in blocks {
+		match block {
+			Heading({ level: One, content }) => {
+				$title = plain(content)
+			}
+			_ => {}
+		}
+	}
+	var $contents = [
+		Pdf.paragraph("ROC PACKAGE MANUAL · 0.13.2"),
+		Pdf.spacer(30),
+		Pdf.title($title),
+		Pdf.destination_paragraph(slug($title), "Colour, style and interaction for terminal applications."),
+		Pdf.spacer(20),
+		Pdf.decoration({ drawing: Scene.Drawing.empty.rectangle({ origin: { x: 0, y: 0 }, size: { width: 70, height: 4 } }, rgb(22, 91, 160)), below: 22 }),
+		Pdf.paragraph("A pure Roc package for expressive command-line interfaces."),
+		Pdf.spacer(30),
+		Pdf.heading(1, "Contents"),
+	]
+	for block in blocks {
+		match block {
+			Heading({ level, content }) if level_number(level) == 2 => {
+				$contents = $contents.append(Pdf.rich_paragraph([Pdf.inline_internal_link([Pdf.strong([Pdf.text(plain(content))])], slug(plain(content)))])).append(Pdf.spacer(7))
+			}
+			Heading({ level: Three, content }) => {
+				$contents = $contents.append(Pdf.rich_paragraph([Pdf.text("    "), Pdf.inline_internal_link([Pdf.text(plain(content))], slug(plain(content)))])).append(Pdf.spacer(7))
+			}
+			_ => {}
+		}
+	}
+	$contents.append(Pdf.spacer(25)).append(Pdf.paragraph("Experimental edition · rendered entirely with Roc, roc-parser and roc-pdf."))
 }
 
 plain : List(Markdown.Inline) -> Str
@@ -121,41 +191,47 @@ level_number = |level| match level {
 	Six => 6
 }
 
-pdf_blocks : List(Markdown) -> Try(List(Document.Block), _)
-pdf_blocks = |blocks| {
+pdf_blocks : List(Markdown), Pdf.Options, Bool -> Try(List(Document.Block), _)
+pdf_blocks = |blocks, options, in_list| {
 	var $result = []
-	for block in blocks {
+	for entry in blocks.map_with_index(|block, index| { block, index }) {
+		block = entry.block
 		match block {
 			Heading({ level, content }) => {
-				$result = $result.append(Pdf.destination_heading(slug(plain(content)), level_number(level), plain(content)))
+				if level_number(level) > 1 {
+					$result = $result.append(Pdf.spacer(if level_number(level) == 2 14 else 7))
+				}
+				if level_number(level) != 1 {
+					$result = $result.append(Pdf.destination_heading(slug(plain(content)), level_number(level), plain(content)))
+				}
 			}
 			Paragraph([Image({ alt, target })]) => {
 				if target.href != "animals.png" {
 					return Err(UnsupportedImage(target.href))
 				}
 				image = Image.Source.rgb8({ dimensions: { width: 658, height: 102 }, pixels: animal_pixels, row_stride: 1974, alpha: NoAlpha })
-				drawing = Scene.Drawing.empty.image(image, { origin: { x: 0, y: 0 }, size: { width: 493.5, height: 76.5 } })
-				$result = $result.append(Pdf.figure({ drawing, alt: plain(alt), caption: Pdf.caption(plain(alt)) }))
+				drawing = Scene.Drawing.empty.image(image, { origin: { x: 0, y: 0 }, size: { width: 491, height: 76.112 } })
+				$result = $result.append(Pdf.figure({ drawing, alt: plain(alt), caption: Pdf.caption(plain(alt)) })).append(Pdf.spacer(7))
 			}
 			Paragraph(inlines) => {
-				$result = $result.append(Pdf.rich_paragraph(pdf_inlines(inlines)?))
+				paragraph = Pdf.rich_paragraph(pdf_inlines(inlines)?)
+				followed_by_image = match blocks.get(entry.index + 1) {
+					Ok(Paragraph([Image(_)])) => True
+					_ => False
+				}
+				$result = $result.append(if followed_by_image Pdf.keep_with_next(Required, paragraph) else paragraph)
+				if !in_list and !followed_by_image {
+					$result = $result.append(Pdf.spacer(7))
+				}
 			}
 			Code({ pre, .. }) => {
-				for line in Str.split_on(pre.drop_suffix("\n"), "\n") {
-					if Str.to_utf8(line).any(|byte| byte > 127) {
-						return Err(UnsupportedMarkdown("non-ASCII code needs a Unicode-aware wrapping policy"))
-					}
-					if line == "" {
-						$result = $result.append(Pdf.spacer(5))
-					} else {
-						$result = $result.append(Pdf.rich_paragraph(code_line(Str.join_with(Str.split_on(line, "\t"), "    "))))
-					}
-				}
+				$result = $result.append(code_panel(pre, options)?)
+				$result = $result.append(Pdf.spacer(6))
 			}
 			Table({ header, rows, align }) => {
 				var $headers = []
 				for cell in header {
-					$headers = $headers.append(Pdf.header_cell(Column, pdf_inlines(cell)?))
+					$headers = $headers.append(Pdf.header_cell(Column, [Pdf.strong(pdf_inlines(cell)?)]))
 				}
 				var $rows = []
 				for row in rows {
@@ -165,23 +241,22 @@ pdf_blocks = |blocks| {
 					}
 					$rows = $rows.append(Pdf.row($cells))
 				}
-				$result = $result.append(
-					Pdf.table({
-						caption: Pdf.no_caption,
-						columns: align.map(
-							|alignment| {
-								width: Share(1),
-								align: match alignment {
-									Right => End
-									Center => Center
-									_ => Start
-								},
+				table = Pdf.table({
+					caption: Pdf.no_caption,
+					columns: align.map_with_index(
+						|alignment, index| {
+							width: if index == align.len() - 1 Share(1) else Content,
+							align: match alignment {
+								Right => End
+								Center => Center
+								_ => Start
 							},
-						),
-						header_rows: [Pdf.row($headers)],
-						body_rows: $rows,
-					}),
-				)
+						},
+					),
+					header_rows: [Pdf.row($headers)],
+					body_rows: $rows,
+				})
+				$result = $result.append(if rows.len() <= 8 Pdf.keep_together([table]) else table).append(Pdf.spacer(7))
 			}
 			ListBlock({ kind, items, .. }) => {
 				var $items = []
@@ -189,7 +264,7 @@ pdf_blocks = |blocks| {
 					if item.task != NoTask {
 						return Err(UnsupportedMarkdown("task list"))
 					}
-					$items = $items.append(Pdf.list_item(pdf_blocks(item.blocks)?))
+					$items = $items.append(Pdf.list_item(pdf_blocks(item.blocks, options, True)?))
 				}
 				$result = $result.append(
 					match kind {
@@ -207,18 +282,56 @@ pdf_blocks = |blocks| {
 	Ok($result)
 }
 
-# PDF-only visual wrapping. HTML keeps the exact source; this deliberately
-# exposes the lack of a preformatted code-block API in the PDF facade.
-code_line : Str -> List(Pdf.Inline)
-code_line = |line| {
-	var $result = []
-	var $remaining = Str.to_utf8(line)
-	while $remaining.len() > 90 {
-		$result = $result.append(Pdf.code(Str.from_utf8_lossy($remaining.take_first(90))))
-		$result = $result.append(Pdf.line_break)
-		$remaining = $remaining.drop_first(90)
+# Each visual code line is a paragraph: this avoids the rc3 rich-inline
+# boundary rejection for repeated ASCII and consecutive blank lines.
+# Zero global paragraph spacing keeps source lines on a consistent grid;
+# ordinary Markdown paragraphs receive an explicit spacer above.
+code_panel : Str, Pdf.Options -> Try(Document.Block, _)
+code_panel = |source, options| {
+	var $contents = []
+	for line in Str.split_on(source.drop_suffix("\n"), "\n") {
+		if Str.to_utf8(line).any(|byte| byte > 127) {
+			return Err(UnsupportedMarkdown("non-ASCII code needs a Unicode-aware wrapping policy"))
+		}
+		for visual_line in wrap_code(Str.join_with(Str.split_on(line, "\t"), "    ")) {
+			$contents = $contents.append(Pdf.rich_paragraph([Pdf.code(if visual_line.is_empty() " " else visual_line)]))
+		}
 	}
-	$result.append(Pdf.code(Str.from_utf8_lossy($remaining)))
+	contents = $contents
+	height = Pdf.measure_custom_content(options, { contents, language: "en-AU", width: 471 }).map_err(|error| PdfRejected(error))?
+	size = { width: Layout.Unit.points(491), height: Layout.Unit.from_raw(height.raw() + 20000) }
+	panel = Scene.Drawing.empty.rectangle({ origin: { x: 0, y: 0 }, size }, rgb(244, 246, 249))
+	Ok(Pdf.custom_block({ contents, inset: 10, name: "Source code", panel, size }))
+}
+
+# Prefer a source separator near the end of the line, keeping that separator.
+# Continuation indentation is visual only; HTML retains every original byte.
+wrap_code = |line| {
+	var $indent = 0
+	for byte in Str.to_utf8(line).take_first(12) {
+		if byte == ' ' {
+			$indent = $indent + 1
+		} else {
+			break
+		}
+	}
+	continuation = Str.repeat(" ", $indent + 4)
+	var $prefix = ""
+	var $remaining = Str.to_utf8(line)
+	var $lines = []
+	while $remaining.len() + Str.to_utf8($prefix).len() > 86 {
+		limit = 86 - Str.to_utf8($prefix).len()
+		var $split = limit
+		for candidate in $remaining.take_first(limit).map_with_index(|byte, index| { byte, index }) {
+			if candidate.index >= limit // 2 and (candidate.byte == '/' or candidate.byte == ' ' or candidate.byte == ',') {
+				$split = candidate.index + 1
+			}
+		}
+		$lines = $lines.append("${$prefix}${Str.from_utf8_lossy($remaining.take_first($split))}")
+		$remaining = $remaining.drop_first($split)
+		$prefix = continuation
+	}
+	$lines.append("${$prefix}${Str.from_utf8_lossy($remaining)}")
 }
 
 pdf_inlines : List(Markdown.Inline) -> Try(List(Pdf.Inline), _)

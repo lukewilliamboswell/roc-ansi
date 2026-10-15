@@ -93,6 +93,17 @@ assert "Tagged:          yes" in info
 text = subprocess.check_output(["pdftotext", "-layout", str(pdfs[0]), "-"], text=True)
 for expected in ["Get started", "Run the checks", "Where tests live", "Release and maintain"]:
     assert expected in text, expected
+pages_text = [page for page in text.split("\f") if page.strip()]
+assert text.count("The roc-ansi manual") == 1, "Cover title must not repeat in body"
+package_url = re.search(r'ansi: "(https://[^"\n]+)"', source.read_text())[1]
+url_prefix, url_hash = package_url.rsplit("/", 1)
+assert re.search(re.escape(url_prefix + "/") + r"\s+" + re.escape(url_hash), text), "Package URL should wrap before its complete hash"
+assert package_url in re.sub(r"\s+", "", text), "Visual wrapping must retain every URL character"
+for index, page_text in enumerate(pages_text):
+    assert "Roc documentation experiment" in page_text, f"Missing footer on page {index + 1}"
+    assert re.search(rf"{index + 1}\s*/\s*{len(pages_text)}", page_text), "Incorrect page field"
+    if index:
+        assert "roc-ansi / Manual" in page_text and "0.13.2" in page_text, "Missing continuation header"
 images = subprocess.check_output(["pdfimages", "-list", str(pdfs[0])], text=True)
 assert re.search(r"\b658\s+102\b", images), "Screenshot must be embedded at original pixel dimensions"
 destinations = subprocess.check_output(["pdfinfo", "-dests", str(pdfs[0])], text=True)
@@ -107,7 +118,7 @@ stress.write_text(
 stress_pdf = run(stress, root / "pagination")
 stress_text = subprocess.check_output(["pdftotext", "-layout", str(stress_pdf), "-"], text=True)
 assert records[-1]["pages"] > 1
-assert stress_text.count("Unique repeated header") >= records[-1]["pages"]
+assert stress_text.count("Unique repeated header") >= records[-1]["pages"] - 1
 assert "Row 119" in stress_text
 print(f"PASS continuing table: {records[-1]['pages']} pages with repeated headers and final row retained")
 
@@ -123,6 +134,34 @@ for name, content in [
     assert result.returncode != 0
     assert not (output / "manual.pdf").exists()
 print("PASS unsupported HTML, unknown images and non-ASCII code fail without publishing output")
+
+# Preformatted text keeps authored blank lines and tabs expanded to four spaces.
+# Long tokens wrap visually; the HTML remains byte-for-byte faithful to source.
+preformatted = root / "preformatted.md"
+code = "first\n\n\n\tindented\n" + "x" * 220 + "\nlast\n"
+preformatted.write_text("# Code probe\n\n```text\n" + code + "```\n")
+code_pdf = run(preformatted, root / "preformatted")
+code_page = Page()
+code_page.feed((root / "preformatted/index.html").read_text())
+assert code_page.code == [code]
+code_text = subprocess.check_output(["pdftotext", "-layout", str(code_pdf), "-"], text=True)
+assert "indented" in code_text and "last" in code_text
+assert sum(len(token) for token in re.findall(r"x{2,}", code_text)) == 220
+
+# Public custom blocks are unsplittable: reject a code block taller than a page.
+long_code = root / "oversize-code.md"
+long_code.write_text("# Long code\n\n```\n" + "line\n" * 100 + "```\n")
+oversize_output = root / "oversize-code"
+oversize_result = subprocess.run([binary, str(long_code), str(oversize_output)], capture_output=True, text=True)
+assert oversize_result.returncode != 0 and "layout.oversize_block" in oversize_result.stdout + oversize_result.stderr
+assert not (oversize_output / "manual.pdf").exists()
+
+for name, content in [("empty", ""), ("minimal", "A minimal paragraph.\n")]:
+    fixture = root / f"{name}.md"
+    fixture.write_text(content)
+    minimal_pdf = run(fixture, root / name)
+    assert minimal_pdf.read_bytes().startswith(b"%PDF-")
+print("PASS blank code lines, tabs, long token, explicit oversize rejection, empty and minimal inputs")
 
 summary = {
     "platform": platform.platform(),
