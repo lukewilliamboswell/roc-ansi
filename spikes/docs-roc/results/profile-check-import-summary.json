@@ -1,0 +1,808 @@
+{
+  "method": "All threads; threadCPUDelta weighted CPU samples; inclusive functions deduplicated per stack; percentages overlap across ancestors; not allocation profiling.",
+  "sampled_cpu_seconds": 10.686152,
+  "self": [
+    {
+      "function": "dev.ProcArtifact.extractPrepared__func_36158",
+      "cpu_percent": 16.13,
+      "sampled_cpu_seconds": 1.7237
+    },
+    {
+      "function": "__ulock_wait2",
+      "cpu_percent": 13.93,
+      "sampled_cpu_seconds": 1.4883
+    },
+    {
+      "function": "LirStore.getCFStmt",
+      "cpu_percent": 3.1,
+      "sampled_cpu_seconds": 0.3311
+    },
+    {
+      "function": "compiler_rt.memcpy.memcpyFast",
+      "cpu_percent": 2.72,
+      "sampled_cpu_seconds": 0.2904
+    },
+    {
+      "function": "monotype.lower.BodyContext.runInst",
+      "cpu_percent": 1.82,
+      "sampled_cpu_seconds": 0.1942
+    },
+    {
+      "function": "monotype_lifted.spec_constr.Cloner.runClone",
+      "cpu_percent": 1.29,
+      "sampled_cpu_seconds": 0.1382
+    },
+    {
+      "function": "DenseMap.DenseMap(CIR.Def.Idx,void).getOrPut",
+      "cpu_percent": 1.18,
+      "sampled_cpu_seconds": 0.1264
+    },
+    {
+      "function": "monotype.solve.InstGraph.unifyRootsTransitivelyUnchecked",
+      "cpu_percent": 1.15,
+      "sampled_cpu_seconds": 0.1232
+    },
+    {
+      "function": "writev",
+      "cpu_percent": 0.96,
+      "sampled_cpu_seconds": 0.1024
+    },
+    {
+      "function": "array_list.Aligned(AST.TypeAnno.Idx,null).append",
+      "cpu_percent": 0.9,
+      "sampled_cpu_seconds": 0.096
+    },
+    {
+      "function": "__ulock_wake",
+      "cpu_percent": 0.88,
+      "sampled_cpu_seconds": 0.0944
+    },
+    {
+      "function": "body_clone.appendSuccessors",
+      "cpu_percent": 0.88,
+      "sampled_cpu_seconds": 0.0938
+    },
+    {
+      "function": "_xzm_free",
+      "cpu_percent": 0.84,
+      "sampled_cpu_seconds": 0.0897
+    },
+    {
+      "function": "LirStore.getCFStmtImmediate",
+      "cpu_percent": 0.8,
+      "sampled_cpu_seconds": 0.085
+    },
+    {
+      "function": "monotype.solve.InterfaceConstraints.mapValue__func_16635",
+      "cpu_percent": 0.76,
+      "sampled_cpu_seconds": 0.0814
+    },
+    {
+      "function": "__ulock_wait",
+      "cpu_percent": 0.72,
+      "sampled_cpu_seconds": 0.0768
+    },
+    {
+      "function": "any_all.Evaluation(monotype.solve.InterfaceConstraints.Capture.ScanLeaf,monotype.solve.InterfaceConstraints.Capture.Shareability).begin",
+      "cpu_percent": 0.68,
+      "sampled_cpu_seconds": 0.0726
+    },
+    {
+      "function": "sha256.compressForTarget",
+      "cpu_percent": 0.65,
+      "sampled_cpu_seconds": 0.07
+    },
+    {
+      "function": "hash_map.Custom(LIR.ProcIdentity,*const dev.NativeProcCompiler.Procedure,hash_map.AutoContext(LIR.ProcIdentity),80).getIndex__func_7572",
+      "cpu_percent": 0.64,
+      "sampled_cpu_seconds": 0.0686
+    },
+    {
+      "function": "__close_nocancel",
+      "cpu_percent": 0.63,
+      "sampled_cpu_seconds": 0.0669
+    },
+    {
+      "function": "mem.eqlBytes",
+      "cpu_percent": 0.61,
+      "sampled_cpu_seconds": 0.0649
+    },
+    {
+      "function": "DenseMap.DenseMap(Expression.Expr.Idx,u32).getOrPut",
+      "cpu_percent": 0.61,
+      "sampled_cpu_seconds": 0.0647
+    },
+    {
+      "function": "SingleThreadArena.alloc",
+      "cpu_percent": 0.54,
+      "sampled_cpu_seconds": 0.0581
+    },
+    {
+      "function": "monotype.solve.InterfaceConstraints.Capture.beginNode",
+      "cpu_percent": 0.54,
+      "sampled_cpu_seconds": 0.0576
+    },
+    {
+      "function": "checked_artifact.CheckedTypeStoreView.payload",
+      "cpu_percent": 0.53,
+      "sampled_cpu_seconds": 0.0563
+    },
+    {
+      "function": "use_order.UseOrder.initTopology",
+      "cpu_percent": 0.52,
+      "sampled_cpu_seconds": 0.0559
+    },
+    {
+      "function": "_platform_memset",
+      "cpu_percent": 0.51,
+      "sampled_cpu_seconds": 0.0544
+    },
+    {
+      "function": "dev.StackPlan.solve",
+      "cpu_percent": 0.5,
+      "sampled_cpu_seconds": 0.0538
+    },
+    {
+      "function": "_xzm_xzone_malloc",
+      "cpu_percent": 0.5,
+      "sampled_cpu_seconds": 0.053
+    },
+    {
+      "function": "_xzm_xzone_malloc_tiny",
+      "cpu_percent": 0.49,
+      "sampled_cpu_seconds": 0.0528
+    },
+    {
+      "function": "monotype.type.Store.computeDigest",
+      "cpu_percent": 0.49,
+      "sampled_cpu_seconds": 0.0522
+    },
+    {
+      "function": "meta.eql__func_3810",
+      "cpu_percent": 0.49,
+      "sampled_cpu_seconds": 0.0522
+    },
+    {
+      "function": "__semwait_signal",
+      "cpu_percent": 0.39,
+      "sampled_cpu_seconds": 0.042
+    },
+    {
+      "function": "monotype.lower.BodyContext.scopedNode",
+      "cpu_percent": 0.39,
+      "sampled_cpu_seconds": 0.0416
+    },
+    {
+      "function": "monotype.solve.InterfaceConstraints.IdentityWriter.write__func_15956",
+      "cpu_percent": 0.38,
+      "sampled_cpu_seconds": 0.0402
+    },
+    {
+      "function": "monotype.lower.InterfaceSummaryCache.insertRelocated__func_15949",
+      "cpu_percent": 0.37,
+      "sampled_cpu_seconds": 0.0393
+    },
+    {
+      "function": "dev.LirCodeGen.LirCodeGen(.arm64mac).emitBoxyDictProcRegistrations",
+      "cpu_percent": 0.36,
+      "sampled_cpu_seconds": 0.0388
+    },
+    {
+      "function": "monotype.solve.InterfaceConstraints.IdentityWriter.write__func_15963",
+      "cpu_percent": 0.36,
+      "sampled_cpu_seconds": 0.0381
+    },
+    {
+      "function": "generalize.Generalizer.requestRank",
+      "cpu_percent": 0.35,
+      "sampled_cpu_seconds": 0.0375
+    },
+    {
+      "function": "monotype.solve.InstGraph.union_",
+      "cpu_percent": 0.35,
+      "sampled_cpu_seconds": 0.0372
+    },
+    {
+      "function": "NodeStore.getExpr",
+      "cpu_percent": 0.34,
+      "sampled_cpu_seconds": 0.0365
+    },
+    {
+      "function": "unify.Unifier.processFrame",
+      "cpu_percent": 0.34,
+      "sampled_cpu_seconds": 0.0362
+    },
+    {
+      "function": "unify.Unifier.processGuardedPair",
+      "cpu_percent": 0.33,
+      "sampled_cpu_seconds": 0.0357
+    },
+    {
+      "function": "instantiate.Instantiator.instantiateVarHelp",
+      "cpu_percent": 0.32,
+      "sampled_cpu_seconds": 0.0341
+    },
+    {
+      "function": "__getattrlist",
+      "cpu_percent": 0.32,
+      "sampled_cpu_seconds": 0.0338
+    },
+    {
+      "function": "xzm_malloc",
+      "cpu_percent": 0.32,
+      "sampled_cpu_seconds": 0.0337
+    },
+    {
+      "function": "_platform_memmove",
+      "cpu_percent": 0.3,
+      "sampled_cpu_seconds": 0.0322
+    },
+    {
+      "function": "unify.writeActiveVariant__func_29563",
+      "cpu_percent": 0.3,
+      "sampled_cpu_seconds": 0.0316
+    },
+    {
+      "function": "instantiate.Instantiator.requestVar",
+      "cpu_percent": 0.29,
+      "sampled_cpu_seconds": 0.0307
+    },
+    {
+      "function": "monotype.type.renderBytes",
+      "cpu_percent": 0.28,
+      "sampled_cpu_seconds": 0.0297
+    },
+    {
+      "function": "RekeyingHashMap.RekeyingHashMap(monotype.solve.StoredNominalBackingKey,monotype.solve.NominalBackingInstanceId,monotype.solve.NominalBackingIndexContext,80).fetchRemove",
+      "cpu_percent": 0.26,
+      "sampled_cpu_seconds": 0.0277
+    },
+    {
+      "function": "monotype.solve.InterfaceConstraints.instantiate",
+      "cpu_percent": 0.26,
+      "sampled_cpu_seconds": 0.0275
+    },
+    {
+      "function": "Check.resumeExprTask",
+      "cpu_percent": 0.26,
+      "sampled_cpu_seconds": 0.0274
+    },
+    {
+      "function": "monotype.solve.InterfaceConstraints.Capture.pushCaptureFrame",
+      "cpu_percent": 0.26,
+      "sampled_cpu_seconds": 0.0273
+    },
+    {
+      "function": "mach_absolute_time",
+      "cpu_percent": 0.26,
+      "sampled_cpu_seconds": 0.0273
+    },
+    {
+      "function": "arc_solve.computeUniquenessDetailed",
+      "cpu_percent": 0.25,
+      "sampled_cpu_seconds": 0.0272
+    },
+    {
+      "function": "monotype.solve.InterfaceConstraints.Identity.copy__func_15948",
+      "cpu_percent": 0.25,
+      "sampled_cpu_seconds": 0.027
+    },
+    {
+      "function": "unify.Unifier.pushWorkFrame",
+      "cpu_percent": 0.25,
+      "sampled_cpu_seconds": 0.0269
+    },
+    {
+      "function": "monotype.solve.InterfaceConstraints.Capture.addScanLeaves__func_16834",
+      "cpu_percent": 0.25,
+      "sampled_cpu_seconds": 0.0265
+    },
+    {
+      "function": "DenseMap.DenseMap(LIR.JoinPointId,LIR.JoinPointId).getOrPut",
+      "cpu_percent": 0.24,
+      "sampled_cpu_seconds": 0.026
+    },
+    {
+      "function": "_kernelrpc_mach_vm_deallocate_trap",
+      "cpu_percent": 0.24,
+      "sampled_cpu_seconds": 0.0257
+    },
+    {
+      "function": "__renameat",
+      "cpu_percent": 0.24,
+      "sampled_cpu_seconds": 0.0255
+    },
+    {
+      "function": "hash.wyhash.Wyhash.hash",
+      "cpu_percent": 0.24,
+      "sampled_cpu_seconds": 0.0253
+    },
+    {
+      "function": "hash_map.HashMap(monotype.solve.NodePair,void,monotype.solve.NodePairContext,80).getOrPut",
+      "cpu_percent": 0.23,
+      "sampled_cpu_seconds": 0.025
+    },
+    {
+      "function": "_free",
+      "cpu_percent": 0.23,
+      "sampled_cpu_seconds": 0.025
+    },
+    {
+      "function": "_malloc_zone_malloc",
+      "cpu_percent": 0.23,
+      "sampled_cpu_seconds": 0.0248
+    },
+    {
+      "function": "preadv",
+      "cpu_percent": 0.23,
+      "sampled_cpu_seconds": 0.0245
+    },
+    {
+      "function": "use_order.UseOrder.blockContinuation",
+      "cpu_percent": 0.23,
+      "sampled_cpu_seconds": 0.0245
+    },
+    {
+      "function": "dev.LirCodeGen.LirCodeGen(.arm64glibc).ensureStableLocationsForStmtLocals",
+      "cpu_percent": 0.22,
+      "sampled_cpu_seconds": 0.0238
+    },
+    {
+      "function": "monotype.type.Store.commitTransaction",
+      "cpu_percent": 0.22,
+      "sampled_cpu_seconds": 0.0237
+    },
+    {
+      "function": "unify.unify",
+      "cpu_percent": 0.22,
+      "sampled_cpu_seconds": 0.0232
+    },
+    {
+      "function": "monotype.lower.BodyContext.stepLower",
+      "cpu_percent": 0.22,
+      "sampled_cpu_seconds": 0.0231
+    },
+    {
+      "function": "monotype.solve.InstGraph.newNodeUnchecked",
+      "cpu_percent": 0.21,
+      "sampled_cpu_seconds": 0.0229
+    },
+    {
+      "function": "use_order.UseOrder.markFrom",
+      "cpu_percent": 0.21,
+      "sampled_cpu_seconds": 0.0223
+    },
+    {
+      "function": "__bzero",
+      "cpu_percent": 0.2,
+      "sampled_cpu_seconds": 0.0216
+    },
+    {
+      "function": "checked_artifact.CheckedTypePublisher.run",
+      "cpu_percent": 0.2,
+      "sampled_cpu_seconds": 0.0215
+    },
+    {
+      "function": "monotype.solve.InterfaceConstraints.IdentityWriter.write__func_15951",
+      "cpu_percent": 0.2,
+      "sampled_cpu_seconds": 0.0215
+    },
+    {
+      "function": "lambda_solved.solve.Solver.solve",
+      "cpu_percent": 0.2,
+      "sampled_cpu_seconds": 0.0209
+    },
+    {
+      "function": "dev.LirCodeGen.LirCodeGen(.arm64glibc).shiftNestedCompiledRcHelperOffsets",
+      "cpu_percent": 0.2,
+      "sampled_cpu_seconds": 0.0209
+    },
+    {
+      "function": "arc_solve.settleUniqueOrigins",
+      "cpu_percent": 0.19,
+      "sampled_cpu_seconds": 0.0205
+    }
+  ],
+  "inclusive": [
+    {
+      "function": "_pthread_start",
+      "cpu_percent": 66.66,
+      "sampled_cpu_seconds": 7.123
+    },
+    {
+      "function": "Thread.PosixThreadImpl.spawn__func_33931.Instance.entryFn",
+      "cpu_percent": 66.66,
+      "sampled_cpu_seconds": 7.1229
+    },
+    {
+      "function": "start",
+      "cpu_percent": 33.34,
+      "sampled_cpu_seconds": 3.5632
+    },
+    {
+      "function": "main.mainArgs",
+      "cpu_percent": 33.26,
+      "sampled_cpu_seconds": 3.5547
+    },
+    {
+      "function": "main.checkFileWithBuildEnv",
+      "cpu_percent": 33.26,
+      "sampled_cpu_seconds": 3.5547
+    },
+    {
+      "function": "start.main",
+      "cpu_percent": 33.26,
+      "sampled_cpu_seconds": 3.5547
+    },
+    {
+      "function": "monotype.lower.Builder.runSpecJobTask",
+      "cpu_percent": 23.56,
+      "sampled_cpu_seconds": 2.5178
+    },
+    {
+      "function": "monotype.lower.Builder.lowerPendingSpecJobToShard",
+      "cpu_percent": 23.5,
+      "sampled_cpu_seconds": 2.5111
+    },
+    {
+      "function": "monotype.lower.Builder.lowerReservedTemplateBodyIntoDraft",
+      "cpu_percent": 21.83,
+      "sampled_cpu_seconds": 2.3326
+    },
+    {
+      "function": "monotype.lower.BodyContext.lowerTemplateBodyAtNode",
+      "cpu_percent": 19.76,
+      "sampled_cpu_seconds": 2.1114
+    },
+    {
+      "function": "monotype.lower.BodyContext.runLower",
+      "cpu_percent": 19.6,
+      "sampled_cpu_seconds": 2.0947
+    },
+    {
+      "function": "monotype.lower.BodyContext.stepLower",
+      "cpu_percent": 19.46,
+      "sampled_cpu_seconds": 2.0792
+    },
+    {
+      "function": "monotype.lower.BodyContext.lowerLambdaTemplateAtNode",
+      "cpu_percent": 19.28,
+      "sampled_cpu_seconds": 2.0601
+    },
+    {
+      "function": "coordinator.Coordinator.executeTaskInline",
+      "cpu_percent": 17.74,
+      "sampled_cpu_seconds": 1.8957
+    },
+    {
+      "function": "main.collectCheckResult",
+      "cpu_percent": 16.79,
+      "sampled_cpu_seconds": 1.7945
+    },
+    {
+      "function": "dev.ObjectFileCompiler.compileWithCodeGen__func_36145",
+      "cpu_percent": 16.62,
+      "sampled_cpu_seconds": 1.7762
+    },
+    {
+      "function": "dev.ObjectFileCompiler.ObjectFileCompiler.compileToObjectFile",
+      "cpu_percent": 16.62,
+      "sampled_cpu_seconds": 1.7762
+    },
+    {
+      "function": "compile_build.BuildEnv.compileDiscovered",
+      "cpu_percent": 16.39,
+      "sampled_cpu_seconds": 1.751
+    },
+    {
+      "function": "dev.ProcArtifact.extractPrepared__func_36158",
+      "cpu_percent": 16.2,
+      "sampled_cpu_seconds": 1.7315
+    },
+    {
+      "function": "dev.ProcArtifact.extract__func_36156",
+      "cpu_percent": 16.11,
+      "sampled_cpu_seconds": 1.7219
+    },
+    {
+      "function": "compile_build.BuildEnv.finishCheckedProgram",
+      "cpu_percent": 15.5,
+      "sampled_cpu_seconds": 1.6568
+    },
+    {
+      "function": "coordinator.Coordinator.evaluatePreparedModules",
+      "cpu_percent": 15.5,
+      "sampled_cpu_seconds": 1.656
+    },
+    {
+      "function": "monotype.lower.Builder.lowerDraftTemplateFromContext",
+      "cpu_percent": 15.05,
+      "sampled_cpu_seconds": 1.6086
+    },
+    {
+      "function": "monotype.lower.BodyContext.completedDirectCalleeAtNode",
+      "cpu_percent": 14.38,
+      "sampled_cpu_seconds": 1.5362
+    },
+    {
+      "function": "monotype.lower.BodyContext.fnTemplateForDirectCallAtNode",
+      "cpu_percent": 14.24,
+      "sampled_cpu_seconds": 1.5221
+    },
+    {
+      "function": "__ulock_wait2",
+      "cpu_percent": 13.93,
+      "sampled_cpu_seconds": 1.4883
+    },
+    {
+      "function": "compile_time_finalization.finalizeProgram",
+      "cpu_percent": 13.83,
+      "sampled_cpu_seconds": 1.4782
+    },
+    {
+      "function": "monotype.lower.BodyContext.runInterfaceRelationFrames",
+      "cpu_percent": 12.28,
+      "sampled_cpu_seconds": 1.312
+    },
+    {
+      "function": "monotype.lower.BodyContext.runEvidence",
+      "cpu_percent": 10.52,
+      "sampled_cpu_seconds": 1.1244
+    },
+    {
+      "function": "monotype.lower.BodyContext.driveEvidence",
+      "cpu_percent": 10.46,
+      "sampled_cpu_seconds": 1.1178
+    },
+    {
+      "function": "Check.checkFileInternal",
+      "cpu_percent": 10.17,
+      "sampled_cpu_seconds": 1.0866
+    },
+    {
+      "function": "monotype.lower.BodyContext.beginMatchBranches",
+      "cpu_percent": 9.35,
+      "sampled_cpu_seconds": 0.9987
+    },
+    {
+      "function": "monotype.lower.BodyContext.applyTemplateInterfaceRelations",
+      "cpu_percent": 9.34,
+      "sampled_cpu_seconds": 0.9982
+    },
+    {
+      "function": "Check.runCheckActivities",
+      "cpu_percent": 8.03,
+      "sampled_cpu_seconds": 0.8578
+    },
+    {
+      "function": "Check.stepExprKernel",
+      "cpu_percent": 7.77,
+      "sampled_cpu_seconds": 0.8305
+    },
+    {
+      "function": "proc_passes.TaskContext.run",
+      "cpu_percent": 7.63,
+      "sampled_cpu_seconds": 0.8154
+    },
+    {
+      "function": "proc_passes.TaskContext.execute",
+      "cpu_percent": 7.63,
+      "sampled_cpu_seconds": 0.8154
+    },
+    {
+      "function": "loop_append_promote.Pass.transformProc",
+      "cpu_percent": 6.85,
+      "sampled_cpu_seconds": 0.7322
+    },
+    {
+      "function": "checked_artifact.publishFromTypedModule",
+      "cpu_percent": 5.46,
+      "sampled_cpu_seconds": 0.5837
+    },
+    {
+      "function": "checked_pipeline.lowerFinalConsumerToLir",
+      "cpu_percent": 4.76,
+      "sampled_cpu_seconds": 0.5087
+    },
+    {
+      "function": "monotype.solve.InterfaceConstraints.captureWithHoles",
+      "cpu_percent": 4.72,
+      "sampled_cpu_seconds": 0.5045
+    },
+    {
+      "function": "monotype.solve.InterfaceConstraints.mapValue__func_16635",
+      "cpu_percent": 4.56,
+      "sampled_cpu_seconds": 0.4869
+    },
+    {
+      "function": "monotype.lower.BodyContext.instNode",
+      "cpu_percent": 4.48,
+      "sampled_cpu_seconds": 0.4792
+    },
+    {
+      "function": "monotype.lower.BodyContext.runInst",
+      "cpu_percent": 4.36,
+      "sampled_cpu_seconds": 0.4658
+    },
+    {
+      "function": "Check.resumeExprTask",
+      "cpu_percent": 3.71,
+      "sampled_cpu_seconds": 0.396
+    },
+    {
+      "function": "loop_append_promote.Pass.apply",
+      "cpu_percent": 3.34,
+      "sampled_cpu_seconds": 0.3565
+    },
+    {
+      "function": "monotype.solve.InstGraph.unifyRootsTransitivelyUnchecked",
+      "cpu_percent": 3.25,
+      "sampled_cpu_seconds": 0.347
+    },
+    {
+      "function": "monotype.lower.relateRequestComponentAtWidth",
+      "cpu_percent": 3.22,
+      "sampled_cpu_seconds": 0.3445
+    },
+    {
+      "function": "LirStore.getCFStmt",
+      "cpu_percent": 3.1,
+      "sampled_cpu_seconds": 0.3311
+    },
+    {
+      "function": "checked_pipeline.finishLoweredOutput__func_8398",
+      "cpu_percent": 3.09,
+      "sampled_cpu_seconds": 0.3297
+    },
+    {
+      "function": "monotype.solve.InterfaceConstraints.Capture.beginNode",
+      "cpu_percent": 3.0,
+      "sampled_cpu_seconds": 0.3208
+    },
+    {
+      "function": "compiler_rt.memcpy.memcpyFast",
+      "cpu_percent": 2.72,
+      "sampled_cpu_seconds": 0.2904
+    },
+    {
+      "function": "body_clone.appendSuccessors",
+      "cpu_percent": 2.69,
+      "sampled_cpu_seconds": 0.2879
+    },
+    {
+      "function": "coordinator.Coordinator.receivePostCheckCompletion",
+      "cpu_percent": 2.64,
+      "sampled_cpu_seconds": 0.2821
+    },
+    {
+      "function": "checked_pipeline.prepareMonotypeToSolved",
+      "cpu_percent": 2.55,
+      "sampled_cpu_seconds": 0.2729
+    },
+    {
+      "function": "use_order.UseOrder.initFromStore",
+      "cpu_percent": 2.51,
+      "sampled_cpu_seconds": 0.2684
+    },
+    {
+      "function": "Check.runUnifyWithDispatchOwner",
+      "cpu_percent": 2.5,
+      "sampled_cpu_seconds": 0.2669
+    },
+    {
+      "function": "unify.unify",
+      "cpu_percent": 2.48,
+      "sampled_cpu_seconds": 0.2649
+    },
+    {
+      "function": "monotype.lower.run",
+      "cpu_percent": 2.35,
+      "sampled_cpu_seconds": 0.251
+    },
+    {
+      "function": "checked_pipeline.prepareCheckedModulesMonotype",
+      "cpu_percent": 2.35,
+      "sampled_cpu_seconds": 0.251
+    },
+    {
+      "function": "monotype.solve.GraphTypeFinals.sealNode",
+      "cpu_percent": 2.34,
+      "sampled_cpu_seconds": 0.25
+    },
+    {
+      "function": "compile_time_finalization.evalDevProgramRoots",
+      "cpu_percent": 2.34,
+      "sampled_cpu_seconds": 0.25
+    },
+    {
+      "function": "compile_time_finalization.finalizeLoweredProgram__func_5391.Driver.evaluate",
+      "cpu_percent": 2.34,
+      "sampled_cpu_seconds": 0.25
+    },
+    {
+      "function": "arc.insert",
+      "cpu_percent": 2.2,
+      "sampled_cpu_seconds": 0.2355
+    },
+    {
+      "function": "use_order.UseOrder.initTopology",
+      "cpu_percent": 2.17,
+      "sampled_cpu_seconds": 0.2316
+    },
+    {
+      "function": "cache_manager.CacheManager.storeEntry",
+      "cpu_percent": 2.13,
+      "sampled_cpu_seconds": 0.2279
+    },
+    {
+      "function": "monotype.solve.GraphTypeFinals.sealInTransaction",
+      "cpu_percent": 2.05,
+      "sampled_cpu_seconds": 0.2195
+    },
+    {
+      "function": "dev.NativeProcCompiler.Job(dev.LirCodeGen.LirCodeGen(.arm64mac)).execute",
+      "cpu_percent": 2.02,
+      "sampled_cpu_seconds": 0.2155
+    },
+    {
+      "function": "monotype.type.Store.commitTransaction",
+      "cpu_percent": 1.97,
+      "sampled_cpu_seconds": 0.2109
+    },
+    {
+      "function": "monotype.type.Store.computeDigest",
+      "cpu_percent": 1.97,
+      "sampled_cpu_seconds": 0.2105
+    },
+    {
+      "function": "monotype_lifted.spec_constr.Cloner.runClone",
+      "cpu_percent": 1.92,
+      "sampled_cpu_seconds": 0.2055
+    },
+    {
+      "function": "dev.LirCodeGen.LirCodeGen(.arm64mac).compileProcSpec",
+      "cpu_percent": 1.91,
+      "sampled_cpu_seconds": 0.2045
+    },
+    {
+      "function": "monotype.lower.Builder.drainPendingSpecJobs",
+      "cpu_percent": 1.86,
+      "sampled_cpu_seconds": 0.1993
+    },
+    {
+      "function": "checked_artifact.CheckedTypeStore.fromModule",
+      "cpu_percent": 1.86,
+      "sampled_cpu_seconds": 0.1985
+    },
+    {
+      "function": "solved_lir_lower.runBorrowed",
+      "cpu_percent": 1.68,
+      "sampled_cpu_seconds": 0.179
+    },
+    {
+      "function": "checked_pipeline.generateConsumerLir",
+      "cpu_percent": 1.68,
+      "sampled_cpu_seconds": 0.179
+    },
+    {
+      "function": "coordinator.Coordinator.commitPreparedModule",
+      "cpu_percent": 1.65,
+      "sampled_cpu_seconds": 0.1759
+    },
+    {
+      "function": "CoreCtx.osWriteFileStream",
+      "cpu_percent": 1.61,
+      "sampled_cpu_seconds": 0.1722
+    },
+    {
+      "function": "checked_artifact.appendCheckedTypeRoot",
+      "cpu_percent": 1.55,
+      "sampled_cpu_seconds": 0.1661
+    },
+    {
+      "function": "checked_artifact.CheckedTypePublisher.run",
+      "cpu_percent": 1.51,
+      "sampled_cpu_seconds": 0.1611
+    }
+  ]
+}

@@ -91,7 +91,8 @@ roc-pdf's own tests use `--no-cache` because the pinned compiler can reuse
 procedures whose allocation behaviour depends on previous builds; this spike
 does not establish compiler caches as a safe performance solution. Explicit
 interpreter mode with `--no-cache` did not complete within a 90-second cap;
-it was stopped and is not a supported timing result.
+it was stopped and is not a supported timing result. The later explicit-mode
+matrix below completed interpreter execution with a longer cap.
 
 ## Linux CI results and memory attribution
 
@@ -169,6 +170,73 @@ specialization, including 10.25 s in LIR passes. Its type-checking phase is
 0.87 s; shared lowering and compile-time evaluation take 3.29 s. These phase
 RSS snapshots use a different sampling mechanism from `/usr/bin/time` and
 should not replace the process peak RSS values in the table.
+
+## Samply hotspot investigation
+
+Samply 0.12.0 captured all threads at 500 Hz. The published nightly lacks
+Roc debug symbols, so the exact source revision
+`38a3029aa71b239c79b380adab7e90d4a848df96` was downloaded into a temporary
+checkout and rebuilt with Zig 0.17.0:
+
+```sh
+zig build roc -Doptimize=ReleaseFast -Dstrip=false \
+  -Dcompiler-version=profile-nightly-2026-10-14-38a3029
+python3 spikes/docs-roc/profile.py /path/to/symbolized/roc /path/to/cache/roc/packages
+python3 spikes/docs-roc/summarize_profile.py .roc-ansi-tmp/docs-roc-profiles/check-import.json.gz
+python3 spikes/docs-roc/summarize_profile.py .roc-ansi-tmp/docs-roc-profiles/build-speed.json.gz
+```
+
+The compiler rebuild took roughly 18 minutes locally, including preparation;
+this is investigation overhead and is excluded from the renderer matrix.
+These CPU profiles use fresh compiler caches with downloaded packages shared.
+They are separate from benchmark measurements. Percentages below weight all
+threads' samples by `threadCPUDelta` and deduplicate recursive occurrences of
+the same function within a stack. Inclusive ancestor/descendant percentages
+overlap and must not be added together.
+
+| Capture | Stack/function | Inclusive sampled CPU |
+| --- | --- | ---: |
+| Tiny paragraph-only `roc check` | `monotype.lower.Builder.runSpecJobTask` | 23.56% |
+| Same | `dev.ProcArtifact.extractPrepared` | 16.20% (16.13% self) |
+| Same | `Check.checkFileInternal` | 10.17% |
+| Full renderer, speed build | `ZigLLVMTargetMachineEmitToFile` | 58.56% |
+| Same | `llvm::ModuleInlinerWrapperPass::run` | 25.11% |
+| Same | `proc_passes.TaskContext.run` | 25.66% |
+| Same | `range_prove.runProcWithScratch` | 9.31% |
+| Same | `LirStore.getCFStmt` | 6.01% self |
+
+The separately captured **published binary** agrees on LLVM dominating the
+speed build (56.88% inclusive CPU), despite having unnamed Roc functions.
+That published-binary profile overlapped the symbolized compiler rebuild;
+use it as a CPU-stack cross-check, not an uncontended timing measurement.
+The symbolized captures ran after that rebuild completed.
+
+The small check case already performs substantial Monotype specialization and
+dev-backend work for compile-time evaluation. Procedure-artifact extraction
+is a concrete CPU target: its source loops over each code region and scans
+unwind entries, references, relocations and line entries for that region.
+Indexing these by region is a candidate to investigate, not a validated fix.
+For the speed build, LLVM optimization and Roc LIR passes are distinct targets.
+
+**CPU sampling does not identify the allocations responsible for peak RSS.**
+The results do not prove a leak or that artifact extraction owns the GB-scale
+memory. Allocation/live-heap measurements around checking, shared lowering,
+compile-time evaluation and procedure passes are still needed. The speed build
+phase log shows substantial RSS growth during specialization before LLVM starts.
+
+The `results/` directory includes CPU summaries, profiling metadata and two
+portable named profiles. To browse interactively without rebuilding the compiler:
+
+```sh
+samply load spikes/docs-roc/results/profile-check-import-named.json.gz
+samply load spikes/docs-roc/results/profile-build-speed-named.json.gz
+```
+
+Portable profiles retain sampled frame structure; inlined function names are
+joined within their frame. Original captures remain in `.roc-ansi-tmp/` for
+full re-symbolication with the compiler binary. The renderer produced during
+the symbolized capture passes the complete output verifier, including the
+same byte-identical PDF and three-page table continuation probe.
 
 ## Deliberate limits and migration work
 

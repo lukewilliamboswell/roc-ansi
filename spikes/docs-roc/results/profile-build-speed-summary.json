@@ -1,0 +1,808 @@
+{
+  "method": "All threads; threadCPUDelta weighted CPU samples; inclusive functions deduplicated per stack; percentages overlap across ancestors; not allocation profiling.",
+  "sampled_cpu_seconds": 94.155511,
+  "self": [
+    {
+      "function": "LirStore.getCFStmt",
+      "cpu_percent": 6.01,
+      "sampled_cpu_seconds": 5.659
+    },
+    {
+      "function": "LirStore.getCFStmtImmediate",
+      "cpu_percent": 2.13,
+      "sampled_cpu_seconds": 2.0094
+    },
+    {
+      "function": "compiler_rt.memcpy.memcpyFast",
+      "cpu_percent": 2.05,
+      "sampled_cpu_seconds": 1.9294
+    },
+    {
+      "function": "llvm::SmallPtrSetImplBase::insert_imp_big(void const*)",
+      "cpu_percent": 1.83,
+      "sampled_cpu_seconds": 1.7211
+    },
+    {
+      "function": "__ulock_wait2",
+      "cpu_percent": 1.74,
+      "sampled_cpu_seconds": 1.6338
+    },
+    {
+      "function": "body_clone.appendSuccessors",
+      "cpu_percent": 1.59,
+      "sampled_cpu_seconds": 1.4993
+    },
+    {
+      "function": "DenseMap.DenseMap(CIR.Def.Idx,void).getOrPut",
+      "cpu_percent": 1.29,
+      "sampled_cpu_seconds": 1.2111
+    },
+    {
+      "function": "range_prove.Pass.relaxFresh",
+      "cpu_percent": 1.09,
+      "sampled_cpu_seconds": 1.0297
+    },
+    {
+      "function": "_xzm_free",
+      "cpu_percent": 1.05,
+      "sampled_cpu_seconds": 0.9895
+    },
+    {
+      "function": "range_prove.Pass.refreshSums",
+      "cpu_percent": 1.05,
+      "sampled_cpu_seconds": 0.9889
+    },
+    {
+      "function": "llvm::RegPressureTracker::getMaxDownwardPressureDelta(llvm::MachineInstr const*, llvm::RegPressureDelta&, llvm::ArrayRef<llvm::PressureChange>, llvm::ArrayRef<unsigned int>)",
+      "cpu_percent": 1.03,
+      "sampled_cpu_seconds": 0.9697
+    },
+    {
+      "function": "use_order.UseOrder.initTopology",
+      "cpu_percent": 0.92,
+      "sampled_cpu_seconds": 0.869
+    },
+    {
+      "function": "DenseMap.DenseMap(Expression.Expr.Idx,u32).getOrPut",
+      "cpu_percent": 0.83,
+      "sampled_cpu_seconds": 0.7862
+    },
+    {
+      "function": "llvm::DenseMapBase<llvm::DenseMap<llvm::Value*, llvm::ValueHandleBase*, llvm::DenseMapInfo<llvm::Value*, void>, llvm::detail::DenseMapPair<llvm::Value*, llvm::ValueHandleBase*> >, llvm::Value*, llvm::ValueHandleBase*, llvm::DenseMapInfo<llvm::Value*, void>, llvm::detail::DenseMapPair<llvm::Value*, llvm::ValueHandleBase*> >::lookupOrInsertIntoBucket<llvm::Value*, >(llvm::Value*&&, &&)",
+      "cpu_percent": 0.71,
+      "sampled_cpu_seconds": 0.6722
+    },
+    {
+      "function": "(anonymous namespace)::PromoteMem2Reg::run()",
+      "cpu_percent": 0.71,
+      "sampled_cpu_seconds": 0.6704
+    },
+    {
+      "function": "compiler_rt.memcmp",
+      "cpu_percent": 0.68,
+      "sampled_cpu_seconds": 0.6364
+    },
+    {
+      "function": "(anonymous namespace)::SROA::splitAlloca(llvm::AllocaInst&, (anonymous namespace)::AllocaSlices&)",
+      "cpu_percent": 0.62,
+      "sampled_cpu_seconds": 0.5882
+    },
+    {
+      "function": "DenseMap.DenseMap(AST.Statement.Idx,u32).put",
+      "cpu_percent": 0.62,
+      "sampled_cpu_seconds": 0.5802
+    },
+    {
+      "function": "array_list.Aligned(AST.TypeAnno.Idx,null).append",
+      "cpu_percent": 0.56,
+      "sampled_cpu_seconds": 0.528
+    },
+    {
+      "function": "_platform_memset",
+      "cpu_percent": 0.52,
+      "sampled_cpu_seconds": 0.4884
+    },
+    {
+      "function": "llvm::SmallPtrSetImplBase::Grow(unsigned int)",
+      "cpu_percent": 0.51,
+      "sampled_cpu_seconds": 0.4829
+    },
+    {
+      "function": "__bzero",
+      "cpu_percent": 0.51,
+      "sampled_cpu_seconds": 0.4821
+    },
+    {
+      "function": "llvm::getUnderlyingObject(llvm::Value const*, unsigned int)",
+      "cpu_percent": 0.46,
+      "sampled_cpu_seconds": 0.4326
+    },
+    {
+      "function": "llvm::SmallPtrSetImplBase::doFind(void const*) const",
+      "cpu_percent": 0.45,
+      "sampled_cpu_seconds": 0.4264
+    },
+    {
+      "function": "range_prove.Pass.captureMergeEdge",
+      "cpu_percent": 0.45,
+      "sampled_cpu_seconds": 0.4263
+    },
+    {
+      "function": "llvm::removeUnreachableBlocks(llvm::Function&, llvm::DomTreeUpdater*, llvm::MemorySSAUpdater*)",
+      "cpu_percent": 0.41,
+      "sampled_cpu_seconds": 0.39
+    },
+    {
+      "function": "_xzm_xzone_malloc",
+      "cpu_percent": 0.4,
+      "sampled_cpu_seconds": 0.3805
+    },
+    {
+      "function": "_xzm_xzone_malloc_tiny",
+      "cpu_percent": 0.39,
+      "sampled_cpu_seconds": 0.3709
+    },
+    {
+      "function": "monotype_lifted.spec_constr.Cloner.runClone",
+      "cpu_percent": 0.39,
+      "sampled_cpu_seconds": 0.3702
+    },
+    {
+      "function": "monotype.lower.BodyContext.runInst",
+      "cpu_percent": 0.38,
+      "sampled_cpu_seconds": 0.3607
+    },
+    {
+      "function": "llvm::InterferenceCache::Entry::update(unsigned int)",
+      "cpu_percent": 0.38,
+      "sampled_cpu_seconds": 0.3536
+    },
+    {
+      "function": "range_prove.Pass.walkRegions",
+      "cpu_percent": 0.36,
+      "sampled_cpu_seconds": 0.3383
+    },
+    {
+      "function": "store.Store.sizeAt",
+      "cpu_percent": 0.36,
+      "sampled_cpu_seconds": 0.3381
+    },
+    {
+      "function": "range_prove.Pass.stabilizeTermFor",
+      "cpu_percent": 0.34,
+      "sampled_cpu_seconds": 0.3196
+    },
+    {
+      "function": "use_order.UseOrder.blockContinuation",
+      "cpu_percent": 0.32,
+      "sampled_cpu_seconds": 0.3053
+    },
+    {
+      "function": "tag_case_fusion.RegionFacts.init",
+      "cpu_percent": 0.32,
+      "sampled_cpu_seconds": 0.3032
+    },
+    {
+      "function": "llvm::AttributeList::getMemoryEffects() const",
+      "cpu_percent": 0.32,
+      "sampled_cpu_seconds": 0.3016
+    },
+    {
+      "function": "llvm::Value::stripPointerCastsForAliasAnalysis() const",
+      "cpu_percent": 0.32,
+      "sampled_cpu_seconds": 0.3001
+    },
+    {
+      "function": "llvm::DataLayout::getTypeAllocSize(llvm::Type*) const",
+      "cpu_percent": 0.32,
+      "sampled_cpu_seconds": 0.298
+    },
+    {
+      "function": "_free",
+      "cpu_percent": 0.31,
+      "sampled_cpu_seconds": 0.2926
+    },
+    {
+      "function": "llvm::RegPressureTracker::bumpDownwardPressure(llvm::MachineInstr const*)",
+      "cpu_percent": 0.31,
+      "sampled_cpu_seconds": 0.2913
+    },
+    {
+      "function": "llvm::SpillPlacement::update(unsigned int)",
+      "cpu_percent": 0.31,
+      "sampled_cpu_seconds": 0.2894
+    },
+    {
+      "function": "range_prove.Pass.prescanProc",
+      "cpu_percent": 0.3,
+      "sampled_cpu_seconds": 0.2847
+    },
+    {
+      "function": "llvm::SpillPlacement::activate(unsigned int)",
+      "cpu_percent": 0.28,
+      "sampled_cpu_seconds": 0.2616
+    },
+    {
+      "function": "llvm::IntervalMap<llvm::SlotIndex, llvm::LiveInterval const*, (unsigned int)8, llvm::IntervalMapInfo<llvm::SlotIndex> >::const_iterator::pathFillFind(llvm::SlotIndex)",
+      "cpu_percent": 0.26,
+      "sampled_cpu_seconds": 0.2441
+    },
+    {
+      "function": "llvm::SelectionDAG::Combine(llvm::CombineLevel, llvm::BatchAAResults*, llvm::CodeGenOptLevel)",
+      "cpu_percent": 0.26,
+      "sampled_cpu_seconds": 0.2432
+    },
+    {
+      "function": "llvm::SelectionDAGISel::SelectCodeCommon(llvm::SDNode*, unsigned char const*, unsigned int)",
+      "cpu_percent": 0.26,
+      "sampled_cpu_seconds": 0.2426
+    },
+    {
+      "function": "llvm::AttributeList::hasFnAttr(llvm::Attribute::AttrKind) const",
+      "cpu_percent": 0.25,
+      "sampled_cpu_seconds": 0.2379
+    },
+    {
+      "function": "llvm::hashing::detail::hash_short(char const*, unsigned long, unsigned long long)",
+      "cpu_percent": 0.25,
+      "sampled_cpu_seconds": 0.2347
+    },
+    {
+      "function": "llvm::TargetRegisterInfo::getMinimalPhysRegClass(llvm::MCRegister, llvm::MVT) const",
+      "cpu_percent": 0.24,
+      "sampled_cpu_seconds": 0.2296
+    },
+    {
+      "function": "LirStore.getLocal",
+      "cpu_percent": 0.24,
+      "sampled_cpu_seconds": 0.2281
+    },
+    {
+      "function": "compiler_rt.memmove.memmoveFast",
+      "cpu_percent": 0.24,
+      "sampled_cpu_seconds": 0.2261
+    },
+    {
+      "function": "monotype.solve.InstGraph.unifyRootsTransitivelyUnchecked",
+      "cpu_percent": 0.24,
+      "sampled_cpu_seconds": 0.2238
+    },
+    {
+      "function": "llvm::LiveRange::find(llvm::SlotIndex)",
+      "cpu_percent": 0.23,
+      "sampled_cpu_seconds": 0.2209
+    },
+    {
+      "function": "range_prove.Pass.ensureRootBounds",
+      "cpu_percent": 0.23,
+      "sampled_cpu_seconds": 0.2163
+    },
+    {
+      "function": "use_order.UseOrder.markFrom",
+      "cpu_percent": 0.23,
+      "sampled_cpu_seconds": 0.2127
+    },
+    {
+      "function": "llvm::DenseMapBase<llvm::DenseMap<llvm::Value const*, llvm::StringMapEntry<llvm::Value*>*, llvm::DenseMapInfo<llvm::Value const*, void>, llvm::detail::DenseMapPair<llvm::Value const*, llvm::StringMapEntry<llvm::Value*>*> >, llvm::Value const*, llvm::StringMapEntry<llvm::Value*>*, llvm::DenseMapInfo<llvm::Value const*, void>, llvm::detail::DenseMapPair<llvm::Value const*, llvm::StringMapEntry<llvm::Value*>*> >::lookupOrInsertIntoBucket<llvm::Value const*, >(llvm::Value const*&&, &&)",
+      "cpu_percent": 0.22,
+      "sampled_cpu_seconds": 0.2103
+    },
+    {
+      "function": "xzm_malloc",
+      "cpu_percent": 0.22,
+      "sampled_cpu_seconds": 0.2088
+    },
+    {
+      "function": "_malloc_zone_malloc",
+      "cpu_percent": 0.22,
+      "sampled_cpu_seconds": 0.207
+    },
+    {
+      "function": "llvm::LazyValueInfoImpl::getBlockValue(llvm::Value*, llvm::BasicBlock*, llvm::Instruction*)",
+      "cpu_percent": 0.21,
+      "sampled_cpu_seconds": 0.1979
+    },
+    {
+      "function": "llvm::DataLayout::getTypeSizeInBits(llvm::Type*) const",
+      "cpu_percent": 0.21,
+      "sampled_cpu_seconds": 0.1944
+    },
+    {
+      "function": "llvm::BasicAAResult::aliasCheck(llvm::Value const*, llvm::LocationSize, llvm::Value const*, llvm::LocationSize, llvm::AAQueryInfo&, llvm::Instruction const*)",
+      "cpu_percent": 0.21,
+      "sampled_cpu_seconds": 0.1936
+    },
+    {
+      "function": "loop_append_promote.Pass.scanProc",
+      "cpu_percent": 0.21,
+      "sampled_cpu_seconds": 0.1936
+    },
+    {
+      "function": "DenseMap.DenseMap(u32,range_prove.QueryBest).put",
+      "cpu_percent": 0.2,
+      "sampled_cpu_seconds": 0.1928
+    },
+    {
+      "function": "llvm::InstCombinerImpl::run()",
+      "cpu_percent": 0.2,
+      "sampled_cpu_seconds": 0.1917
+    },
+    {
+      "function": "compiler_rt.fastMemset",
+      "cpu_percent": 0.2,
+      "sampled_cpu_seconds": 0.1887
+    },
+    {
+      "function": "llvm::DenseMapBase<llvm::SmallDenseMap<std::__1::pair<llvm::AACacheLoc, llvm::AACacheLoc>, llvm::AAQueryInfo::CacheEntry, (unsigned int)8, llvm::DenseMapInfo<std::__1::pair<llvm::AACacheLoc, llvm::AACacheLoc>, void>, llvm::detail::DenseMapPair<std::__1::pair<llvm::AACacheLoc, llvm::AACacheLoc>, llvm::AAQueryInfo::CacheEntry> >, std::__1::pair<llvm::AACacheLoc, llvm::AACacheLoc>, llvm::AAQueryInfo::CacheEntry, llvm::DenseMapInfo<std::__1::pair<llvm::AACacheLoc, llvm::AACacheLoc>, void>, llvm::detail::DenseMapPair<std::__1::pair<llvm::AACacheLoc, llvm::AACacheLoc>, llvm::AAQueryInfo::CacheEntry> >::LookupBucketFor<std::__1::pair<llvm::AACacheLoc, llvm::AACacheLoc> >(std::__1::pair<llvm::AACacheLoc, llvm::AACacheLoc> const&, llvm::detail::DenseMapPair<std::__1::pair<llvm::AACacheLoc, llvm::AACacheLoc>, llvm::AAQueryInfo::CacheEntry>*&)",
+      "cpu_percent": 0.2,
+      "sampled_cpu_seconds": 0.1872
+    },
+    {
+      "function": "llvm::ValueHandleBase::RemoveFromUseList()",
+      "cpu_percent": 0.2,
+      "sampled_cpu_seconds": 0.1853
+    },
+    {
+      "function": "(anonymous namespace)::SROA::runOnAlloca(llvm::AllocaInst&)",
+      "cpu_percent": 0.2,
+      "sampled_cpu_seconds": 0.185
+    },
+    {
+      "function": "hash.auto_hash.hash__func_10292",
+      "cpu_percent": 0.19,
+      "sampled_cpu_seconds": 0.1833
+    },
+    {
+      "function": "body_clone.appendSuccessorsInOrder__func_9399",
+      "cpu_percent": 0.19,
+      "sampled_cpu_seconds": 0.1822
+    },
+    {
+      "function": "range_prove.Pass.stabilizeInto",
+      "cpu_percent": 0.19,
+      "sampled_cpu_seconds": 0.1814
+    },
+    {
+      "function": "range_prove.Pass.lookup",
+      "cpu_percent": 0.19,
+      "sampled_cpu_seconds": 0.1813
+    },
+    {
+      "function": "LirStore.appendBodyShardWithJoinRelocation",
+      "cpu_percent": 0.19,
+      "sampled_cpu_seconds": 0.1801
+    },
+    {
+      "function": "arc_solve.settleUniqueOrigins",
+      "cpu_percent": 0.19,
+      "sampled_cpu_seconds": 0.178
+    },
+    {
+      "function": "proc_passes.TaskContext.execute",
+      "cpu_percent": 0.19,
+      "sampled_cpu_seconds": 0.1747
+    },
+    {
+      "function": "llvm::TryToSimplifyUncondBranchFromEmptyBlock(llvm::BasicBlock*, llvm::DomTreeUpdater*)",
+      "cpu_percent": 0.18,
+      "sampled_cpu_seconds": 0.173
+    },
+    {
+      "function": "llvm::InstCombinerImpl::prepareWorklist(llvm::Function&)",
+      "cpu_percent": 0.18,
+      "sampled_cpu_seconds": 0.1722
+    },
+    {
+      "function": "_qsort",
+      "cpu_percent": 0.18,
+      "sampled_cpu_seconds": 0.1713
+    },
+    {
+      "function": "(anonymous namespace)::DAGCombiner::visitTokenFactor(llvm::SDNode*)::$_0::operator()(unsigned int, llvm::SDNode*, unsigned int) const",
+      "cpu_percent": 0.18,
+      "sampled_cpu_seconds": 0.1711
+    }
+  ],
+  "inclusive": [
+    {
+      "function": "start",
+      "cpu_percent": 63.84,
+      "sampled_cpu_seconds": 60.1094
+    },
+    {
+      "function": "start.main",
+      "cpu_percent": 63.83,
+      "sampled_cpu_seconds": 60.1001
+    },
+    {
+      "function": "main.rocBuildOnce",
+      "cpu_percent": 63.83,
+      "sampled_cpu_seconds": 60.0982
+    },
+    {
+      "function": "main.rocBuildLlvm",
+      "cpu_percent": 63.83,
+      "sampled_cpu_seconds": 60.0982
+    },
+    {
+      "function": "main.mainArgs",
+      "cpu_percent": 63.83,
+      "sampled_cpu_seconds": 60.0982
+    },
+    {
+      "function": "main.compileLlvmAppObject",
+      "cpu_percent": 60.07,
+      "sampled_cpu_seconds": 56.5611
+    },
+    {
+      "function": "builder.compileBitcodeToObject",
+      "cpu_percent": 59.48,
+      "sampled_cpu_seconds": 56.0082
+    },
+    {
+      "function": "emitWithBinStream(LLVMOpaqueTargetMachine*, LLVMOpaqueModule*, char**, ZigLLVMEmitOptions const*, llvm::raw_pwrite_stream*, char const*)",
+      "cpu_percent": 58.56,
+      "sampled_cpu_seconds": 55.1361
+    },
+    {
+      "function": "ZigLLVMTargetMachineEmitToFile",
+      "cpu_percent": 58.56,
+      "sampled_cpu_seconds": 55.1361
+    },
+    {
+      "function": "_pthread_start",
+      "cpu_percent": 36.16,
+      "sampled_cpu_seconds": 34.044
+    },
+    {
+      "function": "Thread.PosixThreadImpl.spawn__func_33931.Instance.entryFn",
+      "cpu_percent": 36.07,
+      "sampled_cpu_seconds": 33.9658
+    },
+    {
+      "function": "llvm::PassManager<llvm::Module, llvm::AnalysisManager<llvm::Module, >, >::run(llvm::Module&, llvm::AnalysisManager<llvm::Module, >&)",
+      "cpu_percent": 34.02,
+      "sampled_cpu_seconds": 32.0344
+    },
+    {
+      "function": "llvm::PassManager<llvm::Function, llvm::AnalysisManager<llvm::Function, >, >::run(llvm::Function&, llvm::AnalysisManager<llvm::Function, >&)",
+      "cpu_percent": 32.7,
+      "sampled_cpu_seconds": 30.7928
+    },
+    {
+      "function": "proc_passes.TaskContext.run",
+      "cpu_percent": 25.66,
+      "sampled_cpu_seconds": 24.1582
+    },
+    {
+      "function": "proc_passes.TaskContext.execute",
+      "cpu_percent": 25.66,
+      "sampled_cpu_seconds": 24.1562
+    },
+    {
+      "function": "llvm::ModuleInlinerWrapperPass::run(llvm::Module&, llvm::AnalysisManager<llvm::Module, >&)",
+      "cpu_percent": 25.11,
+      "sampled_cpu_seconds": 23.6378
+    },
+    {
+      "function": "llvm::ModuleToPostOrderCGSCCPassAdaptor::run(llvm::Module&, llvm::AnalysisManager<llvm::Module, >&)",
+      "cpu_percent": 24.98,
+      "sampled_cpu_seconds": 23.5227
+    },
+    {
+      "function": "llvm::DevirtSCCRepeatedPass::run(llvm::LazyCallGraph::SCC&, llvm::AnalysisManager<llvm::LazyCallGraph::SCC, llvm::LazyCallGraph&>&, llvm::LazyCallGraph&, llvm::CGSCCUpdateResult&)",
+      "cpu_percent": 24.93,
+      "sampled_cpu_seconds": 23.4702
+    },
+    {
+      "function": "llvm::PassManager<llvm::LazyCallGraph::SCC, llvm::AnalysisManager<llvm::LazyCallGraph::SCC, llvm::LazyCallGraph&>, llvm::LazyCallGraph&, llvm::CGSCCUpdateResult&>::run(llvm::LazyCallGraph::SCC&, llvm::AnalysisManager<llvm::LazyCallGraph::SCC, llvm::LazyCallGraph&>&, llvm::LazyCallGraph&, llvm::CGSCCUpdateResult&)",
+      "cpu_percent": 24.87,
+      "sampled_cpu_seconds": 23.4175
+    },
+    {
+      "function": "llvm::CGSCCToFunctionPassAdaptor::run(llvm::LazyCallGraph::SCC&, llvm::AnalysisManager<llvm::LazyCallGraph::SCC, llvm::LazyCallGraph&>&, llvm::LazyCallGraph&, llvm::CGSCCUpdateResult&)",
+      "cpu_percent": 23.63,
+      "sampled_cpu_seconds": 22.251
+    },
+    {
+      "function": "llvm::legacy::PassManagerImpl::run(llvm::Module&)",
+      "cpu_percent": 22.38,
+      "sampled_cpu_seconds": 21.0754
+    },
+    {
+      "function": "llvm::FPPassManager::runOnModule(llvm::Module&)",
+      "cpu_percent": 22.32,
+      "sampled_cpu_seconds": 21.0136
+    },
+    {
+      "function": "llvm::FPPassManager::runOnFunction(llvm::Function&)",
+      "cpu_percent": 22.32,
+      "sampled_cpu_seconds": 21.0115
+    },
+    {
+      "function": "llvm::MachineFunctionPass::runOnFunction(llvm::Function&)",
+      "cpu_percent": 20.34,
+      "sampled_cpu_seconds": 19.15
+    },
+    {
+      "function": "range_prove.runProcWithScratch",
+      "cpu_percent": 9.31,
+      "sampled_cpu_seconds": 8.7667
+    },
+    {
+      "function": "range_prove.Pass.transformProc",
+      "cpu_percent": 9.23,
+      "sampled_cpu_seconds": 8.6905
+    },
+    {
+      "function": "llvm::SROAPass::run(llvm::Function&, llvm::AnalysisManager<llvm::Function, >&)",
+      "cpu_percent": 8.09,
+      "sampled_cpu_seconds": 7.6134
+    },
+    {
+      "function": "(anonymous namespace)::SROA::runSROA(llvm::Function&)",
+      "cpu_percent": 8.07,
+      "sampled_cpu_seconds": 7.6017
+    },
+    {
+      "function": "llvm::ModuleToFunctionPassAdaptor::run(llvm::Module&, llvm::AnalysisManager<llvm::Module, >&)",
+      "cpu_percent": 6.94,
+      "sampled_cpu_seconds": 6.5388
+    },
+    {
+      "function": "loop_append_promote.Pass.transformProc",
+      "cpu_percent": 6.65,
+      "sampled_cpu_seconds": 6.2591
+    },
+    {
+      "function": "llvm::SelectionDAGISel::runOnMachineFunction(llvm::MachineFunction&)",
+      "cpu_percent": 6.6,
+      "sampled_cpu_seconds": 6.2107
+    },
+    {
+      "function": "llvm::SelectionDAGISelLegacy::runOnMachineFunction(llvm::MachineFunction&)",
+      "cpu_percent": 6.6,
+      "sampled_cpu_seconds": 6.2107
+    },
+    {
+      "function": "llvm::SelectionDAGISel::SelectAllBasicBlocks(llvm::Function const&)",
+      "cpu_percent": 6.45,
+      "sampled_cpu_seconds": 6.0766
+    },
+    {
+      "function": "llvm::InstCombinePass::run(llvm::Function&, llvm::AnalysisManager<llvm::Function, >&)",
+      "cpu_percent": 6.07,
+      "sampled_cpu_seconds": 5.7175
+    },
+    {
+      "function": "combineInstructionsOverFunction(llvm::Function&, llvm::InstructionWorklist&, llvm::AAResults*, llvm::AssumptionCache&, llvm::TargetLibraryInfo&, llvm::TargetTransformInfo&, llvm::DominatorTree&, llvm::OptimizationRemarkEmitter&, llvm::BlockFrequencyInfo*, llvm::BranchProbabilityInfo*, llvm::ProfileSummaryInfo*, llvm::InstCombineOptions const&)",
+      "cpu_percent": 6.03,
+      "sampled_cpu_seconds": 5.68
+    },
+    {
+      "function": "range_prove.Pass.walkRegions",
+      "cpu_percent": 6.03,
+      "sampled_cpu_seconds": 5.6773
+    },
+    {
+      "function": "LirStore.getCFStmt",
+      "cpu_percent": 6.01,
+      "sampled_cpu_seconds": 5.659
+    },
+    {
+      "function": "llvm::SelectionDAGISel::CodeGenAndEmitDAG()",
+      "cpu_percent": 5.58,
+      "sampled_cpu_seconds": 5.2554
+    },
+    {
+      "function": "tag_case_fusion.findCandidate",
+      "cpu_percent": 5.28,
+      "sampled_cpu_seconds": 4.973
+    },
+    {
+      "function": "llvm::InstCombinerImpl::run()",
+      "cpu_percent": 5.19,
+      "sampled_cpu_seconds": 4.8838
+    },
+    {
+      "function": "(anonymous namespace)::SROA::runOnAlloca(llvm::AllocaInst&)",
+      "cpu_percent": 4.89,
+      "sampled_cpu_seconds": 4.6018
+    },
+    {
+      "function": "body_clone.appendSuccessors",
+      "cpu_percent": 4.59,
+      "sampled_cpu_seconds": 4.321
+    },
+    {
+      "function": "use_order.UseOrder.initFromStore",
+      "cpu_percent": 4.59,
+      "sampled_cpu_seconds": 4.3209
+    },
+    {
+      "function": "range_prove.Pass.captureMergeEdge",
+      "cpu_percent": 4.5,
+      "sampled_cpu_seconds": 4.2363
+    },
+    {
+      "function": "monotype.lower.Builder.runSpecJobTask",
+      "cpu_percent": 4.47,
+      "sampled_cpu_seconds": 4.2077
+    },
+    {
+      "function": "monotype.lower.Builder.lowerPendingSpecJobToShard",
+      "cpu_percent": 4.46,
+      "sampled_cpu_seconds": 4.1956
+    },
+    {
+      "function": "monotype.lower.Builder.lowerReservedTemplateBodyIntoDraft",
+      "cpu_percent": 4.16,
+      "sampled_cpu_seconds": 3.9214
+    },
+    {
+      "function": "(anonymous namespace)::RAGreedyLegacy::runOnMachineFunction(llvm::MachineFunction&)",
+      "cpu_percent": 4.09,
+      "sampled_cpu_seconds": 3.8469
+    },
+    {
+      "function": "llvm::RAGreedy::run(llvm::MachineFunction&)",
+      "cpu_percent": 4.08,
+      "sampled_cpu_seconds": 3.8429
+    },
+    {
+      "function": "llvm::RegAllocBase::allocatePhysRegs()",
+      "cpu_percent": 3.92,
+      "sampled_cpu_seconds": 3.6866
+    },
+    {
+      "function": "monotype.lower.BodyContext.lowerTemplateBodyAtNode",
+      "cpu_percent": 3.86,
+      "sampled_cpu_seconds": 3.6345
+    },
+    {
+      "function": "monotype.lower.BodyContext.runLower",
+      "cpu_percent": 3.83,
+      "sampled_cpu_seconds": 3.6053
+    },
+    {
+      "function": "(anonymous namespace)::SROA::splitAlloca(llvm::AllocaInst&, (anonymous namespace)::AllocaSlices&)",
+      "cpu_percent": 3.81,
+      "sampled_cpu_seconds": 3.5876
+    },
+    {
+      "function": "monotype.lower.BodyContext.stepLower",
+      "cpu_percent": 3.8,
+      "sampled_cpu_seconds": 3.5799
+    },
+    {
+      "function": "use_order.UseOrder.initTopology",
+      "cpu_percent": 3.79,
+      "sampled_cpu_seconds": 3.5644
+    },
+    {
+      "function": "monotype.lower.BodyContext.lowerLambdaTemplateAtNode",
+      "cpu_percent": 3.79,
+      "sampled_cpu_seconds": 3.5641
+    },
+    {
+      "function": "llvm::RAGreedy::selectOrSplit(llvm::LiveInterval const&, llvm::SmallVectorImpl<llvm::Register>&)",
+      "cpu_percent": 3.78,
+      "sampled_cpu_seconds": 3.5583
+    },
+    {
+      "function": "llvm::RAGreedy::selectOrSplitImpl(llvm::LiveInterval const&, llvm::SmallVectorImpl<llvm::Register>&, llvm::SmallSet<llvm::Register, (unsigned int)16, std::__1::less<llvm::Register> >&, llvm::SmallVector<std::__1::pair<llvm::LiveInterval const*, llvm::MCRegister>, (unsigned int)8>&, unsigned int)",
+      "cpu_percent": 3.78,
+      "sampled_cpu_seconds": 3.5544
+    },
+    {
+      "function": "llvm::impl_detail::MachineSchedulerImpl::run(llvm::MachineFunction&, llvm::TargetMachine const&, llvm::impl_detail::MachineSchedulerImpl::RequiredAnalyses const&)",
+      "cpu_percent": 3.56,
+      "sampled_cpu_seconds": 3.3545
+    },
+    {
+      "function": "(anonymous namespace)::MachineSchedulerLegacy::runOnMachineFunction(llvm::MachineFunction&)",
+      "cpu_percent": 3.56,
+      "sampled_cpu_seconds": 3.3545
+    },
+    {
+      "function": "llvm::impl_detail::MachineSchedulerBase::scheduleRegions(llvm::ScheduleDAGInstrs&, bool)",
+      "cpu_percent": 3.56,
+      "sampled_cpu_seconds": 3.3487
+    },
+    {
+      "function": "llvm::ScheduleDAGMILive::schedule()",
+      "cpu_percent": 3.53,
+      "sampled_cpu_seconds": 3.3202
+    },
+    {
+      "function": "llvm::SelectionDAG::Combine(llvm::CombineLevel, llvm::BatchAAResults*, llvm::CodeGenOptLevel)",
+      "cpu_percent": 3.26,
+      "sampled_cpu_seconds": 3.0655
+    },
+    {
+      "function": "llvm::FunctionToLoopPassAdaptor::run(llvm::Function&, llvm::AnalysisManager<llvm::Function, >&)",
+      "cpu_percent": 3.17,
+      "sampled_cpu_seconds": 2.981
+    },
+    {
+      "function": "(anonymous namespace)::SROA::rewritePartition(llvm::AllocaInst&, (anonymous namespace)::AllocaSlices&, (anonymous namespace)::Partition&)",
+      "cpu_percent": 3.07,
+      "sampled_cpu_seconds": 2.8874
+    },
+    {
+      "function": "llvm::MemCpyOptPass::run(llvm::Function&, llvm::AnalysisManager<llvm::Function, >&)",
+      "cpu_percent": 3.03,
+      "sampled_cpu_seconds": 2.8485
+    },
+    {
+      "function": "monotype.lower.Builder.lowerDraftTemplateFromContext",
+      "cpu_percent": 2.95,
+      "sampled_cpu_seconds": 2.7815
+    },
+    {
+      "function": "monotype.lower.BodyContext.completedDirectCalleeAtNode",
+      "cpu_percent": 2.91,
+      "sampled_cpu_seconds": 2.7425
+    },
+    {
+      "function": "monotype.lower.BodyContext.fnTemplateForDirectCallAtNode",
+      "cpu_percent": 2.9,
+      "sampled_cpu_seconds": 2.7277
+    },
+    {
+      "function": "llvm::RAGreedy::trySplit(llvm::LiveInterval const&, llvm::AllocationOrder&, llvm::SmallVectorImpl<llvm::Register>&, llvm::SmallSet<llvm::Register, (unsigned int)16, std::__1::less<llvm::Register> > const&)",
+      "cpu_percent": 2.9,
+      "sampled_cpu_seconds": 2.7271
+    },
+    {
+      "function": "llvm::MemCpyOptPass::iterateOnFunction(llvm::Function&)",
+      "cpu_percent": 2.9,
+      "sampled_cpu_seconds": 2.7265
+    },
+    {
+      "function": "llvm::MemCpyOptPass::runImpl(llvm::Function&, llvm::TargetLibraryInfo*, llvm::AAResults*, llvm::AssumptionCache*, llvm::DominatorTree*, llvm::PostDominatorTree*, llvm::MemorySSA*)",
+      "cpu_percent": 2.9,
+      "sampled_cpu_seconds": 2.7265
+    },
+    {
+      "function": "llvm::AAResults::getModRefInfo(llvm::Instruction const*, std::__1::optional<llvm::MemoryLocation> const&, llvm::AAQueryInfo&)",
+      "cpu_percent": 2.88,
+      "sampled_cpu_seconds": 2.7145
+    },
+    {
+      "function": "llvm::SLPVectorizerPass::run(llvm::Function&, llvm::AnalysisManager<llvm::Function, >&)",
+      "cpu_percent": 2.87,
+      "sampled_cpu_seconds": 2.6976
+    },
+    {
+      "function": "llvm::SLPVectorizerPass::runImpl(llvm::Function&, llvm::ScalarEvolution*, llvm::TargetTransformInfo*, llvm::TargetLibraryInfo*, llvm::AAResults*, llvm::LoopInfo*, llvm::DominatorTree*, llvm::AssumptionCache*, llvm::DemandedBits*, llvm::OptimizationRemarkEmitter*)",
+      "cpu_percent": 2.83,
+      "sampled_cpu_seconds": 2.6654
+    },
+    {
+      "function": "llvm::MemCpyOptPass::processMemCpy(llvm::MemCpyInst*, llvm::ilist_iterator_w_bits<llvm::ilist_detail::node_options<llvm::Instruction, false, false, void, true, llvm::BasicBlock>, false, false>&)",
+      "cpu_percent": 2.73,
+      "sampled_cpu_seconds": 2.5741
+    },
+    {
+      "function": "llvm::RAGreedy::tryRegionSplit(llvm::LiveInterval const&, llvm::AllocationOrder&, llvm::SmallVectorImpl<llvm::Register>&)",
+      "cpu_percent": 2.7,
+      "sampled_cpu_seconds": 2.542
+    },
+    {
+      "function": "range_prove.Pass.relaxFresh",
+      "cpu_percent": 2.67,
+      "sampled_cpu_seconds": 2.5167
+    },
+    {
+      "function": "range_prove.Pass.prescanProc",
+      "cpu_percent": 2.64,
+      "sampled_cpu_seconds": 2.4898
+    },
+    {
+      "function": "llvm::PromoteMemToReg(llvm::ArrayRef<llvm::AllocaInst*>, llvm::DominatorTree&, llvm::AssumptionCache*)",
+      "cpu_percent": 2.58,
+      "sampled_cpu_seconds": 2.4257
+    }
+  ]
+}
