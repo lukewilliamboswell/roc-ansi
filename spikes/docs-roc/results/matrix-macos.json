@@ -1,0 +1,247 @@
+{
+  "compiler": "Roc compiler version nightly-2026-10-14-38a3029",
+  "compiler_sha256": "d87dc422d9156f9b6a1669ba5200e01d981a1c5ce27cf4242afc58182242d89b",
+  "platform": "macOS-26.3.1-arm64-arm-64bit-Mach-O",
+  "policy": "Sequential, one observation per command, empty compiler cache per source/build case; package sources shared; native runs repeated three times. 180s cap. Decimal RSS bytes.",
+  "cases": {
+    "dev-source": {
+      "command": [
+        "/Users/luke/roc_nightly-macos_apple_silicon-2026-10-14-38a3029/roc",
+        "run",
+        "--opt=dev",
+        "spikes/docs-roc/main.roc",
+        "--",
+        "spikes/docs-roc/chapter.md",
+        "/Users/luke/Documents/GitHub/roc-ansi/.roc-ansi-tmp/docs-roc-matrix/dev-source"
+      ],
+      "status": "ok",
+      "wall_seconds": 6.47,
+      "peak_rss_bytes": 2817163264,
+      "user_seconds": 11.15,
+      "system_seconds": 1.25,
+      "renderer_seconds": 0.798
+    },
+    "dev-build": {
+      "command": [
+        "/Users/luke/roc_nightly-macos_apple_silicon-2026-10-14-38a3029/roc",
+        "build",
+        "--opt=dev",
+        "--timings",
+        "spikes/docs-roc/main.roc",
+        "--output=/Users/luke/Documents/GitHub/roc-ansi/.roc-ansi-tmp/docs-roc-matrix/renderer-dev"
+      ],
+      "status": "ok",
+      "wall_seconds": 11.35,
+      "peak_rss_bytes": 4002529280,
+      "user_seconds": 21.85,
+      "system_seconds": 1.83
+    },
+    "dev-native-1": {
+      "command": [
+        "/Users/luke/Documents/GitHub/roc-ansi/.roc-ansi-tmp/docs-roc-matrix/renderer-dev",
+        "spikes/docs-roc/chapter.md",
+        "/Users/luke/Documents/GitHub/roc-ansi/.roc-ansi-tmp/docs-roc-matrix/dev-native"
+      ],
+      "status": "ok",
+      "wall_seconds": 0.79,
+      "peak_rss_bytes": 19775488,
+      "user_seconds": 0.78,
+      "system_seconds": 0.01,
+      "renderer_seconds": 0.794
+    },
+    "dev-native-2": {
+      "command": [
+        "/Users/luke/Documents/GitHub/roc-ansi/.roc-ansi-tmp/docs-roc-matrix/renderer-dev",
+        "spikes/docs-roc/chapter.md",
+        "/Users/luke/Documents/GitHub/roc-ansi/.roc-ansi-tmp/docs-roc-matrix/dev-native"
+      ],
+      "status": "ok",
+      "wall_seconds": 0.8,
+      "peak_rss_bytes": 22020096,
+      "user_seconds": 0.8,
+      "system_seconds": 0.0,
+      "renderer_seconds": 0.805
+    },
+    "dev-native-3": {
+      "command": [
+        "/Users/luke/Documents/GitHub/roc-ansi/.roc-ansi-tmp/docs-roc-matrix/renderer-dev",
+        "spikes/docs-roc/chapter.md",
+        "/Users/luke/Documents/GitHub/roc-ansi/.roc-ansi-tmp/docs-roc-matrix/dev-native"
+      ],
+      "status": "ok",
+      "wall_seconds": 0.79,
+      "peak_rss_bytes": 21659648,
+      "user_seconds": 0.78,
+      "system_seconds": 0.0,
+      "renderer_seconds": 0.791
+    },
+    "speed-source": {
+      "command": [
+        "/Users/luke/roc_nightly-macos_apple_silicon-2026-10-14-38a3029/roc",
+        "run",
+        "--opt=speed",
+        "spikes/docs-roc/main.roc",
+        "--",
+        "spikes/docs-roc/chapter.md",
+        "/Users/luke/Documents/GitHub/roc-ansi/.roc-ansi-tmp/docs-roc-matrix/speed-source"
+      ],
+      "status": "ok",
+      "wall_seconds": 73.21,
+      "peak_rss_bytes": 5210603520,
+      "user_seconds": 90.58,
+      "system_seconds": 2.95,
+      "renderer_seconds": 0.032
+    },
+    "speed-build": {
+      "command": [
+        "/Users/luke/roc_nightly-macos_apple_silicon-2026-10-14-38a3029/roc",
+        "build",
+        "--opt=speed",
+        "--timings",
+        "spikes/docs-roc/main.roc",
+        "--output=/Users/luke/Documents/GitHub/roc-ansi/.roc-ansi-tmp/docs-roc-matrix/renderer-speed"
+      ],
+      "status": "ok",
+      "wall_seconds": 72.18,
+      "peak_rss_bytes": 5992464384,
+      "user_seconds": 90.06,
+      "system_seconds": 2.7
+    },
+    "speed-native-1": {
+      "command": [
+        "/Users/luke/Documents/GitHub/roc-ansi/.roc-ansi-tmp/docs-roc-matrix/renderer-speed",
+        "spikes/docs-roc/chapter.md",
+        "/Users/luke/Documents/GitHub/roc-ansi/.roc-ansi-tmp/docs-roc-matrix/speed-native"
+      ],
+      "status": "ok",
+      "wall_seconds": 0.03,
+      "peak_rss_bytes": 13418496,
+      "user_seconds": 0.03,
+      "system_seconds": 0.0,
+      "renderer_seconds": 0.033
+    },
+    "speed-native-2": {
+      "command": [
+        "/Users/luke/Documents/GitHub/roc-ansi/.roc-ansi-tmp/docs-roc-matrix/renderer-speed",
+        "spikes/docs-roc/chapter.md",
+        "/Users/luke/Documents/GitHub/roc-ansi/.roc-ansi-tmp/docs-roc-matrix/speed-native"
+      ],
+      "status": "ok",
+      "wall_seconds": 0.03,
+      "peak_rss_bytes": 13418496,
+      "user_seconds": 0.03,
+      "system_seconds": 0.0,
+      "renderer_seconds": 0.03
+    },
+    "speed-native-3": {
+      "command": [
+        "/Users/luke/Documents/GitHub/roc-ansi/.roc-ansi-tmp/docs-roc-matrix/renderer-speed",
+        "spikes/docs-roc/chapter.md",
+        "/Users/luke/Documents/GitHub/roc-ansi/.roc-ansi-tmp/docs-roc-matrix/speed-native"
+      ],
+      "status": "ok",
+      "wall_seconds": 0.03,
+      "peak_rss_bytes": 13418496,
+      "user_seconds": 0.03,
+      "system_seconds": 0.0,
+      "renderer_seconds": 0.03
+    },
+    "size-source": {
+      "command": [
+        "/Users/luke/roc_nightly-macos_apple_silicon-2026-10-14-38a3029/roc",
+        "run",
+        "--opt=size",
+        "spikes/docs-roc/main.roc",
+        "--",
+        "spikes/docs-roc/chapter.md",
+        "/Users/luke/Documents/GitHub/roc-ansi/.roc-ansi-tmp/docs-roc-matrix/size-source"
+      ],
+      "status": "ok",
+      "wall_seconds": 67.48,
+      "peak_rss_bytes": 5908561920,
+      "user_seconds": 85.23,
+      "system_seconds": 2.62,
+      "renderer_seconds": 0.037
+    },
+    "size-build": {
+      "command": [
+        "/Users/luke/roc_nightly-macos_apple_silicon-2026-10-14-38a3029/roc",
+        "build",
+        "--opt=size",
+        "--timings",
+        "spikes/docs-roc/main.roc",
+        "--output=/Users/luke/Documents/GitHub/roc-ansi/.roc-ansi-tmp/docs-roc-matrix/renderer-size"
+      ],
+      "status": "ok",
+      "wall_seconds": 67.89,
+      "peak_rss_bytes": 5862440960,
+      "user_seconds": 85.62,
+      "system_seconds": 2.78
+    },
+    "size-native-1": {
+      "command": [
+        "/Users/luke/Documents/GitHub/roc-ansi/.roc-ansi-tmp/docs-roc-matrix/renderer-size",
+        "spikes/docs-roc/chapter.md",
+        "/Users/luke/Documents/GitHub/roc-ansi/.roc-ansi-tmp/docs-roc-matrix/size-native"
+      ],
+      "status": "ok",
+      "wall_seconds": 0.03,
+      "peak_rss_bytes": 13631488,
+      "user_seconds": 0.03,
+      "system_seconds": 0.0,
+      "renderer_seconds": 0.035
+    },
+    "size-native-2": {
+      "command": [
+        "/Users/luke/Documents/GitHub/roc-ansi/.roc-ansi-tmp/docs-roc-matrix/renderer-size",
+        "spikes/docs-roc/chapter.md",
+        "/Users/luke/Documents/GitHub/roc-ansi/.roc-ansi-tmp/docs-roc-matrix/size-native"
+      ],
+      "status": "ok",
+      "wall_seconds": 0.03,
+      "peak_rss_bytes": 13172736,
+      "user_seconds": 0.03,
+      "system_seconds": 0.0,
+      "renderer_seconds": 0.032
+    },
+    "size-native-3": {
+      "command": [
+        "/Users/luke/Documents/GitHub/roc-ansi/.roc-ansi-tmp/docs-roc-matrix/renderer-size",
+        "spikes/docs-roc/chapter.md",
+        "/Users/luke/Documents/GitHub/roc-ansi/.roc-ansi-tmp/docs-roc-matrix/size-native"
+      ],
+      "status": "ok",
+      "wall_seconds": 0.03,
+      "peak_rss_bytes": 13172736,
+      "user_seconds": 0.03,
+      "system_seconds": 0.0,
+      "renderer_seconds": 0.032
+    },
+    "interpreter-source": {
+      "command": [
+        "/Users/luke/roc_nightly-macos_apple_silicon-2026-10-14-38a3029/roc",
+        "run",
+        "--opt=interpreter",
+        "spikes/docs-roc/main.roc",
+        "--",
+        "spikes/docs-roc/chapter.md",
+        "/Users/luke/Documents/GitHub/roc-ansi/.roc-ansi-tmp/docs-roc-matrix/interpreter-source"
+      ],
+      "status": "ok",
+      "wall_seconds": 117.74,
+      "peak_rss_bytes": 4541595648,
+      "user_seconds": 117.79,
+      "system_seconds": 4.78,
+      "renderer_seconds": 112.202
+    }
+  },
+  "pdf_sha256": {
+    "dev-native/manual.pdf": "317a480f590992f1a41c1c3081d2d83e29647bd0873082fae2f7a5a194a1ec0c",
+    "dev-source/manual.pdf": "317a480f590992f1a41c1c3081d2d83e29647bd0873082fae2f7a5a194a1ec0c",
+    "interpreter-source/manual.pdf": "317a480f590992f1a41c1c3081d2d83e29647bd0873082fae2f7a5a194a1ec0c",
+    "size-native/manual.pdf": "317a480f590992f1a41c1c3081d2d83e29647bd0873082fae2f7a5a194a1ec0c",
+    "size-source/manual.pdf": "317a480f590992f1a41c1c3081d2d83e29647bd0873082fae2f7a5a194a1ec0c",
+    "speed-native/manual.pdf": "317a480f590992f1a41c1c3081d2d83e29647bd0873082fae2f7a5a194a1ec0c",
+    "speed-source/manual.pdf": "317a480f590992f1a41c1c3081d2d83e29647bd0873082fae2f7a5a194a1ec0c"
+  }
+}

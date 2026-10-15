@@ -59,8 +59,8 @@ test overhead, separate from renderer runtime.
 
 ## Initial Apple Silicon measurements
 
-Measured on macOS 26.3.1 with the October 14 published compiler, default dev
-build, package downloads already present. Individual observations, not an
+Measured on macOS 26.3.1 with the October 14 published compiler, default speed
+build (`roc run` defaults to dev), package downloads already present. Individual observations, not an
 end-to-end benchmark of the complete manual:
 
 | Operation | Wall time | Peak RSS |
@@ -122,6 +122,53 @@ package sources; the recorded controls are in `repro/measurements-macos.json`.
 The October 14 nightly was still the latest published nightly when checked,
 and the binary in `~/roc_nightly-macos_apple_silicon-2026-10-14-38a3029/roc`
 matched the tested compiler byte-for-byte.
+
+## Explicit optimization-mode matrix
+
+`roc run` defaults to `--opt=dev`; `roc build` defaults to `--opt=speed`.
+The initial build measurements above used **speed**, despite the earlier
+incorrect dev label. All new measurements specify the mode explicitly.
+
+Reproduce the two-page chapter comparison with:
+
+```sh
+python3 spikes/docs-roc/matrix.py /path/to/roc /path/to/cache/roc/packages
+```
+
+Each source invocation and build uses a separate empty compiler cache, sharing
+only downloaded package sources. Commands run sequentially. Native execution
+runs three times per successful build. Outputs must have identical PDF hashes.
+Interpreter mode is source-only because it does not generate a native executable.
+Each command has a 180-second cap; a timeout is not a completed timing or RSS
+measurement. Results and raw timing/phase logs are under
+`.roc-ansi-tmp/docs-roc-matrix/`. These are individual observations of the sample,
+not the full manual or a statistical comparison of compiler memory consumption.
+
+Measured with the October 14 published nightly on macOS arm64. RSS values
+are decimal; each source/build cell is a single observation. Native wall
+measurements have `/usr/bin/time`'s 10 ms resolution; internal render medians
+are also shown to distinguish the optimized modes.
+
+| Explicit mode | Source run: wall / RSS | Build: wall / RSS | Native run: wall / RSS | Internal render median |
+| --- | ---: | ---: | ---: | ---: |
+| dev | 6.47 s / 2.82 GB | 11.35 s / 4.00 GB | 0.79 s / 19.8–22.0 MB | 794 ms |
+| speed | 73.21 s / 5.21 GB | 72.18 s / 5.99 GB | 0.03 s / 13.4 MB | 30 ms |
+| size | 67.48 s / 5.91 GB | 67.89 s / 5.86 GB | 0.03 s / 13.2–13.6 MB | 32 ms |
+| interpreter | 117.74 s / 4.54 GB | N/A | N/A | 112,202 ms (source run) |
+
+Building and then rendering once takes approximately 12.14 s for dev,
+72.21 s for speed, and 67.92 s for size. Peak RSS across those sequential
+stages is the build peak, **not the sum**. Compiler processes have exited
+before native runtime measurements begin. Every successful output PDF has
+SHA-256 `317a480f590992f1a41c1c3081d2d83e29647bd0873082fae2f7a5a194a1ec0c`.
+Exact measurements are in [results/matrix-macos.json](results/matrix-macos.json),
+and build phase logs are alongside it.
+
+The speed build spends 55.42 s in LLVM optimization/emission and 11.88 s in
+specialization, including 10.25 s in LIR passes. Its type-checking phase is
+0.87 s; shared lowering and compile-time evaluation take 3.29 s. These phase
+RSS snapshots use a different sampling mechanism from `/usr/bin/time` and
+should not replace the process peak RSS values in the table.
 
 ## Deliberate limits and migration work
 

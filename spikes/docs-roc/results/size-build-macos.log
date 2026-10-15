@@ -1,0 +1,426 @@
+roc build                                       1m 7s, peak RSS 5480MB
+  ✓ Resolving Dependencies                        3ms, RSS 7MB - 9MB
+  ✓ Type Checking                               874ms, RSS 9MB - 2343MB
+      Parsing (summed)                          122ms
+      Name Resolution (summed)                  152ms
+      Type Inference (summed)                 1_951ms
+      Module Compile-Time Eval (summed)           0ms
+  ✓ Shared Lowering + Compile-Time Eval       3_443ms, RSS 749MB - 2259MB
+      Shared Monotype Lowering                1_714ms
+      Shared Closure Lifting                     49ms
+      Shared SpecConstr                         535ms
+      Shared Lambda-Set Solving                 202ms
+      Shared Inline Planning                      4ms
+      Shared LIR Generation                      78ms
+      Shared LIR Passes                          10ms
+      Shared ARC                                 94ms
+      Static Data                                 4ms
+      arm64 Instruction Generation               40ms
+      Execution                                 223ms
+      Store Results                              53ms
+  ✓ Specializing                             12_047ms, RSS 2109MB - 5480MB
+      LIR Generation                            302ms
+      LIR Passes                             10_379ms
+      ARC                                     1_142ms
+  ✓ Static Data                                   0ms, RSS 3977MB
+  ✓ LLVM IR Generation                          550ms, RSS 3977MB - 3995MB
+  ✓ LLVM Optimize + Emit                     50_788ms, RSS 3995MB - 5324MB
+  ✓ Linking                                      48ms, RSS 4943MB - 4944MB
+  Slowest Module Type Inference
+      pdf.KernelFacadePipeline                  104ms
+      pdf.Pdf                                   104ms
+      unicode.InternalCaseData                   80ms
+      pdf.KernelFacadeSemantics                  73ms
+      unicode.InternalScriptData                 66ms
+      parser.Markdown                            55ms
+      pdf.Document                               46ms
+      pdf.KernelSemantics                        45ms
+      pdf.KernelTaggedObjects                    42ms
+      pdf.KernelScene                            40ms
+  Compile-time roots
+      Declared                               6453
+      Evaluated                              4438
+  Shared Monotype specialization
+      Template requests                      23155
+      Template hits                          4559
+      Template misses                        18596
+      Nested requests                        771
+      Nested hits                            374
+      Nested misses                          397
+      Template lookup candidates             12906
+      Nested lookup candidates               3
+      Type digest root requests              48966
+      Type digest node cache hits            114705
+      Type digest node cache misses          101651
+      Type digest nodes visited              101651
+      All digest root requests               6075740
+      All digest node misses                 585561
+      Commit digest root requests            481726
+      Commit digest node misses              423950
+      Interface replay digest root requests  0
+      Interface replay digest node misses    0
+      Interface relation requests            86892
+      Interface replay hits                  24498
+      Interface closed expansions            3273
+      Template dispatch relation replays     316
+      Evidence contract relations            699
+      Exact type checks                      4627
+      Nominal backing reuses                 183485
+      Nominal backing instantiations         69976
+      Missing evidence                       0
+      Total specialization misses            18993
+      Object specialization cache hits       0
+  Shared Monotype type graph
+      Graphs created                         8262
+      Nodes created                          3646751
+      Unification requests                   2340312
+      Union classes joined                   3109460
+      Active type requests                   68084
+      Imported type view hits                3810
+      Active snapshot hits                   47667
+      Active snapshot misses                 16678
+      Snapshot nodes materialized            133326
+      Provisional view nodes materialized    0
+      Snapshot invalidation requests         965
+      Snapshot entries invalidated           126529
+      Monotype import requests               139026
+      Monotype import hits                   125589
+      Monotype import misses                 13437
+      Generated-private containment queries  298401
+      Generated-private cache hits           226707
+      Generated-private nodes visited        964359
+      Finished-Monotype scans                784
+      Finished-Monotype nodes visited        2704
+      Nominal backing lookups                253461
+      Nominal backing instances scanned      183485
+      Nominal backing tombstone deletions    0
+      Union-find resolutions                 127291805
+      Argument class snapshot nodes          68018
+      Structural backing visited slots       84808
+      Generated-private guard returns        4177369
+      Generated-iterator index lookups       278
+  Shared Monotype body + dispatch
+      Interface summary hits                 75594
+      Interface summary expansions           18805
+      Body contexts created                  94944
+      Type instantiation scopes              156727
+      Checked node requests                  7168223
+      Checked node cache hits                5156007
+      Checked node cache misses              2011821
+      Fresh checked node requests            5663
+      Call expressions                       13960
+      Dispatch expressions                   18264
+      Deferred template requests             12140
+      Caller-owned template bodies lowered   0
+      Eager iterator template bodies lowered 16
+      Deferred template reuses               6427
+      Deferred template bodies lowered       5697
+      Lowered template bodies discarded      10
+      Lowered nested bodies discarded        3
+      Expression relations                   142662
+      Argument spans prepared                14350
+      Arguments prepared                     27502
+      Nested callable checks                 94560
+      Nested lambdas prepared                63
+      Nested closures prepared               156
+      Nested lookup probes                   1145
+      Draft commit lookup steps              25078
+      Direct call request reuses             13538
+  Shared Monotype parallel execution
+      Worker task wall time, summed (ns)     4134385772
+      Coordinator post-batch work (ns)       210841494
+      Root tasks submitted                   0
+      Root tasks committed                   0
+      Specialization tasks submitted         10118
+      Specialization tasks committed         10118
+      Specialization tasks discarded ready   0
+      Parallel task waves                    4
+      Peak worker lanes available            4
+      Peak worker lanes used                 4
+      Tasks reusing a lowering lane          10114
+      Peak specialization jobs pending       4367
+      Peak specialization shards retained    256
+  Shared SpecConstr parallel execution
+      Tasks submitted                        4996
+      Tasks committed                        4996
+      Patterns recorded                      196
+      Patterns admitted                      35
+      Workers written                        138
+      Worker budget denials                  7
+      Bodies committed                       696
+      Expressions committed                  251495
+      Peak retained body shards              32
+      Pattern discovery tasks                4262
+      Pattern discovery changes              24
+      Loop-result projection tasks           734
+      Loop-result projection changes         696
+      Iterator fusion tasks                  0
+      Iterator fusion changes                0
+  Shared Solved-LIR parallel execution
+      Tasks submitted                        4260
+      Tasks committed                        4260
+      Parallel task waves                    1080
+      Lowering lanes initialized             4
+      Tasks reusing a lowering lane          4256
+      Worker string entries committed        807
+      Worker inline scopes committed         276
+      Worker capturing tasks committed       3
+      Worker return-reuse tasks committed    0
+      Worker erased tasks committed          0
+      Worker indirect-call tasks committed   2
+      Worker match tasks committed           71
+      Worker literal tasks committed         356
+      Worker loop tasks committed            14
+  Shared LIR pass parallel execution
+      Tasks submitted                        693
+      Tasks committed                        693
+      Prepared statement rows                28576
+      Appended statements                    873
+      Peak retained procedure shards         277
+      Branch expectation tasks               277
+      Branch expectation rewrites            15
+      TRMC tasks                             0
+      TRMC rewrites                          0
+      Forwarding joins tasks                 0
+      Forwarding joins rewrites              0
+      Tag-case fusion tasks                  0
+      Tag-case fusion rewrites               0
+      Join parameter pruning tasks           269
+      Join parameter pruning rewrites        4
+      Join scalarization tasks               0
+      Join scalarization rewrites            0
+      Loop append promotion tasks            147
+      Loop append promotion rewrites         7
+      Range proving tasks                    0
+      Range proving rewrites                 0
+      Box reuse tasks                        0
+      Box reuse rewrites                     0
+  Shared ARC parallel execution
+      Dismantle tasks submitted              8
+      Dismantle tasks committed              8
+      Source tasks submitted                 4788
+      Source tasks committed                 4788
+      Planning tasks submitted               4796
+      Planning tasks committed               4796
+      Emission tasks submitted               4796
+      Emission tasks committed               4796
+      Specialization waves                   38
+      Variants reserved                      8
+      Uniqueness settlements                 2
+      Uniqueness components                  9576
+      Uniqueness component runs              9764
+      Uniqueness tasks submitted             9764
+      Uniqueness tasks committed             9764
+      Uniqueness signature waves             8
+      Uniqueness signature changes           65
+      Uniqueness statement rows              134623
+      Uniqueness local rows                  16763
+  Shared native artifact emission
+      Tasks submitted                        4835
+      Tasks committed                        4835
+      Procedures emitted                     4789
+      Procedures reused                      0
+      Helpers emitted                        46
+      Helpers reused                         0
+      Code bytes emitted                     2614228
+      Code bytes reused                      0
+      Rejected revision                      0
+      Rejected context                       0
+      Rejected target                        0
+      Peak inflight fragments                32
+  Monotype specialization
+      Template requests                      0
+      Template hits                          0
+      Template misses                        0
+      Nested requests                        0
+      Nested hits                            0
+      Nested misses                          0
+      Template lookup candidates             0
+      Nested lookup candidates               0
+      Type digest root requests              0
+      Type digest node cache hits            0
+      Type digest node cache misses          0
+      Type digest nodes visited              0
+      All digest root requests               0
+      All digest node misses                 0
+      Commit digest root requests            0
+      Commit digest node misses              0
+      Interface replay digest root requests  0
+      Interface replay digest node misses    0
+      Interface relation requests            0
+      Interface replay hits                  0
+      Interface closed expansions            0
+      Template dispatch relation replays     0
+      Evidence contract relations            0
+      Exact type checks                      0
+      Nominal backing reuses                 0
+      Nominal backing instantiations         0
+      Missing evidence                       0
+      Total specialization misses            0
+      Object specialization cache hits       0
+  Monotype type graph
+      Graphs created                         0
+      Nodes created                          0
+      Unification requests                   0
+      Union classes joined                   0
+      Active type requests                   0
+      Imported type view hits                0
+      Active snapshot hits                   0
+      Active snapshot misses                 0
+      Snapshot nodes materialized            0
+      Provisional view nodes materialized    0
+      Snapshot invalidation requests         0
+      Snapshot entries invalidated           0
+      Monotype import requests               0
+      Monotype import hits                   0
+      Monotype import misses                 0
+      Generated-private containment queries  0
+      Generated-private cache hits           0
+      Generated-private nodes visited        0
+      Finished-Monotype scans                0
+      Finished-Monotype nodes visited        0
+      Nominal backing lookups                0
+      Nominal backing instances scanned      0
+      Nominal backing tombstone deletions    0
+      Union-find resolutions                 0
+      Argument class snapshot nodes          0
+      Structural backing visited slots       0
+      Generated-private guard returns        0
+      Generated-iterator index lookups       0
+  Monotype body + dispatch
+      Interface summary hits                 0
+      Interface summary expansions           0
+      Body contexts created                  0
+      Type instantiation scopes              0
+      Checked node requests                  0
+      Checked node cache hits                0
+      Checked node cache misses              0
+      Fresh checked node requests            0
+      Call expressions                       0
+      Dispatch expressions                   0
+      Deferred template requests             0
+      Caller-owned template bodies lowered   0
+      Eager iterator template bodies lowered 0
+      Deferred template reuses               0
+      Deferred template bodies lowered       0
+      Lowered template bodies discarded      0
+      Lowered nested bodies discarded        0
+      Expression relations                   0
+      Argument spans prepared                0
+      Arguments prepared                     0
+      Nested callable checks                 0
+      Nested lambdas prepared                0
+      Nested closures prepared               0
+      Nested lookup probes                   0
+      Draft commit lookup steps              0
+      Direct call request reuses             0
+  Monotype parallel execution
+      Worker task wall time, summed (ns)     0
+      Coordinator post-batch work (ns)       0
+      Root tasks submitted                   0
+      Root tasks committed                   0
+      Specialization tasks submitted         0
+      Specialization tasks committed         0
+      Specialization tasks discarded ready   0
+      Parallel task waves                    0
+      Peak worker lanes available            0
+      Peak worker lanes used                 0
+      Tasks reusing a lowering lane          0
+      Peak specialization jobs pending       0
+      Peak specialization shards retained    0
+  SpecConstr parallel execution
+      Tasks submitted                        0
+      Tasks committed                        0
+      Patterns recorded                      0
+      Patterns admitted                      0
+      Workers written                        0
+      Worker budget denials                  0
+      Bodies committed                       0
+      Expressions committed                  0
+      Peak retained body shards              0
+      Pattern discovery tasks                0
+      Pattern discovery changes              0
+      Loop-result projection tasks           0
+      Loop-result projection changes         0
+      Iterator fusion tasks                  0
+      Iterator fusion changes                0
+  Solved-LIR parallel execution
+      Tasks submitted                        736
+      Tasks committed                        736
+      Parallel task waves                    239
+      Lowering lanes initialized             4
+      Tasks reusing a lowering lane          732
+      Worker string entries committed        2244
+      Worker inline scopes committed         1462
+      Worker capturing tasks committed       52
+      Worker return-reuse tasks committed    0
+      Worker erased tasks committed          0
+      Worker indirect-call tasks committed   23
+      Worker match tasks committed           171
+      Worker literal tasks committed         318
+      Worker loop tasks committed            112
+  LIR pass parallel execution
+      Tasks submitted                        7784
+      Tasks committed                        7784
+      Prepared statement rows                3588382
+      Appended statements                    1294474
+      Peak retained procedure shards         1462
+      Branch expectation tasks               1453
+      Branch expectation rewrites            630
+      TRMC tasks                             16
+      TRMC rewrites                          6
+      Forwarding joins tasks                 0
+      Forwarding joins rewrites              0
+      Tag-case fusion tasks                  1456
+      Tag-case fusion rewrites               252
+      Join parameter pruning tasks           1452
+      Join parameter pruning rewrites        321
+      Join scalarization tasks               1242
+      Join scalarization rewrites            457
+      Loop append promotion tasks            701
+      Loop append promotion rewrites         240
+      Range proving tasks                    1462
+      Range proving rewrites                 761
+      Box reuse tasks                        2
+      Box reuse rewrites                     0
+  ARC parallel execution
+      Dismantle tasks submitted              99
+      Dismantle tasks committed              99
+      Source tasks submitted                 1663
+      Source tasks committed                 1663
+      Planning tasks submitted               1975
+      Planning tasks committed               1975
+      Emission tasks submitted               1975
+      Emission tasks committed               1975
+      Specialization waves                   17
+      Variants reserved                      320
+      Uniqueness settlements                 2
+      Uniqueness components                  3326
+      Uniqueness component runs              4471
+      Uniqueness tasks submitted             4471
+      Uniqueness tasks committed             4471
+      Uniqueness signature waves             11
+      Uniqueness signature changes           1658
+      Uniqueness statement rows              3370755
+      Uniqueness local rows                  950751
+0 errors and 0 warnings found in 1m 7s while successfully building:
+
+    /Users/luke/Documents/GitHub/roc-ansi/.roc-ansi-tmp/docs-roc-matrix/renderer-size
+       67.89 real        85.62 user         2.78 sys
+          5862440960  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+             1104275  page reclaims
+                 654  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                 736  voluntary context switches
+              172722  involuntary context switches
+        915967302282  instructions retired
+        292812200051  cycles elapsed
+          5769616680  peak memory footprint
