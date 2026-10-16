@@ -363,3 +363,29 @@ The complete manual also passed the isolated
 That run validates manual output; it is not a claim that the new standalone
 bug probes were run on Linux. No roc-parser defect was established by this
 exercise, and no parser issue was filed.
+
+
+## Parser 2.1.0-rc.1 integration and October 15 compiler
+
+The renderer now consumes the published parser candidate bundle
+`6dvNG3Q2mx53i4YPJN2ZGK98WdXnBMMuceAmDsCq7BEd`, using its lexer-only
+`RocSyntax` API for HTML Roc highlighting. PDF remains on the same immutable
+roc-pdf rc3 bundle; this is not an upgrade to a different PDF implementation.
+All eight HTML code blocks remain byte-exact, and the full PDF remains
+byte-identical (14 pages, 148,022 bytes). New checks cover token categories,
+HTML-sensitive characters, tabs, blank lines and incomplete source strings.
+
+The candidate's required compiler is `nightly-2026-10-15-38e6c42`. Its dev
+executable aborts on macOS arm64 in both the full renderer and the unchanged
+PDF-only `short-ascii-break` probe, with and without compiler-cache use.
+A debugger identifies an invalid pointer passed to host realloc via
+`roc_builtins_list_reserve_for_append`, from `KernelTaggedObjects:377`.
+This local observation does not establish the precise compiler/package cause.
+The isolated new tokenizer runs successfully under the same compiler.
+
+An explicit `build --opt=speed --no-cache` succeeds in compiler-reported
+92 seconds and the executable passes the entire verifier plus full-manual
+coverage. CI and current run instructions therefore explicitly select speed.
+October 14 dev also renders the upgraded tokenizer integration correctly,
+but is retained only as a diagnostic control, not the new compiler pin.
+The original memory report and timings above remain historical evidence.

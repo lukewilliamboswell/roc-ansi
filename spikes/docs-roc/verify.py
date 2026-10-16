@@ -25,6 +25,7 @@ class Page(HTMLParser):
         self.in_pre = False
         self.tables = 0
         self.images = []
+        self.syntax = []
 
     def handle_starttag(self, tag, attributes):
         attrs = dict(attributes)
@@ -35,6 +36,8 @@ class Page(HTMLParser):
         if tag == "pre":
             self.in_pre = True
             self.code.append("")
+        if tag == "span" and self.in_pre:
+            self.syntax.append(attrs.get("class", ""))
         if tag == "table":
             self.tables += 1
         if tag == "img":
@@ -172,9 +175,21 @@ for name, content in [("empty", ""), ("minimal", "A minimal paragraph.\n")]:
     assert minimal_pdf.read_bytes().startswith(b"%PDF-")
 print("PASS blank code lines, tabs, long token, explicit oversize rejection, empty and minimal inputs")
 
+# Highlight lexical categories while preserving literal HTML-sensitive source,
+# whitespace and incomplete snippets. Other languages retain plain source.
+highlight_source = '# <note> & "quoted"\napp [main!] {}\nvalue : Bool\nvalue = if True 42 else "<green>&"\n\t# indented\n\nincomplete = "open\n'
+highlight_fixture = root / "highlight.md"
+highlight_fixture.write_text("# Highlight probe\n\n```roc\n" + highlight_source + "```\n\n```sh\necho '<safe>&'\n```\n")
+run(highlight_fixture, root / "highlight")
+highlight_page = Page()
+highlight_page.feed((root / "highlight/index.html").read_text())
+assert highlight_page.code == [highlight_source, "echo '<safe>&'\n"]
+assert {"syntax-comment", "syntax-keyword", "syntax-name", "syntax-type", "syntax-number", "syntax-string", "syntax-symbol"} <= set(highlight_page.syntax)
+print("PASS Roc lexical highlighting, HTML escaping, incomplete snippets and exact source text")
+
 summary = {
     "platform": platform.platform(),
-    "compiler": "nightly-2026-10-14-38a3029",
+    "compiler": "nightly-2026-10-15-38e6c42",
     "representative_runs": records[:3],
     "representative_median_wall_seconds": statistics.median(r["wall_seconds"] for r in records[:3]),
     "pagination_run": records[3],

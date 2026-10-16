@@ -1,6 +1,6 @@
 app [main!] {
 	cli: platform "https://github.com/roc-lang/basic-cli/releases/download/0.26.0-rc2/Gj3zVDr3qrQa6aTh7Z1zgUfe9NeBE6R76T5ho3xrc8af.tar.zst",
-	parser: "https://github.com/lukewilliamboswell/roc-parser/releases/download/2.0.0/7CLzCK6qUz7zmj6nvBxMEFu11HPwQTnCovKiyWzDSLTW.tar.zst",
+	parser: "https://github.com/lukewilliamboswell/roc-parser/releases/download/2.1.0-rc.1/6dvNG3Q2mx53i4YPJN2ZGK98WdXnBMMuceAmDsCq7BEd.tar.zst",
 	pdf: "https://github.com/lukewilliamboswell/roc-pdf/releases/download/0.1.0-rc3/62BcC7hRi2o5WbafX25XoPwcHzyj39Zsh2SqLjoZKx3p.tar.zst",
 }
 
@@ -9,6 +9,7 @@ import cli.OsStr
 import cli.Path
 import cli.Stdout
 import parser.Markdown
+import parser.RocSyntax
 import pdf.Color
 import pdf.Theme
 import pdf.Document
@@ -418,6 +419,39 @@ html_inlines = |inlines| {
 	Ok($result)
 }
 
+html_source = |language, source| {
+	if language != "roc" {
+		return escape(source)
+	}
+	lexed = RocSyntax.tokenize_str(source)
+	var $cursor = 0
+	var $parts = []
+	for token in lexed.tokens {
+		if token.start != $cursor or token.end < token.start or token.end > lexed.source.len() {
+			return escape(source)
+		}
+		$cursor = token.end
+		text = Str.from_utf8_lossy(lexed.source.sublist({ start: token.start, len: token.end - token.start }))
+		category = match RocSyntax.highlight_category(token.kind) {
+			Trivia => ""
+			CommentText => "comment"
+			Name => "name"
+			TypeName => "type"
+			ReservedWord => "keyword"
+			NumericLiteral => "number"
+			StringText => "string"
+			Symbol => "symbol"
+			InvalidText => "invalid"
+		}
+		$parts = $parts.append({ text, html: if category.is_empty() escape(text) else "<span class=\"syntax-${category}\">${escape(text)}</span>" })
+	}
+	# Highlighting must never change source bytes, including recovered tokens.
+	if $cursor != lexed.source.len() or Str.join_with($parts.map(|part| part.text), "") != source {
+		return escape(source)
+	}
+	Str.join_with($parts.map(|part| part.html), "")
+}
+
 html_blocks : List(Markdown) -> Try(Str, _)
 html_blocks = |blocks| {
 	var $result = ""
@@ -428,7 +462,7 @@ html_blocks = |blocks| {
 				"<h${n} id=\"${slug(plain(content))}\">${html_inlines(content)?}</h${n}>"
 			}
 			Paragraph(content) => "<p>${html_inlines(content)?}</p>"
-			Code({ info, pre }) => "<pre><code class=\"language-${escape(info)}\">${escape(pre)}</code></pre>"
+			Code({ info, pre }) => "<pre><code class=\"language-${escape(info)}\">${html_source(info, pre)}</code></pre>"
 			Table({ header, rows, .. }) => {
 				var $head = ""
 				for cell in header {
@@ -472,7 +506,7 @@ html_blocks = |blocks| {
 html_document = |blocks| {
 	content = html_blocks(blocks)?
 	navigation = Str.join_with(outline(blocks).map(|entry| "<li><a href=\"#${entry.destination}\">${escape(entry.title)}</a></li>"), "")
-	Ok("<!doctype html><html lang=\"en-AU\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>The roc-ansi manual: Roc rendering spike</title><style>body{font:17px/1.65 system-ui,sans-serif;color:#203047;max-width:900px;margin:3rem auto;padding:0 1.5rem}a{color:#125bb3}h1,h2,h3{line-height:1.2;scroll-margin-top:2rem}h2{margin-top:3rem;border-bottom:1px solid #d6e0eb;padding-bottom:.5rem}nav{background:#edf3fa;padding:1rem 1.5rem;border-radius:8px}nav ul{columns:2}code{font-family:ui-monospace,monospace;background:#edf3fa;padding:.1rem .25rem}pre{background:#edf3fa;padding:1rem;overflow:auto;border-radius:8px;tab-size:4}pre code{padding:0}table{border-collapse:collapse;width:100%;font-size:.92em}td,th{border:1px solid #d6e0eb;padding:.6rem;text-align:left}th{background:#edf3fa}img{max-width:100%;height:auto}footer{border-top:1px solid #d6e0eb;margin-top:3rem;padding-top:1rem}</style></head><body><p>Experimental Roc documentation renderer · <a href=\"manual.pdf\">Download PDF</a></p><nav aria-label=\"Contents\"><ul>${navigation}</ul></nav><main>${content}</main><footer>Parsed once with roc-parser; rendered directly to HTML and PDF in Roc.</footer></body></html>")
+	Ok("<!doctype html><html lang=\"en-AU\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>The roc-ansi manual: Roc rendering spike</title><style>body{font:17px/1.65 system-ui,sans-serif;color:#203047;max-width:900px;margin:3rem auto;padding:0 1.5rem}a{color:#125bb3}h1,h2,h3{line-height:1.2;scroll-margin-top:2rem}h2{margin-top:3rem;border-bottom:1px solid #d6e0eb;padding-bottom:.5rem}nav{background:#edf3fa;padding:1rem 1.5rem;border-radius:8px}nav ul{columns:2}code{font-family:ui-monospace,monospace;background:#edf3fa;padding:.1rem .25rem}pre{background:#edf3fa;padding:1rem;overflow:auto;border-radius:8px;tab-size:4}pre code{padding:0}.syntax-comment{color:#526573}.syntax-keyword{color:#7639a5}.syntax-type{color:#005a85}.syntax-number{color:#9c3d10}.syntax-string{color:#246333}.syntax-symbol{color:#465369}.syntax-invalid{text-decoration:underline wavy #ac2634}table{border-collapse:collapse;width:100%;font-size:.92em}td,th{border:1px solid #d6e0eb;padding:.6rem;text-align:left}th{background:#edf3fa}img{max-width:100%;height:auto}footer{border-top:1px solid #d6e0eb;margin-top:3rem;padding-top:1rem}</style></head><body><p>Experimental Roc documentation renderer · <a href=\"manual.pdf\">Download PDF</a></p><nav aria-label=\"Contents\"><ul>${navigation}</ul></nav><main>${content}</main><footer>Parsed once with roc-parser; rendered directly to HTML and PDF in Roc.</footer></body></html>")
 }
 
 expect escape("<&\"") == "&lt;&amp;&quot;"

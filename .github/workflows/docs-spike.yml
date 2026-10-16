@@ -33,7 +33,7 @@ jobs:
       - uses: roc-lang/setup-roc@f5a74bf90aa694b43ab4a7cbfdb19273bc6aa697
         with:
           version: nightly-new-compiler
-          nightly-tag: nightly-2026-10-14-38a3029
+          nightly-tag: nightly-2026-10-15-38e6c42
 
       - name: Install verification tools
         run: |
@@ -49,7 +49,7 @@ jobs:
             echo "This spike must run without Nix" >&2
             exit 1
           fi
-          /usr/bin/time -v roc build spikes/docs-roc/main.roc --no-cache --output="$RUNNER_TEMP/docs-roc" 2>&1 | tee .roc-ansi-tmp/docs-roc-ci/build.log
+          /usr/bin/time -v roc build spikes/docs-roc/main.roc --opt=speed --no-cache --output="$RUNNER_TEMP/docs-roc" 2>&1 | tee .roc-ansi-tmp/docs-roc-ci/build.log
 
       - name: Verify outputs and measure rendering
         run: |
@@ -77,7 +77,7 @@ jobs:
           retention-days: 7
 
   source:
-    name: Direct source execution
+    name: Optimized source execution
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -90,14 +90,14 @@ jobs:
       - uses: roc-lang/setup-roc@f5a74bf90aa694b43ab4a7cbfdb19273bc6aa697
         with:
           version: nightly-new-compiler
-          nightly-tag: nightly-2026-10-14-38a3029
+          nightly-tag: nightly-2026-10-15-38e6c42
 
       - name: Install verification tools
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends poppler-utils
 
-      - name: Verify and measure direct source execution
+      - name: Verify and measure optimized source execution
         run: |
           mkdir -p .roc-ansi-tmp/docs-roc-ci
           roc fmt --check spikes/docs-roc/main.roc
@@ -105,7 +105,9 @@ jobs:
             echo "This spike must run without Nix" >&2
             exit 1
           fi
-          printf '%s\n' '#!/bin/sh' 'exec roc spikes/docs-roc/main.roc -- "$@"' > "$RUNNER_TEMP/docs-roc-source"
+          # October 15 dev execution aborts in PDF emission on macOS;
+          # use the validated LLVM backend explicitly. Later runs reuse it.
+          printf '%s\n' '#!/bin/sh' 'exec roc spikes/docs-roc/main.roc --opt=speed -- "$@"' > "$RUNNER_TEMP/docs-roc-source"
           chmod +x "$RUNNER_TEMP/docs-roc-source"
           python3 spikes/docs-roc/verify.py "$RUNNER_TEMP/docs-roc-source" | tee .roc-ansi-tmp/docs-roc-ci/source-verification.log
           python3 spikes/docs-roc/prepare_image.py

@@ -1,0 +1,61 @@
+{
+  "platform": "macOS-26.3.1-arm64-arm-64bit-Mach-O",
+  "compiler": "nightly-2026-10-15-38e6c42",
+  "representative_runs": [
+    {
+      "wall_seconds": 0.04662749999988591,
+      "peak_rss_bytes": 14942208,
+      "pages": 4,
+      "stages_ms": {
+        "parse": 0,
+        "html": 0,
+        "lower_and_fonts": 14,
+        "prepare": 6,
+        "emit": 17,
+        "total": 39
+      }
+    },
+    {
+      "wall_seconds": 0.044951667000532325,
+      "peak_rss_bytes": 16498688,
+      "pages": 4,
+      "stages_ms": {
+        "parse": 0,
+        "html": 0,
+        "lower_and_fonts": 14,
+        "prepare": 7,
+        "emit": 17,
+        "total": 39
+      }
+    },
+    {
+      "wall_seconds": 0.044369917000040004,
+      "peak_rss_bytes": 14385152,
+      "pages": 4,
+      "stages_ms": {
+        "parse": 0,
+        "html": 0,
+        "lower_and_fonts": 14,
+        "prepare": 6,
+        "emit": 17,
+        "total": 38
+      }
+    }
+  ],
+  "representative_median_wall_seconds": 0.044951667000532325,
+  "pagination_run": {
+    "wall_seconds": 0.03647266600000876,
+    "peak_rss_bytes": 14974976,
+    "pages": 6,
+    "stages_ms": {
+      "parse": 0,
+      "html": 0,
+      "lower_and_fonts": 13,
+      "prepare": 7,
+      "emit": 9,
+      "total": 30
+    }
+  },
+  "pdf_sha256": "f9f758be04f259bdbca0e1b9a5bd36a735b6c4b486804affffec7292b75f75bd",
+  "pdf_bytes": 51774
+}

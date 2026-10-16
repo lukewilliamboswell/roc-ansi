@@ -1,7 +1,7 @@
 # Roc documentation renderer spike
 
 A bounded experiment for replacing the Asciidoctor Docker pipeline with
-published roc-parser 2.0.0 and roc-pdf 0.1.0-rc3. Production documentation and
+published roc-parser 2.1.0-rc.1 and roc-pdf 0.1.0-rc3. Production documentation and
 release workflows are unchanged.
 
 `chapter.md` combines representative material from the existing manual:
@@ -10,6 +10,25 @@ fenced Roc and shell code, a full release dependency URL, the actual terminal
 screenshot, tables, and ordered/unordered lists. One Markdown AST feeds both
 HTML and PDF. The app reads Markdown at runtime: editing the chapter does not
 require rebuilding the renderer.
+
+## Parser 2.1 candidate: Roc syntax highlighting
+
+Roc fenced blocks in HTML now use the release's lexer-only
+`RocSyntax.tokenize_str` and `highlight_category` API. Tokens receive theme
+colours for keywords, comments, types, numbers, strings and punctuation.
+Source slices use UTF-8 byte spans; concatenated token text must equal the
+input exactly or highlighting falls back to escaped plain source. Incomplete
+snippets remain renderable, and other language fences remain plain text.
+No JavaScript, compiler parser or external highlighter runs during rendering.
+PDF code remains monochrome pending an appropriate token presentation API.
+
+The parser candidate requires the October 15 nightly. Use **`--opt=speed`**:
+on macOS, that nightly's dev backend aborts with an invalid realloc pointer
+inside PDF tagged-object emission, including for the unchanged PDF-only probe.
+The optimized build passes the full sample and manual checks. This is an
+execution-mode workaround, not a parser diagnostic. The no-cache optimized
+build took 92 seconds locally; source invocations can reuse its compilation
+cache. Historical October 14/dev measurements below describe the older setup.
 
 ## Whole real manual
 
@@ -24,7 +43,7 @@ production Blueprint task's output.
 
 ```sh
 python3 spikes/docs-roc/convert_manual.py
-roc spikes/docs-roc/main.roc -- spikes/docs-roc/manual.md .roc-ansi-tmp/docs-roc-full-manual
+roc spikes/docs-roc/main.roc --opt=speed -- spikes/docs-roc/manual.md .roc-ansi-tmp/docs-roc-full-manual
 python3 spikes/docs-roc/verify_manual.py .roc-ansi-tmp/docs-roc-full-manual
 ```
 
@@ -37,23 +56,23 @@ and captions, not the source wording. The manifest documents those choices.
 ## Run
 
 From the repository root, with published Roc
-`nightly-2026-10-14-38a3029` on PATH:
+`nightly-2026-10-15-38e6c42` on PATH:
 
 ```sh
 mkdir -p .roc-ansi-tmp
-roc build spikes/docs-roc/main.roc --no-cache --output=.roc-ansi-tmp/docs-roc-renderer
+roc build spikes/docs-roc/main.roc --opt=speed --no-cache --output=.roc-ansi-tmp/docs-roc-renderer
 .roc-ansi-tmp/docs-roc-renderer
 ```
 
-Or run the source directly, avoiding the full native executable build:
+Or let Roc build/cache and execute the optimized source application:
 
 ```sh
-roc spikes/docs-roc/main.roc
+roc spikes/docs-roc/main.roc --opt=speed
 ```
 
 Open `.roc-ansi-tmp/docs-roc/index.html` or `manual.pdf`. Optional arguments
 are an input Markdown file and output directory. The executable embeds its
-fonts and screenshot fixture; rendering starts no other programs and needs
+fonts and all five screenshot fixtures; rendering starts no other programs and needs
 no Nix, Docker, Node, browser, Python or network access.
 
 The original fonts are copied byte-for-byte from the rc3 release's gallery
@@ -77,7 +96,7 @@ before output is published. Measurements go into
 `.roc-ansi-tmp/docs-roc-verification/measurements.json`.
 
 The isolated `Documentation renderer spike` workflow runs only for this spike
-branch or a manual dispatch. It verifies and measures direct source execution
+branch or a manual dispatch. It verifies and measures optimized source execution
 on Linux and uploads the previews and logs. A manual dispatch with `native`
 enabled also measures full native compilation. Its Poppler installation is
 test overhead, separate from renderer runtime.
