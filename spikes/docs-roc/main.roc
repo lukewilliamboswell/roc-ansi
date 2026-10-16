@@ -1,7 +1,7 @@
 app [main!] {
 	cli: platform "https://github.com/roc-lang/basic-cli/releases/download/0.26.0-rc2/Gj3zVDr3qrQa6aTh7Z1zgUfe9NeBE6R76T5ho3xrc8af.tar.zst",
 	parser: "https://github.com/lukewilliamboswell/roc-parser/releases/download/2.1.0-rc.1/6dvNG3Q2mx53i4YPJN2ZGK98WdXnBMMuceAmDsCq7BEd.tar.zst",
-	pdf: "https://github.com/lukewilliamboswell/roc-pdf/releases/download/0.1.0-rc3/62BcC7hRi2o5WbafX25XoPwcHzyj39Zsh2SqLjoZKx3p.tar.zst",
+	pdf: "https://github.com/lukewilliamboswell/roc-pdf/releases/download/0.1.0-rc5/ANqp54fCvoErcZijX5Dr2cZj5G7ZzW6DYNLPj5GJBz4N.tar.zst",
 }
 
 import cli.Monotonic
@@ -9,7 +9,7 @@ import cli.OsStr
 import cli.Path
 import cli.Stdout
 import parser.Markdown
-import parser.RocSyntax
+import SyntaxHighlight
 import pdf.Color
 import pdf.Theme
 import pdf.Document
@@ -256,8 +256,8 @@ pdf_blocks = |blocks, options, in_list| {
 					$result = $result.append(Pdf.spacer(6))
 				}
 			}
-			Code({ pre, .. }) => {
-				$result = $result.append(code_panel(pre, options)?)
+			Code({ info, pre }) => {
+				$result = $result.append(code_panel(info, pre, options)?)
 				$result = $result.append(Pdf.spacer(6))
 			}
 			Table({ header, rows, align }) => {
@@ -314,56 +314,26 @@ pdf_blocks = |blocks, options, in_list| {
 	Ok($result)
 }
 
-# Each visual code line is a paragraph: this avoids the rc3 rich-inline
-# boundary rejection for repeated ASCII and consecutive blank lines.
-# Zero global paragraph spacing keeps source lines on a consistent grid;
-# ordinary Markdown paragraphs receive an explicit spacer above.
-code_panel : Str, Pdf.Options -> Try(Document.Block, _)
-code_panel = |source, options| {
-	var $contents = []
-	for line in Str.split_on(source.drop_suffix("\n"), "\n") {
-		if Str.to_utf8(line).any(|byte| byte > 127) {
-			return Err(UnsupportedMarkdown("non-ASCII code needs a Unicode-aware wrapping policy"))
-		}
-		for visual_line in wrap_code(Str.join_with(Str.split_on(line, "\t"), "    ")) {
-			$contents = $contents.append(Pdf.rich_paragraph([Pdf.code(if visual_line.is_empty() " " else visual_line)]))
-		}
+# Native source layout owns whitespace, wrapping and page continuation.
+code_panel : Str, Str, Pdf.Options -> Try(Document.Block, _)
+code_panel = |language, source, options| {
+	face = match options.theme.inline.code.font {
+		Face(value) => value
+		_ => return Err(UnsupportedMarkdown("source blocks require a registered code face"))
 	}
-	contents = $contents
-	height = Pdf.measure_custom_content(options, { contents, language: "en-AU", width: 451 }).map_err(|error| PdfRejected(error))?
-	size = { width: Layout.Unit.points(471), height: Layout.Unit.from_raw(height.raw() + 20000) }
-	panel = Scene.Drawing.empty.rectangle({ origin: { x: 0, y: 0 }, size }, rgb(244, 246, 249))
-	Ok(Pdf.custom_block({ contents, inset: 10, name: "Source code", panel, size }))
-}
-
-# Prefer a source separator near the end of the line, keeping that separator.
-# Continuation indentation is visual only; HTML retains every original byte.
-wrap_code = |line| {
-	var $indent = 0
-	for byte in Str.to_utf8(line).take_first(12) {
-		if byte == ' ' {
-			$indent = $indent + 1
-		} else {
-			break
-		}
-	}
-	continuation = Str.repeat(" ", $indent + 4)
-	var $prefix = ""
-	var $remaining = Str.to_utf8(line)
-	var $lines = []
-	while $remaining.len() + Str.to_utf8($prefix).len() > 83 {
-		limit = 83 - Str.to_utf8($prefix).len()
-		var $split = limit
-		for candidate in $remaining.take_first(limit).map_with_index(|byte, index| { byte, index }) {
-			if candidate.index >= limit // 2 and (candidate.byte == '/' or candidate.byte == ' ' or candidate.byte == ',') {
-				$split = candidate.index + 1
-			}
-		}
-		$lines = $lines.append("${$prefix}${Str.from_utf8_lossy($remaining.take_first($split))}")
-		$remaining = $remaining.drop_first($split)
-		$prefix = continuation
-	}
-	$lines.append("${$prefix}${Str.from_utf8_lossy($remaining)}")
+	foregrounds = if language == "roc" SyntaxHighlight.foregrounds(SyntaxHighlight.light, SyntaxHighlight.highlight(source)) else []
+	Ok(
+		Pdf.source_block({
+			text: source,
+			face,
+			size: 9.02,
+			leading: 15,
+			padding: 10,
+			background: Background(rgb(244, 246, 249)),
+			color: Color.srgb8(SyntaxHighlight.light.text),
+			foregrounds: foregrounds.map(|span| { start: span.start, end: span.end, color: Color.srgb8(span.color) }),
+		}),
+	)
 }
 
 pdf_inlines : List(Markdown.Inline) -> Try(List(Pdf.Inline), _)
@@ -423,34 +393,26 @@ html_source = |language, source| {
 	if language != "roc" {
 		return escape(source)
 	}
-	lexed = RocSyntax.tokenize_str(source)
-	var $cursor = 0
-	var $parts = []
-	for token in lexed.tokens {
-		if token.start != $cursor or token.end < token.start or token.end > lexed.source.len() {
-			return escape(source)
-		}
-		$cursor = token.end
-		text = Str.from_utf8_lossy(lexed.source.sublist({ start: token.start, len: token.end - token.start }))
-		category = match RocSyntax.highlight_category(token.kind) {
-			Trivia => ""
-			CommentText => "comment"
-			Name => "name"
-			TypeName => "type"
-			ReservedWord => "keyword"
-			NumericLiteral => "number"
-			StringText => "string"
-			Symbol => "symbol"
-			InvalidText => "invalid"
-		}
-		$parts = $parts.append({ text, html: if category.is_empty() escape(text) else "<span class=\"syntax-${category}\">${escape(text)}</span>" })
-	}
-	# Highlighting must never change source bytes, including recovered tokens.
-	if $cursor != lexed.source.len() or Str.join_with($parts.map(|part| part.text), "") != source {
-		return escape(source)
-	}
-	Str.join_with($parts.map(|part| part.html), "")
+	Str.join_with(
+		SyntaxHighlight.highlight(source).map(
+			|span| {
+				text = escape(SyntaxHighlight.text(source, span))
+				if span.category == Trivia text else "<span class=\"syntax-${SyntaxHighlight.name(span.category)}\">${text}</span>"
+			},
+		),
+		"",
+	)
 }
+
+highlight_styles = || Str.join_with(
+	[CommentText, Name, TypeName, ReservedWord, NumericLiteral, StringText, Symbol, InvalidText].map(
+		|category| {
+			color = SyntaxHighlight.color(SyntaxHighlight.light, category)
+			".syntax-${SyntaxHighlight.name(category)}{color:rgb(${color.red.to_str()},${color.green.to_str()},${color.blue.to_str()})}"
+		},
+	),
+	"",
+)
 
 html_blocks : List(Markdown) -> Try(Str, _)
 html_blocks = |blocks| {
@@ -506,7 +468,7 @@ html_blocks = |blocks| {
 html_document = |blocks| {
 	content = html_blocks(blocks)?
 	navigation = Str.join_with(outline(blocks).map(|entry| "<li><a href=\"#${entry.destination}\">${escape(entry.title)}</a></li>"), "")
-	Ok("<!doctype html><html lang=\"en-AU\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>The roc-ansi manual: Roc rendering spike</title><style>body{font:17px/1.65 system-ui,sans-serif;color:#203047;max-width:900px;margin:3rem auto;padding:0 1.5rem}a{color:#125bb3}h1,h2,h3{line-height:1.2;scroll-margin-top:2rem}h2{margin-top:3rem;border-bottom:1px solid #d6e0eb;padding-bottom:.5rem}nav{background:#edf3fa;padding:1rem 1.5rem;border-radius:8px}nav ul{columns:2}code{font-family:ui-monospace,monospace;background:#edf3fa;padding:.1rem .25rem}pre{background:#edf3fa;padding:1rem;overflow:auto;border-radius:8px;tab-size:4}pre code{padding:0}.syntax-comment{color:#526573}.syntax-keyword{color:#7639a5}.syntax-type{color:#005a85}.syntax-number{color:#9c3d10}.syntax-string{color:#246333}.syntax-symbol{color:#465369}.syntax-invalid{text-decoration:underline wavy #ac2634}table{border-collapse:collapse;width:100%;font-size:.92em}td,th{border:1px solid #d6e0eb;padding:.6rem;text-align:left}th{background:#edf3fa}img{max-width:100%;height:auto}footer{border-top:1px solid #d6e0eb;margin-top:3rem;padding-top:1rem}</style></head><body><p>Experimental Roc documentation renderer · <a href=\"manual.pdf\">Download PDF</a></p><nav aria-label=\"Contents\"><ul>${navigation}</ul></nav><main>${content}</main><footer>Parsed once with roc-parser; rendered directly to HTML and PDF in Roc.</footer></body></html>")
+	Ok("<!doctype html><html lang=\"en-AU\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>The roc-ansi manual: Roc rendering spike</title><style>body{font:17px/1.65 system-ui,sans-serif;color:#203047;max-width:900px;margin:3rem auto;padding:0 1.5rem}a{color:#125bb3}h1,h2,h3{line-height:1.2;scroll-margin-top:2rem}h2{margin-top:3rem;border-bottom:1px solid #d6e0eb;padding-bottom:.5rem}nav{background:#edf3fa;padding:1rem 1.5rem;border-radius:8px}nav ul{columns:2}code{font-family:ui-monospace,monospace;background:#edf3fa;padding:.1rem .25rem}pre{background:#edf3fa;padding:1rem;overflow:auto;border-radius:8px;tab-size:4}pre code{padding:0}${highlight_styles()}table{border-collapse:collapse;width:100%;font-size:.92em}td,th{border:1px solid #d6e0eb;padding:.6rem;text-align:left}th{background:#edf3fa}img{max-width:100%;height:auto}footer{border-top:1px solid #d6e0eb;margin-top:3rem;padding-top:1rem}</style></head><body><p>Experimental Roc documentation renderer · <a href=\"manual.pdf\">Download PDF</a></p><nav aria-label=\"Contents\"><ul>${navigation}</ul></nav><main>${content}</main><footer>Parsed once with roc-parser; rendered directly to HTML and PDF in Roc.</footer></body></html>")
 }
 
 expect escape("<&\"") == "&lt;&amp;&quot;"

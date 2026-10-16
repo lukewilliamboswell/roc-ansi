@@ -424,3 +424,49 @@ the existing semantic source-block path. The preferred integration is a
 standalone highlighter plus the new source-block API with colour ranges.
 No standalone module or coloured PDF adapter has been added yet; the working
 HTML tokenization remains in `main.roc` pending extraction.
+
+
+## Rc5: shared highlighter and native coloured source blocks
+
+The current renderer now consumes published roc-pdf **0.1.0-rc5**, bundle
+`ANqp54fCvoErcZijX5Dr2cZj5G7ZzW6DYNLPj5GJBz4N`. The earlier source-block
+and foreground-range requests are implemented upstream; this section supersedes
+the earlier statements that PDF colouring and source continuation are absent.
+The standalone `../SyntaxHighlight.roc` module supplies lexical spans and a
+replaceable RGB palette to both HTML and PDF. Its independent example app
+imports no PDF package or document assets. Three pure tests cover source
+round-trip, Unicode, CRLF/tabs, incomplete strings and category/colour inputs.
+
+`Pdf.source_block` replaces our per-line paragraphs, ASCII byte wrapper,
+manual tab replacement, panel measurement and unsplittable custom blocks.
+Source ranges remain in original input coordinates; rc5 owns normalization,
+shaping, wrapping, colour application and page continuation. The module merges
+adjacent equal lexical categories, including string delimiters and contents.
+Code retains the package's tagged source semantics and canonical ActualText;
+no drawing-label/figure workaround is used. Other-language fences remain plain.
+
+The reviewed full artifact is `.roc-ansi-tmp/docs-roc-rc5/manual.pdf`:
+**14 pages, 149,487 bytes**, SHA-256
+`808baa2c20dc01c0ee1e992ed42bc77f8201af3c730e7bfd0f5c47b84aee30b0`.
+All 34 headings, eight byte-exact HTML code blocks, six tables, five original
+screenshots, internal links and every page's furniture pass verification.
+The page 5 release snippet was visually reviewed with coloured keywords,
+identifiers, type names and strings. The optimized October 15 output is
+byte-identical to direct dev execution on rc5's reference October 14 compiler.
+
+Regression checks now require a 100-line source block to continue across pages
+with each unique line retained once; supported Unicode code is accepted.
+Blank lines, tabs, a 220-character token, incomplete lexical snippets and
+HTML-sensitive text remain covered. A Poppler SVG colour oracle checks four
+expected token colours in the PDF, alongside Code structure, rather than
+allowing a monochrome result to pass on text extraction alone.
+
+The consumer remains pinned to October 15 with explicit speed execution;
+rc5 itself recommends October 14, while the parser candidate recommends
+October 15. Both compiler paths above were tested for this application.
+The old rc3/October 15 dev invalid-free result is historical and has not been
+re-established against rc5. The no-cache speed build took a compiler-reported
+123 seconds; representative native rendering median is 64.3 ms. Full manual
+internal stage time was 242 ms in one run. These exclude production adoption;
+production documentation remains unchanged. Machine-readable results are in
+`rc5-measurements-macos.json`.

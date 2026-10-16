@@ -44,7 +44,8 @@ jobs:
         run: |
           mkdir -p .roc-ansi-tmp/docs-roc-ci
           roc version | tee .roc-ansi-tmp/docs-roc-ci/compiler.txt
-          roc fmt --check spikes/docs-roc/main.roc
+          roc fmt --check spikes/docs-roc/main.roc spikes/docs-roc/SyntaxHighlight.roc spikes/docs-roc/highlighter-example.roc
+          roc test spikes/docs-roc/SyntaxHighlight.roc --main=spikes/docs-roc/highlighter-example.roc
           if command -v nix; then
             echo "This spike must run without Nix" >&2
             exit 1
@@ -100,7 +101,8 @@ jobs:
       - name: Build once and verify optimized rendering
         run: |
           mkdir -p .roc-ansi-tmp/docs-roc-ci
-          roc fmt --check spikes/docs-roc/main.roc
+          roc fmt --check spikes/docs-roc/main.roc spikes/docs-roc/SyntaxHighlight.roc spikes/docs-roc/highlighter-example.roc
+          roc test spikes/docs-roc/SyntaxHighlight.roc --main=spikes/docs-roc/highlighter-example.roc
           if command -v nix; then
             echo "This spike must run without Nix" >&2
             exit 1

@@ -1,7 +1,7 @@
 # Roc documentation renderer spike
 
 A bounded experiment for replacing the Asciidoctor Docker pipeline with
-published roc-parser 2.1.0-rc.1 and roc-pdf 0.1.0-rc3. Production documentation and
+published roc-parser 2.1.0-rc.1 and roc-pdf 0.1.0-rc5. Production documentation and
 release workflows are unchanged.
 
 `chapter.md` combines representative material from the existing manual:
@@ -11,24 +11,52 @@ screenshot, tables, and ordered/unordered lists. One Markdown AST feeds both
 HTML and PDF. The app reads Markdown at runtime: editing the chapter does not
 require rebuilding the renderer.
 
-## Parser 2.1 candidate: Roc syntax highlighting
+## Shared highlighting and native source blocks
 
-Roc fenced blocks in HTML now use the release's lexer-only
-`RocSyntax.tokenize_str` and `highlight_category` API. Tokens receive theme
-colours for keywords, comments, types, numbers, strings and punctuation.
-Source slices use UTF-8 byte spans; concatenated token text must equal the
-input exactly or highlighting falls back to escaped plain source. Incomplete
-snippets remain renderable, and other language fences remain plain text.
-No JavaScript, compiler parser or external highlighter runs during rendering.
-PDF code remains monochrome pending an appropriate token presentation API.
+[`SyntaxHighlight.roc`](SyntaxHighlight.roc) is a standalone pure Roc module.
+It depends only on the caller's `parser.RocSyntax` package, not HTML, PDF,
+fonts, a platform or document layout. Copy it into another app declaring the
+same parser dependency to reuse it. Its API provides:
 
-The parser candidate requires the October 15 nightly. Use **`--opt=speed`**:
-on macOS, that nightly's dev backend aborts with an invalid realloc pointer
-inside PDF tagged-object emission, including for the unchanged PDF-only probe.
-The optimized build passes the full sample and manual checks. This is an
-execution-mode workaround, not a parser diagnostic. The no-cache optimized
-build took 92 seconds locally; source invocations can reuse its compilation
-cache. Historical October 14/dev measurements below describe the older setup.
+- `highlight(source)` — sorted UTF-8 byte ranges covering the original text,
+  with adjacent equal lexical categories merged; partial snippets are allowed.
+- `text(source, span)` — original span text for an HTML adapter.
+- `light` and `color(theme, category)` — a replaceable RGB theme.
+- `foregrounds(theme, spans)` — non-trivia byte ranges with RGB colours.
+
+The renderer maps those RGB values to `Color.srgb8` and passes the ranges to
+rc5's `Pdf.source_block`. Both outputs use the same palette. Keywords, strings,
+comments, names, types and numbers are coloured in the PDF as real tagged code
+text. HTML retains exact source bytes. PDF source layout owns tab stops, CRLF
+normalization, blank lines, measured wrapping and continuation across pages;
+our old ASCII wrapper, per-line paragraphs and custom panel sizing are gone.
+Shell/text fences use the same source layout without Roc token colours.
+
+```roc
+spans = SyntaxHighlight.highlight(source)
+foregrounds = SyntaxHighlight.foregrounds(SyntaxHighlight.light, spans)
+Pdf.source_block({
+    text: source,
+    face: mono_face,
+    foregrounds: foregrounds.map(|span| {
+        start: span.start, end: span.end, color: Color.srgb8(span.color),
+    }),
+})
+```
+
+The parser candidate's reference compiler is October 15; rc5's is October 14.
+This consumer keeps `nightly-2026-10-15-38e6c42` and explicit **`--opt=speed`**
+for verification. The earlier rc3/October 15 dev invalid-free observation is
+recorded in the feedback report; it has not been re-established for rc5.
+The full rc5 renderer also works under the PDF release's October 14 dev
+compiler. Standalone highlighter properties can be checked with:
+
+```sh
+roc test spikes/docs-roc/SyntaxHighlight.roc --main=spikes/docs-roc/highlighter-example.roc
+```
+
+Rendering requires no JavaScript, compiler parser or external highlighter.
+Historical measurements below describe their original dependency versions.
 
 ## Whole real manual
 
@@ -315,30 +343,24 @@ same byte-identical PDF and three-page table continuation probe.
 
 ## Deliberate limits and migration work
 
-- The full current manual is converted with a repository-specific adapter.
-  This does not replace multi-page website navigation, the production release
-  generator, or the existing release-note parser. Preserve public URLs and
-  anchors before adopting it in production.
-- HTML code remains exact and scrolls horizontally. PDF code is monochrome,
-  tabs expand to four spaces, each source line is a paragraph, and lines over
-  83 ASCII characters are visually wrapped. PDF-extracted code gains line
-  boundaries and is not copy-exact. Non-ASCII code is rejected rather than
-  split through UTF-8. A production preformatted-code layout needs explicit
-  typography, spacing, wrapping and copy/paste policy.
-- The five manual screenshots are embedded as losslessly decoded RGB pixels.
-  `prepare_image.py` reproduces all five fixtures with Python's standard library,
-  checking the supported PNG encoding and chunk CRCs. It is not called by the
-  renderer. Other image encodings still need a decoder or preparation stage.
-- Heading IDs use a small ASCII slug policy; duplicate IDs, Unicode IDs and
-  cross-chapter link resolution need a complete document-index policy.
-- Only the demonstrated Markdown subset is accepted. Unsupported blocks,
-  inline HTML, unknown images, task lists and inline strikethrough fail
-  explicitly. Syntax highlighting, printed contents page references,
-  chapter-aware running headers are unfinished.
-- The PDF uses rc3's default Archive profile. This spike checks tags and
-  rendering with Poppler, not independent PDF/A or accessibility conformance.
+- The full current manual uses a bounded repository-specific AsciiDoc adapter.
+  Multi-page website navigation, stable public URLs/anchors and production
+  release integration still need migration work.
+- HTML preserves code exactly. PDF retains rc5's canonical source policy:
+  CRLF becomes LF, tabs expand at four-column stops, and visual wrapping/page
+  continuation are handled by roc-pdf. PDF reader extraction behavior varies;
+  we do not promise original tab/CRLF byte recovery from every viewer.
+- The five screenshots use predecoded RGB fixtures. Other image encodings need
+  a decoder or preparation stage. The renderer embeds its fonts/assets.
+- Heading IDs use an ASCII slug policy; duplicate and Unicode IDs need a more
+  general document-index policy. Unsupported Markdown still fails explicitly.
+- Syntax highlighting is lexical rather than binding/type aware and currently
+  applies to `roc` fences only. The PDF validates the resulting foreground
+  ranges, including its extended-grapheme-boundary rules.
+- Printed contents page references, chapter-aware headers, original AsciiDoc
+  section numbering and table column weights remain presentation gaps.
+- This spike validates tagged output, text, images, colour and pagination with
+  Poppler; it does not independently establish PDF/A or accessibility conformance.
 
-The next decision is whether to adopt Markdown and direct Roc execution or a
-reusable renderer executable. The chapter conversion is now demonstrated; complete the remaining website,
-layout and indexing work and measure the full manual on Linux before replacing
-the production action.
+Production still uses Asciidoctor. The next integration step is to review the
+whole manual's new source layout on Linux before replacing that workflow.

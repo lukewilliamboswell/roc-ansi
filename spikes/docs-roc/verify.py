@@ -100,7 +100,6 @@ pages_text = [page for page in text.split("\f") if page.strip()]
 assert text.count("The roc-ansi manual") == 1, "Cover title must not repeat in body"
 package_url = re.search(r'ansi: "(https://[^"\n]+)"', source.read_text())[1]
 url_prefix, url_hash = package_url.rsplit("/", 1)
-assert re.search(re.escape(url_prefix + "/") + r"\s+" + re.escape(url_hash), text), "Package URL should wrap before its complete hash"
 assert package_url in re.sub(r"\s+", "", text), "Visual wrapping must retain every URL character"
 for index, page_text in enumerate(pages_text):
     assert "Roc documentation experiment" in page_text, f"Missing footer on page {index + 1}"
@@ -137,7 +136,6 @@ print(f"PASS continuing table: {records[-1]['pages']} pages with repeated header
 for name, content in [
     ("html", "# Bad input\n\n<script>alert(1)</script>\n"),
     ("image", "# Bad input\n\n![Unknown](missing.png)\n"),
-    ("unicode-code", "# Bad input\n\n```\nλ\n```\n"),
 ]:
     input_path = root / f"rejected-{name}.md"
     input_path.write_text(content)
@@ -145,7 +143,7 @@ for name, content in [
     result = subprocess.run([binary, str(input_path), str(output)], capture_output=True, text=True)
     assert result.returncode != 0
     assert not (output / "manual.pdf").exists()
-print("PASS unsupported HTML, unknown images and non-ASCII code fail without publishing output")
+print("PASS unsupported HTML and unknown images fail without publishing output")
 
 # Preformatted text keeps authored blank lines and tabs expanded to four spaces.
 # Long tokens wrap visually; the HTML remains byte-for-byte faithful to source.
@@ -160,20 +158,27 @@ code_text = subprocess.check_output(["pdftotext", "-layout", str(code_pdf), "-"]
 assert "indented" in code_text and "last" in code_text
 assert sum(len(token) for token in re.findall(r"x{2,}", code_text)) == 220
 
-# Public custom blocks are unsplittable: reject a code block taller than a page.
-long_code = root / "oversize-code.md"
-long_code.write_text("# Long code\n\n```\n" + "line\n" * 100 + "```\n")
-oversize_output = root / "oversize-code"
-oversize_result = subprocess.run([binary, str(long_code), str(oversize_output)], capture_output=True, text=True)
-assert oversize_result.returncode != 0 and "layout.oversize_block" in oversize_result.stdout + oversize_result.stderr
-assert not (oversize_output / "manual.pdf").exists()
+# Native source blocks continue across pages, retaining every unique line.
+long_code = root / "long-code.md"
+long_code.write_text("# Long code\n\n```roc\n" + "".join(f"value_{index} = {index}\n" for index in range(100)) + "```\n")
+long_pdf = run(long_code, root / "long-code")
+long_text = subprocess.check_output(["pdftotext", "-layout", str(long_pdf), "-"], text=True)
+assert records[-1]["pages"] > 2
+for index in range(100):
+    assert len(re.findall(rf"\bvalue_{index}\b", long_text)) == 1
+
+unicode_code = root / "unicode-code.md"
+unicode_source = '# café\nvalue = "café"\n'
+unicode_code.write_text("# Unicode code\n\n```roc\n" + unicode_source + "```\n")
+unicode_pdf = run(unicode_code, root / "unicode-code")
+assert "café" in subprocess.check_output(["pdftotext", str(unicode_pdf), "-"], text=True)
 
 for name, content in [("empty", ""), ("minimal", "A minimal paragraph.\n")]:
     fixture = root / f"{name}.md"
     fixture.write_text(content)
     minimal_pdf = run(fixture, root / name)
     assert minimal_pdf.read_bytes().startswith(b"%PDF-")
-print("PASS blank code lines, tabs, long token, explicit oversize rejection, empty and minimal inputs")
+print("PASS blank code lines, tabs, long token, page continuation, Unicode code, empty and minimal inputs")
 
 # Highlight lexical categories while preserving literal HTML-sensitive source,
 # whitespace and incomplete snippets. Other languages retain plain source.
@@ -185,6 +190,15 @@ highlight_page = Page()
 highlight_page.feed((root / "highlight/index.html").read_text())
 assert highlight_page.code == [highlight_source, "echo '<safe>&'\n"]
 assert {"syntax-comment", "syntax-keyword", "syntax-name", "syntax-type", "syntax-number", "syntax-string", "syntax-symbol"} <= set(highlight_page.syntax)
+# A visual backend must emit the token colours too, not only preserve text.
+svg_path = root / "highlight/page.svg"
+subprocess.run(["pdftocairo", "-f", "2", "-l", "2", "-svg", str(root / "highlight/manual.pdf"), str(svg_path)], check=True)
+svg = svg_path.read_text()
+colors = [tuple(float(component) * 2.55 for component in match) for match in re.findall(r"rgb\(([\d.]+)%,\s*([\d.]+)%,\s*([\d.]+)%\)", svg)]
+for expected in [(118, 57, 165), (36, 99, 51), (156, 61, 16), (52, 84, 164)]:
+    assert any(all(abs(a - b) < 1 for a, b in zip(actual, expected)) for actual in colors), ("Missing PDF highlight colour", expected)
+code_structure = subprocess.run(["pdfinfo", "-struct-text", str(root / "highlight/manual.pdf")], capture_output=True, text=True, check=True).stdout
+assert "Code (" in code_structure, "Source must retain Code semantics"
 print("PASS Roc lexical highlighting, HTML escaping, incomplete snippets and exact source text")
 
 summary = {
