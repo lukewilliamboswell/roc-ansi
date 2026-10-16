@@ -96,7 +96,7 @@ before output is published. Measurements go into
 `.roc-ansi-tmp/docs-roc-verification/measurements.json`.
 
 The isolated `Documentation renderer spike` workflow runs only for this spike
-branch or a manual dispatch. It verifies and measures optimized source execution
+branch or a manual dispatch. It compiles the optimized renderer once, then verifies and measures rendering
 on Linux and uploads the previews and logs. A manual dispatch with `native`
 enabled also measures full native compilation. Its Poppler installation is
 test overhead, separate from renderer runtime.
