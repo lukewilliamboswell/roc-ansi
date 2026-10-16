@@ -389,3 +389,38 @@ coverage. CI and current run instructions therefore explicitly select speed.
 October 14 dev also renders the upgraded tokenizer integration correctly,
 but is retained only as a diagnostic control, not the new compiler pin.
 The original memory report and timings above remain historical evidence.
+
+
+## Syntax-highlighted source: precedent and upstream request
+
+An agent investigated established renderers, PDF text painting and current
+roc-pdf before a parent review and upstream report. Syntax-highlighted code is
+an established document-generation feature: [Asciidoctor PDF](https://docs.asciidoctor.org/pdf-converter/latest/syntax-highlighting/)
+uses build-time highlighters; [Pygments](https://pygments.org/docs/quickstart/#architecture)
+separates lexer tokens, styles and formatters; [Typst raw](https://typst.app/docs/reference/text/raw/)
+provides verbatim code with syntax definitions and themes. PDF supports
+coloured real text; an image or embedded editor is unnecessary.
+
+Upstream changed during this exercise: [PR #46](https://github.com/lukewilliamboswell/roc-pdf/pull/46)
+merged at `07f71fb1090efc22757a9c1ac3fee17bbea90dfa`, closing #42–#45.
+Its new `Pdf.source_block` already supplies source normalization, local
+font/size/leading, wrapping and line-based continuation. The published rc3
+bundle still used here predates those changes. The new source block has one
+foreground colour; per-range colours remain absent from that API.
+
+Filed [#47: foreground colour ranges for external syntax highlighters](https://github.com/lukewilliamboswell/roc-pdf/issues/47).
+The bounded request is language-neutral foreground ranges, leaving our pure
+Roc module to map `RocSyntax` tokens/categories to a theme. It explicitly
+addresses original UTF-8 offsets versus CRLF/tab canonicalization, gaps,
+invalid ranges and cluster boundaries, bounded representation, unchanged
+measurement and pagination, colour continuation, and existing canonical
+`ActualText`/code semantics. Foreground-only support avoids requiring a general
+font-style engine or a built-in Roc parser. Visual colour assertions supplement
+text extraction and structure checks.
+
+The proposed drawing-label adapter was not implemented: those labels are
+artifact text and would require figure alternative text rather than preserving
+the existing semantic source-block path. The preferred integration is a
+standalone highlighter plus the new source-block API with colour ranges.
+No standalone module or coloured PDF adapter has been added yet; the working
+HTML tokenization remains in `main.roc` pending extraction.
