@@ -201,12 +201,12 @@ partial PDF bytes.
 
 ## Image authoring experience
 
-The real manual's terminal screenshots are PNGs. This spike predecodes its
-single screenshot once into RGB8; rendering uses `Image.Source.rgb8` and does
+The real manual's terminal screenshots are PNGs. This spike predecodes all
+five screenshots once into RGB8; rendering uses `Image.Source.rgb8` and does
 not invoke Python or an external renderer. The public image facade also has
 an encoded sRGB JPEG constructor, so encoded images are not generally absent.
 A documented bridge from a PNG decoder to the RGB8 source would make this
-common documentation use case easier. Our one-image filename mapping and
+common documentation use case easier. The five-image filename mapping and
 fixed dimensions remain adapter limitations.
 
 ## First polished artifact and validation
@@ -291,12 +291,11 @@ The added static Noto Sans italic font comes from the official Noto archive:
 
 The compiler's GB-scale build/check memory is tracked separately in
 [roc-lang/roc#12304](https://github.com/roc-lang/roc/issues/12304). It should
-not be presented as a roc-pdf runtime leak. The renderer's single hardcoded
-screenshot, sample-only front matter, ASCII heading slug policy and incomplete
-manual conversion remain application work rather than package defects.
+not be presented as a roc-pdf runtime leak. The renderer's fixed screenshot mapping, ASCII heading slug policy and bounded
+AsciiDoc adapter remain application work rather than package defects.
 
-This is a local experience report and issue-drafting material. New roc-pdf
-issues have not been filed as part of this experiment. The existing open
+The findings below have been investigated and reported upstream; see the
+issue links in the follow-up section. The existing open
 [roc-pdf#40](https://github.com/lukewilliamboswell/roc-pdf/issues/40) concerns
 repository/tooling alignment rather than these document-authoring features.
 
@@ -327,3 +326,40 @@ The native PDF is byte-identical to direct dev source execution. These are
 render-time memory measurements, not compiler peak memory. The original
 sample's full regression suite still passes unchanged. Machine-readable
 coverage and this single-run measurement are in `full-manual-macos.json`.
+
+
+## Investigated upstream reports — October 16, 2026
+
+Three agents investigated the candidates against current upstream `main`,
+release sources, the roadmap, and existing open/closed issues. Current main
+was still the rc3 source commit `d654eca959f9ff536d983ca728f974a23960cf71`.
+The parent reviewed the reports and independently reran the reduced repeated
+text and measured long-panel probes before publishing:
+
+- [#42: CustomBlock optional inset and panel defaults reject](https://github.com/lukewilliamboswell/roc-pdf/issues/42).
+  The investigation found **two** independent default inconsistencies:
+  an omitted panel with inset 8 rejects, and an omitted inset with a valid
+  panel also rejects. Both explicit valid fields produce a PDF. The report
+  includes a complete three-case public-API reproduction and validation paths.
+- [#43: Independent header/footer typography](https://github.com/lukewilliamboswell/roc-pdf/issues/43).
+  A narrow feature request for face, size, leading and colour independent of
+  body typography, retaining page-field measurement and artifact ownership.
+- [#44: Repeated adjacent line-break segments reject plain ASCII](https://github.com/lukewilliamboswell/roc-pdf/issues/44).
+  This supersedes the narrower blank-code-line characterization above:
+  three identical ordinary `Pdf.text("a")` lines fail too. Distinct lines
+  and nonadjacent repeats pass. Dev and native speed builds with `--no-cache`
+  agree. Source investigation suggests segment occurrence identity is being
+  conflated with interned text identity; this is a diagnosis, not a validated
+  fix. The issue includes a standalone reduced reproduction and controls.
+- [#45: Preformatted source blocks and line-based page continuation](https://github.com/lukewilliamboswell/roc-pdf/issues/45).
+  A concrete consumer request within the existing Gate 8 fragmentation plan.
+  The current eight manual examples fit; a separate measured 60-line panel
+  needs 856 pt against a 698 pt frame and correctly rejects as unsplittable.
+  Proposed acceptance covers whitespace, local typography, wrapping and
+  semantically correct continuation, without requiring a syntax highlighter.
+
+The complete manual also passed the isolated
+[Linux source CI run](https://github.com/lukewilliamboswell/roc-ansi/actions/runs/38826522764).
+That run validates manual output; it is not a claim that the new standalone
+bug probes were run on Linux. No roc-parser defect was established by this
+exercise, and no parser issue was filed.
