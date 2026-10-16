@@ -1,0 +1,107 @@
+{
+  "compiler": "nightly-2026-10-15-38e6c42",
+  "pdf_package": "0.1.0-rc5",
+  "parser_package": "2.1.0-rc.1",
+  "ci_url": "https://github.com/lukewilliamboswell/roc-ansi/actions/runs/38864144441",
+  "build": {
+    "optimization": "speed",
+    "compiler_cache": false,
+    "wall_seconds": 130.93,
+    "peak_rss_bytes": 6250254336
+  },
+  "sample": {
+    "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+    "compiler": "nightly-2026-10-15-38e6c42",
+    "representative_runs": [
+      {
+        "wall_seconds": 0.06465292200002182,
+        "peak_rss_bytes": 13619200,
+        "pages": 4,
+        "stages_ms": {
+          "parse": 0,
+          "html": 0,
+          "lower_and_fonts": 16,
+          "prepare": 13,
+          "emit": 31,
+          "total": 62
+        }
+      },
+      {
+        "wall_seconds": 0.0649123900000177,
+        "peak_rss_bytes": 13627392,
+        "pages": 4,
+        "stages_ms": {
+          "parse": 0,
+          "html": 0,
+          "lower_and_fonts": 16,
+          "prepare": 13,
+          "emit": 31,
+          "total": 62
+        }
+      },
+      {
+        "wall_seconds": 0.06447054699998489,
+        "peak_rss_bytes": 13623296,
+        "pages": 4,
+        "stages_ms": {
+          "parse": 0,
+          "html": 0,
+          "lower_and_fonts": 16,
+          "prepare": 13,
+          "emit": 31,
+          "total": 62
+        }
+      }
+    ],
+    "representative_median_wall_seconds": 0.06465292200002182,
+    "pagination_run": {
+      "wall_seconds": 0.06128740799999832,
+      "peak_rss_bytes": 12992512,
+      "pages": 6,
+      "stages_ms": {
+        "parse": 0,
+        "html": 1,
+        "lower_and_fonts": 16,
+        "prepare": 14,
+        "emit": 25,
+        "total": 59
+      }
+    },
+    "pdf_sha256": "44df0afdcb63179f622181c7720dcdefeba5d1b98bfd87221f87899f92c43fea",
+    "pdf_bytes": 52595
+  },
+  "full_manual": {
+    "pdf_sha256": "808baa2c20dc01c0ee1e992ed42bc77f8201af3c730e7bfd0f5c47b84aee30b0",
+    "pdf_bytes": 149487,
+    "pages": 14,
+    "headings": 34,
+    "code_blocks": 8,
+    "tables": 6,
+    "images": 5,
+    "image_dimensions": [
+      [
+        658,
+        102
+      ],
+      [
+        568,
+        522
+      ],
+      [
+        417,
+        298
+      ],
+      [
+        439,
+        270
+      ],
+      [
+        478,
+        102
+      ]
+    ],
+    "markdown_sha256": "c0f53b32d77c8362e9241f0d2d2683ac74aa5467e4f5bf1832d715f51451bb58",
+    "source_inputs": 10
+  },
+  "linux_macos_pdf_identical": true
+}

@@ -11,6 +11,8 @@ screenshot, tables, and ordered/unordered lists. One Markdown AST feeds both
 HTML and PDF. The app reads Markdown at runtime: editing the chapter does not
 require rebuilding the renderer.
 
+For roc-automation adoption, start with the [implementation handoff](HANDOFF.md). It includes the tested baseline, paths, dependency pins, commands, CI evidence, caching guidance and the production migration work.
+
 ## Shared highlighting and native source blocks
 
 [`SyntaxHighlight.roc`](SyntaxHighlight.roc) is a standalone pure Roc module.
