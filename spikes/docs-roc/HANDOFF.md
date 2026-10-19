@@ -1,5 +1,11 @@
 # Documentation renderer handoff for roc-automation
 
+> Superseded baseline: the active integration now uses the released
+> `roc-automation tools-0.1.0-rc.1` executable directly on the real AsciiDoc.
+> See [ADOPTION.md](ADOPTION.md) for current commands, CI measurements,
+> caching and remaining presentation gaps. The implementation and measurements
+> below are retained as historical evidence; CI no longer compiles this renderer.
+
 The roc-ansi spike demonstrates that **roc-parser and roc-pdf can render the complete current package manual to HTML and a highlighted PDF without Asciidoctor, Docker, Ruby, Node or a browser at render time**. The compiled Roc executable reads Markdown and writes both outputs. It embeds the fonts and five screenshots needed by this manual.
 
 The next step is to turn that working renderer into a reusable roc-automation facility. **Production has not switched:** roc-ansi's documentation and release workflows still call the existing Docker-based `actions/build-docs`. The spike proves document rendering, not complete compatibility with that action's AsciiDoc, website, diagram and theme interfaces.

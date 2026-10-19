@@ -12,6 +12,18 @@
 app [config] { pf: platform "https://github.com/lukewilliamboswell/roc-blueprint/releases/download/0.6.0-rc1/UMnTgKxbYavSsoeQUGPM7Vde2WHEFzES2VaFcX1qtYj.tar.zst" }
 
 import pf.Recipes
+import pf.Config
+import pf.System
+
+# The released documentation renderer is a native executable, not a compiler
+# invocation. Unsupported systems remain explicit in Blueprint requirements.
+docs_renderer : System -> Config.Download
+docs_renderer = |system| match system {
+	"x86_64-linux" => File("https://github.com/lukewilliamboswell/roc-automation/releases/download/tools-0.1.0-rc.1/roc-docs-x86_64-linux")
+	"aarch64-linux" => File("https://github.com/lukewilliamboswell/roc-automation/releases/download/tools-0.1.0-rc.1/roc-docs-aarch64-linux")
+	"aarch64-darwin" => File("https://github.com/lukewilliamboswell/roc-automation/releases/download/tools-0.1.0-rc.1/roc-docs-aarch64-darwin")
+	_ => Unavailable
+}
 
 config = [
 	Name("roc-ansi"),
@@ -29,7 +41,11 @@ config = [
 			Expect(["chmod", "gh", "git", "gzip", "roc", "shasum", "tar", "touch", "unzip", "zip"]),
 		],
 	),
+	Environment("docs", [Programs([Fetch("roc-docs", docs_renderer)]), Expect(["realpath", "sh"])]),
 	Shell("default", [Use("dev")]),
+	Task("docs", [Use("docs"), Run(["roc-docs", "build", "--workspace", ".", "--docs-directory", "docs", "--entrypoint", "index.adoc", "--pdf-filename", "roc-ansi.pdf"])]),
+	# Shared actions consume this verified executable from Blueprint's store.
+	Task("docs-path", [Use("docs"), Run(["sh", "-c", "realpath \"$(command -v roc-docs)\""])]),
 	# Everything CI checks.
 	Task("check", [Use("dev"), Run(["scripts/check_all.roc"])]),
 	# The examples alone, compared with tests/spec.json. To record new output:

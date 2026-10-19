@@ -1,0 +1,32 @@
+name: Set up the native documentation renderer
+description: Realise the released roc-docs binary from Blueprint.lock and report provisioning and rendering costs.
+
+outputs:
+  renderer-binary:
+    description: Path to a timing wrapper around the verified roc-docs executable
+    value: ${{ steps.renderer.outputs.binary }}
+
+runs:
+  using: composite
+  steps:
+    - id: renderer
+      name: Verify and locate the Blueprint-managed renderer
+      shell: bash
+      run: |
+        metrics="$GITHUB_WORKSPACE/.roc-ansi-tmp/ci-metrics"
+        mkdir -p "$metrics" "$RUNNER_TEMP/roc-ansi-docs"
+        start=$SECONDS
+        renderer_path="$(blueprint run docs-path)"
+        test -x "$renderer_path"
+        echo "Renderer provisioning: $((SECONDS - start)) seconds"
+        echo "Renderer release: tools-0.1.0-rc.1"
+        echo "Verified Blueprint store path: $renderer_path"
+        digest=$(shasum -a 256 "$renderer_path" | cut -d " " -f 1)
+        echo "Renderer SHA-256: $digest"
+        wc -c < "$renderer_path" | xargs printf 'Renderer bytes: %s\n'
+        cp "$GITHUB_ACTION_PATH/render.sh" "$RUNNER_TEMP/roc-ansi-docs/roc-docs"
+        chmod +x "$RUNNER_TEMP/roc-ansi-docs/roc-docs"
+        printf 'ROC_ANSI_DOCS_BINARY=%s\nROC_ANSI_DOCS_METRICS=%s\n' "$renderer_path" "$metrics" >> "$GITHUB_ENV"
+        printf 'binary=%s\n' "$RUNNER_TEMP/roc-ansi-docs/roc-docs" >> "$GITHUB_OUTPUT"
+        printf '\n### Renderer provisioning\n\n%s seconds, including cache verification and any download. Release: `tools-0.1.0-rc.1`.\n' "$((SECONDS - start))" >> "$GITHUB_STEP_SUMMARY"
+        printf '\nSHA-256: `%s`\n' "$digest" >> "$GITHUB_STEP_SUMMARY"

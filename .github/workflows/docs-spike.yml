@@ -1,133 +1,121 @@
 name: Documentation renderer spike
 
-# Isolated experiment; the production documentation workflows stay in place.
 on:
   push:
     branches: [spike/roc-docs]
     paths:
+      - Blueprint.roc
+      - Blueprint.lock
       - spikes/docs-roc/**
       - docs/**
+      - .github/actions/**
       - .github/workflows/docs-spike.yml
   workflow_dispatch:
     inputs:
-      native:
-        description: Also measure full native compilation
+      compare_legacy:
+        description: Also measure the Docker backend on a separate fresh runner
         type: boolean
         default: false
 
 permissions: {}
 
 jobs:
-  measure:
-    name: Native compilation and rendering
-    if: github.event_name == 'workflow_dispatch' && inputs.native
+  compare:
+    name: Documentation (${{ matrix.backend }})
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     permissions:
       contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        backend: ${{ fromJSON(github.event_name == 'workflow_dispatch' && inputs.compare_legacy && '["roc", "legacy"]' || '["roc"]') }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
+      - uses: ./.github/actions/setup-blueprint
+        with:
+          cache-suffix: ${{ matrix.backend }}
+
+      # This compiler is for generated inputs and API docs, never roc-docs.
       - uses: roc-lang/setup-roc@f5a74bf90aa694b43ab4a7cbfdb19273bc6aa697
         with:
           version: nightly-new-compiler
-          nightly-tag: nightly-2026-10-15-38e6c42
 
-      - name: Install verification tools
+      - name: Generate the real manual inputs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          bash .github/actions/setup-docs/measure.sh 'Generate manual inputs' blueprint run install-snippet
+          sha256sum docs/generated/*.adoc
+
+      - name: Provision the locked native renderer
+        if: matrix.backend == 'roc'
+        id: renderer
+        uses: ./.github/actions/setup-docs
+
+      - name: Start render measurement
+        run: |
+          date +%s%N > "$RUNNER_TEMP/render-start"
+          if command -v docker >/dev/null; then docker images; fi
+
+      - name: Render the entire real manual
+        id: docs
+        uses: lukewilliamboswell/roc-automation/actions/build-docs@dec2d52a5cb6cd251fd188ad1d797f400ee1bb6e # tools-0.1.0-rc.1
+        with:
+          backend: ${{ matrix.backend }}
+          renderer-binary: ${{ steps.renderer.outputs.renderer-binary }}
+          pdf-filename: roc-ansi.pdf
+          docs-version: main
+
+      - name: Report render and Docker costs
+        if: always()
+        env:
+          BACKEND: ${{ matrix.backend }}
+        run: |
+          end=$(date +%s%N)
+          start=$(cat "$RUNNER_TEMP/render-start")
+          milliseconds=$(((end - start) / 1000000))
+          echo "Render action including wrapper/container setup: $milliseconds ms"
+          {
+            printf '\n### Render action: %s\n\nWall time: %s ms (includes action/container setup).\n\n' "$BACKEND" "$milliseconds"
+            # shellcheck disable=SC2016
+            printf 'Same commit: `%s`. Input hashes are printed in the generation step.\n\n' "$GITHUB_SHA"
+            printf 'Native process RSS is measured separately; it is not comparable to Docker client RSS.\n'
+          } >> "$GITHUB_STEP_SUMMARY"
+          if command -v docker >/dev/null; then docker images --digests; docker system df; fi
+
+      - name: Add current and released API references
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FETCH_RELEASE_DOCS: "1"
+          SITE_OUTPUT: ${{ steps.docs.outputs.site-directory }}
+        run: bash .github/actions/setup-docs/measure.sh 'Assemble API and release documentation' blueprint run site
+
+      # Independent PDF reader is acceptance-test overhead, not render cost.
+      - name: Install PDF verification tools
+        if: matrix.backend == 'roc'
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends poppler-utils
 
-      - name: Build and measure the renderer
+      - name: Verify manual output and report size
+        env:
+          BACKEND: ${{ matrix.backend }}
         run: |
-          mkdir -p .roc-ansi-tmp/docs-roc-ci
-          roc version | tee .roc-ansi-tmp/docs-roc-ci/compiler.txt
-          roc fmt --check spikes/docs-roc/main.roc spikes/docs-roc/SyntaxHighlight.roc spikes/docs-roc/highlighter-example.roc
-          roc test spikes/docs-roc/SyntaxHighlight.roc --main=spikes/docs-roc/highlighter-example.roc
-          if command -v nix; then
-            echo "This spike must run without Nix" >&2
-            exit 1
-          fi
-          /usr/bin/time -v roc build spikes/docs-roc/main.roc --opt=speed --no-cache --output="$RUNNER_TEMP/docs-roc" 2>&1 | tee .roc-ansi-tmp/docs-roc-ci/build.log
+          bash .github/actions/setup-docs/measure.sh 'Verify documentation output' python3 spikes/docs-roc/verify_native.py .docs-out --backend "$BACKEND"
+          { printf '\n### Output sizes\n\n```text\n'; du -sh .docs-out/site .docs-out/*.pdf; printf '```\n'; } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Verify outputs and measure rendering
-        run: |
-          python3 spikes/docs-roc/prepare_image.py
-          git diff --exit-code -- spikes/docs-roc/assets/
-          python3 spikes/docs-roc/verify.py "$RUNNER_TEMP/docs-roc" | tee .roc-ansi-tmp/docs-roc-ci/verification.log
-          python3 spikes/docs-roc/convert_manual.py
-          git diff --exit-code -- spikes/docs-roc/manual.md spikes/docs-roc/manual-coverage.json
-          "$RUNNER_TEMP/docs-roc" spikes/docs-roc/manual.md .roc-ansi-tmp/docs-roc-full-manual
-          python3 spikes/docs-roc/verify_manual.py .roc-ansi-tmp/docs-roc-full-manual
-          "$RUNNER_TEMP/docs-roc"
-          pdftoppm -png -scale-to 1400 .roc-ansi-tmp/docs-roc/manual.pdf .roc-ansi-tmp/docs-roc/page
-
-      - name: Upload previews and measurements
+      - name: Upload preview and measurements
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: roc-docs-spike
+          name: docs-${{ matrix.backend }}
           path: |
-            .roc-ansi-tmp/docs-roc/
-            .roc-ansi-tmp/docs-roc-full-manual/
-            .roc-ansi-tmp/docs-roc-ci/
-            .roc-ansi-tmp/docs-roc-verification/measurements.json
+            .docs-out/
+            .roc-ansi-tmp/ci-metrics/
           include-hidden-files: true
-          retention-days: 7
-
-  source:
-    name: Optimized renderer verification
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: roc-lang/setup-roc@f5a74bf90aa694b43ab4a7cbfdb19273bc6aa697
-        with:
-          version: nightly-new-compiler
-          nightly-tag: nightly-2026-10-15-38e6c42
-
-      - name: Install verification tools
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends poppler-utils
-
-      - name: Build once and verify optimized rendering
-        run: |
-          mkdir -p .roc-ansi-tmp/docs-roc-ci
-          roc fmt --check spikes/docs-roc/main.roc spikes/docs-roc/SyntaxHighlight.roc spikes/docs-roc/highlighter-example.roc
-          roc test spikes/docs-roc/SyntaxHighlight.roc --main=spikes/docs-roc/highlighter-example.roc
-          if command -v nix; then
-            echo "This spike must run without Nix" >&2
-            exit 1
-          fi
-          # October 15 dev execution aborts in PDF emission on macOS.
-          # Pay for LLVM once, then run every fixture against that executable.
-          /usr/bin/time -v roc build spikes/docs-roc/main.roc --opt=speed --no-cache --output="$RUNNER_TEMP/docs-roc-source" 2>&1 | tee .roc-ansi-tmp/docs-roc-ci/source-build.log
-          python3 spikes/docs-roc/verify.py "$RUNNER_TEMP/docs-roc-source" | tee .roc-ansi-tmp/docs-roc-ci/source-verification.log
-          python3 spikes/docs-roc/prepare_image.py
-          git diff --exit-code -- spikes/docs-roc/assets/
-          python3 spikes/docs-roc/convert_manual.py
-          git diff --exit-code -- spikes/docs-roc/manual.md spikes/docs-roc/manual-coverage.json
-          "$RUNNER_TEMP/docs-roc-source" spikes/docs-roc/manual.md .roc-ansi-tmp/docs-roc-full-manual
-          python3 spikes/docs-roc/verify_manual.py .roc-ansi-tmp/docs-roc-full-manual
-
-      - name: Upload previews and source measurements
-        if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: roc-docs-source-spike
-          path: |
-            .roc-ansi-tmp/docs-roc-ci/
-            .roc-ansi-tmp/docs-roc-full-manual/
-            .roc-ansi-tmp/docs-roc-verification/run-0/
-            .roc-ansi-tmp/docs-roc-verification/pagination/
-            .roc-ansi-tmp/docs-roc-verification/measurements.json
-          include-hidden-files: true
+          if-no-files-found: error
           retention-days: 7

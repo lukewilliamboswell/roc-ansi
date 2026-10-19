@@ -84,34 +84,40 @@ jobs:
         run: blueprint run check-version
 
       - name: Check the scripts, package, examples and release artifacts
-        run: blueprint run check
+        run: bash .github/actions/setup-docs/measure.sh "Check package and release artifacts" blueprint run check
 
       - name: Bundle the package
-        run: blueprint run bundle
+        run: bash .github/actions/setup-docs/measure.sh "Bundle package" blueprint run bundle
 
       # The archived examples depend on this release's bundle URL, which is
       # known before the release exists: version and bundle name fix it.
       - name: Package the examples archive
         env:
           RELEASE_VERSION: ${{ steps.validate.outputs.release_version }}
-        run: blueprint run package-examples
+        run: bash .github/actions/setup-docs/measure.sh "Package examples" blueprint run package-examples
 
       - name: Package the API documentation
         env:
           DOCS_VERSION: ${{ steps.validate.outputs.release_version }}
-        run: blueprint run package-docs
+        run: bash .github/actions/setup-docs/measure.sh "Package API documentation" blueprint run package-docs
 
       # The manual attached to a release names that release.
       - name: Write the parts of the manual that depend on what is released
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_VERSION: ${{ steps.validate.outputs.release_version }}
-        run: blueprint run install-snippet
+        run: bash .github/actions/setup-docs/measure.sh "Generate manual inputs" blueprint run install-snippet
+
+      - name: Set up the native documentation renderer
+        id: docs-renderer
+        uses: ./.github/actions/setup-docs
 
       - id: docs
         name: Render the manual as a PDF
-        uses: lukewilliamboswell/roc-automation/actions/build-docs@7fdb8be46b12da9b119023c3a5aac28a9fdaa72b
+        uses: lukewilliamboswell/roc-automation/actions/build-docs@dec2d52a5cb6cd251fd188ad1d797f400ee1bb6e # tools-0.1.0-rc.1
         with:
+          backend: roc
+          renderer-binary: ${{ steps.docs-renderer.outputs.renderer-binary }}
           pdf-filename: roc-ansi-${{ steps.validate.outputs.release_version }}.pdf
           docs-version: ${{ steps.validate.outputs.release_version }}
 
@@ -120,7 +126,25 @@ jobs:
       - name: Render the release notes
         env:
           RELEASE_VERSION: ${{ steps.validate.outputs.release_version }}
-        run: blueprint run release-notes
+        run: bash .github/actions/setup-docs/measure.sh "Generate release notes" blueprint run release-notes
+
+      - name: Report documentation output sizes
+        if: always()
+        run: |
+          if test -d .docs-out; then
+            du -ah .docs-out | sort -h | tail -20
+            { printf '\n### Documentation output sizes\n\n```text\n'; du -sh .docs-out/site .docs-out/*.pdf; printf '```\n'; } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload stage measurements
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ci-metrics-${{ github.job }}
+          path: .roc-ansi-tmp/ci-metrics/
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 7
 
       # Everything the release would hold, and its notes. Later jobs use these
       # files and build nothing.
@@ -256,12 +280,18 @@ jobs:
       - name: Write the parts of the manual that depend on what is released
         env:
           GH_TOKEN: ${{ github.token }}
-        run: blueprint run install-snippet
+        run: bash .github/actions/setup-docs/measure.sh "Generate manual inputs" blueprint run install-snippet
+
+      - name: Set up the native documentation renderer
+        id: docs-renderer
+        uses: ./.github/actions/setup-docs
 
       - id: docs
         name: Render the manual as a site and a PDF
-        uses: lukewilliamboswell/roc-automation/actions/build-docs@7fdb8be46b12da9b119023c3a5aac28a9fdaa72b
+        uses: lukewilliamboswell/roc-automation/actions/build-docs@dec2d52a5cb6cd251fd188ad1d797f400ee1bb6e # tools-0.1.0-rc.1
         with:
+          backend: roc
+          renderer-binary: ${{ steps.docs-renderer.outputs.renderer-binary }}
           pdf-filename: roc-ansi.pdf
           docs-version: main
 
@@ -270,7 +300,25 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           FETCH_RELEASE_DOCS: "1"
           SITE_OUTPUT: ${{ steps.docs.outputs.site-directory }}
-        run: blueprint run site
+        run: bash .github/actions/setup-docs/measure.sh "Assemble API and release documentation" blueprint run site
+
+      - name: Report documentation output sizes
+        if: always()
+        run: |
+          if test -d .docs-out; then
+            du -ah .docs-out | sort -h | tail -20
+            { printf '\n### Documentation output sizes\n\n```text\n'; du -sh .docs-out/site .docs-out/*.pdf; printf '```\n'; } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload stage measurements
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ci-metrics-${{ github.job }}
+          path: .roc-ansi-tmp/ci-metrics/
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0

@@ -1,6 +1,16 @@
 name: Set up Blueprint without Nix
 description: Install the reviewed Blueprint release and cache its downloaded artifacts.
 
+inputs:
+  cache-suffix:
+    description: Distinguish matrix workloads that fetch different tool subsets
+    default: default
+
+outputs:
+  cache-hit:
+    description: Whether this workflow job restored its exact locked artifact cache
+    value: ${{ steps.downloads.outputs.cache-hit }}
+
 runs:
   using: composite
   steps:
@@ -15,7 +25,21 @@ runs:
 
     # Cache bytes only. Blueprint verifies them before rebuilding extracted trees.
     - name: Cache Blueprint downloads
+      id: downloads
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: ${{ steps.store.outputs.artifacts }}
-        key: blueprint-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('Blueprint.lock', '.github/actions/setup-blueprint/install.sh') }}
+        # Different jobs fetch different subsets. A checks-only job must not
+        # permanently claim the docs cache key before roc-docs is present.
+        key: blueprint-${{ runner.os }}-${{ runner.arch }}-${{ github.workflow }}-${{ github.job }}-${{ inputs.cache-suffix }}-${{ hashFiles('Blueprint.lock', '.github/actions/setup-blueprint/install.sh') }}
+
+    - name: Report the tool cache
+      shell: bash
+      env:
+        ARTIFACTS: ${{ steps.store.outputs.artifacts }}
+        CACHE_HIT: ${{ steps.downloads.outputs.cache-hit }}
+      run: |
+        echo "Blueprint artifact cache: exact hit=${CACHE_HIT:-false}; scope=${GITHUB_WORKFLOW}/${GITHUB_JOB}"
+        echo "Artifact directory: $ARTIFACTS"
+        if test -d "$ARTIFACTS"; then du -sh "$ARTIFACTS"; fi
+        printf '\n### Blueprint tool cache\n\nExact cache hit: `%s`. See the cache step for transfer size and restore duration.\n' "${CACHE_HIT:-false}" >> "$GITHUB_STEP_SUMMARY"

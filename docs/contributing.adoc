@@ -160,13 +160,13 @@ platform because its host counts allocations. Nothing is fuzzed there.
 The manual is the AsciiDoc under `docs/`, one chapter per file, rendered by the
 shared https://lukewilliamboswell.github.io/roc-automation/#build-docs[build-docs]
 action. Every pull request builds it, and the site can be downloaded from the
-`Documentation` workflow run. To build it yourself you need Docker and a
-checkout of roc-automation:
+`Documentation` workflow run. Blueprint fetches the released native renderer;
+rendering needs no Docker, Python, browser, or Roc compiler:
 
 [source,sh]
 ----
 blueprint run install-snippet
-python3 ../roc-automation/actions/build-docs/build_docs.py --workspace . --pdf-filename roc-ansi.pdf
+blueprint run docs -- --docs-version main
 blueprint run serve
 ----
 

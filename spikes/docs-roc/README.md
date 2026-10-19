@@ -1,5 +1,11 @@
 # Roc documentation renderer spike
 
+> Superseded baseline: the active integration now uses the released
+> `roc-automation tools-0.1.0-rc.1` executable directly on the real AsciiDoc.
+> See [ADOPTION.md](ADOPTION.md) for current commands, CI measurements,
+> caching and remaining presentation gaps. The implementation and measurements
+> below are retained as historical evidence; CI no longer compiles this renderer.
+
 A bounded experiment for replacing the Asciidoctor Docker pipeline with
 published roc-parser 2.1.0-rc.1 and roc-pdf 0.1.0-rc5. Production documentation and
 release workflows are unchanged.

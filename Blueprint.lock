@@ -23,7 +23,25 @@
 		(sha256 "aa6339579730fcea4753940bec21f5d8cf8be8e25659ec001abccbc3463a60b2")
 		(size 67646302)
 		(system "aarch64-darwin")
-		(urls ("https://github.com/roc-lang/nightlies/releases/download/nightly-2026-10-09-258ab27/roc_nightly-macos_apple_silicon-2026-10-09-258ab27.tar.gz")))))
+		(urls ("https://github.com/roc-lang/nightlies/releases/download/nightly-2026-10-09-258ab27/roc_nightly-macos_apple_silicon-2026-10-09-258ab27.tar.gz"))) (
+		(name "roc-docs")
+		(obtained Published)
+		(sha256 "969b94deb3158e9df231b989985e87225578879e9b6f7fb9f4ab46b28af4d586")
+		(size 21383904)
+		(system "x86_64-linux")
+		(urls ("https://github.com/lukewilliamboswell/roc-automation/releases/download/tools-0.1.0-rc.1/roc-docs-x86_64-linux"))) (
+		(name "roc-docs")
+		(obtained Published)
+		(sha256 "008438ab3fce377cd7c3b572da72d02b3f72fe79345bc171d221bc0f054a70b2")
+		(size 17373808)
+		(system "aarch64-linux")
+		(urls ("https://github.com/lukewilliamboswell/roc-automation/releases/download/tools-0.1.0-rc.1/roc-docs-aarch64-linux"))) (
+		(name "roc-docs")
+		(obtained Both)
+		(sha256 "8068974f7f2c22033f12ca537e2bf5658afb4554ee2f51b75d2e0e4376495a1a")
+		(size 17261216)
+		(system "aarch64-darwin")
+		(urls ("https://github.com/lukewilliamboswell/roc-automation/releases/download/tools-0.1.0-rc.1/roc-docs-aarch64-darwin")))))
 	(format (
 		(major 1)
 		(minor 1)))
