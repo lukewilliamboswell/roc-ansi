@@ -7,8 +7,9 @@ The old Markdown converter and renderer remain historical research, outside CI.
 
 ## Versions and entry points
 
-- Blueprint platform and installer: `0.6.0-rc1`, still the newest published
-  Blueprint candidate when checked October 19. No newer upgrade was needed.
+- Blueprint platform and installer: stable `0.6.0`. The initial measurements
+  below used `0.6.0-rc1`; the stable upgrade keeps the utility and scripting
+  compiler pins unchanged. Its configuration compiler is the October 18 nightly.
 - Shared action: `lukewilliamboswell/roc-automation/actions/build-docs` at
   `dec2d52a5cb6cd251fd188ad1d797f400ee1bb6e` (`tools-0.1.0-rc.1`).
 - Renderer assets and SHA-256 digests are locked in `Blueprint.lock` for
@@ -27,7 +28,7 @@ blueprint run serve
 
 The package/API compiler remains the latest nightly on PATH. Local checks used
 `~/roc_nightly-macos_apple_silicon-2026-10-18-1df370f/roc`. Blueprint also uses its
-own October 13 configuration compiler and the locked October 9 compiler for
+own October 18 configuration compiler and the locked October 9 compiler for
 repository automation scripts. Native rendering invokes none of those compilers.
 
 `Blueprint.roc` has a separate `docs` environment and a `docs-path` task.
@@ -59,7 +60,11 @@ runs of the same workload can restore the renderer and locked compiler archives;
 Blueprint still verifies them and recreates its store trees. A lockfile change
 starts a new cache. Different jobs intentionally have separate caches. Blueprint's
 installer itself still downloads its small verified executable each run; the
-floating package compiler is managed separately by `setup-roc`. Inspection of
+floating package compiler is managed separately by `setup-roc`. Stable setup
+now validates the configuration before installing that floating compiler, so
+the fixed configuration-compiler archive is populated in the tool cache even
+when the latest nightly would temporarily match it. Bootstrap timing is
+reported separately from generated manual inputs. Inspection of
 that pinned action confirmed it has no cache: it downloads and extracts the
 nightly again in each job. Compiler caching by resolved nightly tag is a
 remaining opportunity, separate from the renderer migration.

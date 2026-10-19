@@ -43,3 +43,15 @@ runs:
         echo "Artifact directory: $ARTIFACTS"
         if test -d "$ARTIFACTS"; then du -sh "$ARTIFACTS"; fi
         printf '\n### Blueprint tool cache\n\nExact cache hit: `%s`. See the cache step for transfer size and restore duration.\n' "${CACHE_HIT:-false}" >> "$GITHUB_STEP_SUMMARY"
+
+    # Provision before the floating package compiler is installed. Otherwise a
+    # matching compiler on PATH can leave the immutable cache without the fixed
+    # configuration-compiler archive needed after the nightly advances.
+    - name: Validate configuration and provision Blueprint compiler
+      shell: bash
+      run: |
+        start=$SECONDS
+        blueprint check
+        elapsed=$((SECONDS - start))
+        echo "Blueprint configuration bootstrap and validation: $elapsed seconds"
+        printf '\n### Blueprint configuration bootstrap\n\n%s seconds, including any fixed compiler download, verification and configuration check.\n' "$elapsed" >> "$GITHUB_STEP_SUMMARY"

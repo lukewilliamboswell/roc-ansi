@@ -108,6 +108,13 @@ by artifact. Document a tested strategy rather than prescribing our exact key
 as the only solution. Ordinary branch/PR cache access and failed-job save
 behavior also belong in the example's explanation.
 
+The subsequent stable Blueprint 0.6.0 upgrade exposed another way a cache can
+be incomplete: if the package nightly matches Blueprint's configuration compiler,
+Blueprint can use PATH without fetching its own compiler archive. A later
+nightly then needs that fixed archive, but the existing cache key cannot grow.
+Our setup now bootstraps the configuration before installing the floating
+package compiler. Include that transition in shared setup/cache acceptance tests.
+
 The cache contains downloads for pinned utilities and fixed compiler archives.
 It does not pin the latest package compiler, preserve every compiler build
 result, or remove all network transfer: restoring a GitHub cache transfers its

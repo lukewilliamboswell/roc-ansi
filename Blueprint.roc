@@ -9,7 +9,7 @@
 # release named below; it runs the scripts under scripts/. The package and the
 # examples are checked with whatever `roc` is on PATH, which is meant to be the
 # latest nightly, so nothing here provides a bare `roc`.
-app [config] { pf: platform "https://github.com/lukewilliamboswell/roc-blueprint/releases/download/0.6.0-rc1/UMnTgKxbYavSsoeQUGPM7Vde2WHEFzES2VaFcX1qtYj.tar.zst" }
+app [config] { pf: platform "https://github.com/lukewilliamboswell/roc-blueprint/releases/download/0.6.0/BenWAmrQp3qFLJPgGerHFPzzAn7ouXDew69CCg2LTtQX.tar.zst" }
 
 import pf.Recipes
 import pf.Config

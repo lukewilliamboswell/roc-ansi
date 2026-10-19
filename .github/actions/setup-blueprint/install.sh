@@ -3,19 +3,19 @@ set -euo pipefail
 
 # Keep these pins in step with the platform URL in Blueprint.roc.
 # Reviewed against the release's blueprint.sha256 and GitHub asset digests.
-version=0.6.0-rc1
+version=0.6.0
 case "${RUNNER_OS:-$(uname -s)}-${RUNNER_ARCH:-$(uname -m)}" in
   Linux-X64|Linux-x86_64)
     system=x86_64-linux
-    sha256=995dc7f40aa2aa7d56ecdf180555602e66c40e34d84cf00d96051fa3688183bb
+    sha256=027b2c4d48084d7f6a49b60a378b14dc19920de78c245db3ddffb1db034c74e0
     ;;
   Linux-ARM64|Linux-aarch64)
     system=aarch64-linux
-    sha256=0421082a2ec428cb5e0a1a87275e8ba732fbc6362e8471910fa09e38efa384ef
+    sha256=f328879d0121f97bce52456dacd9a52a3f50f8dde68056797bb0163d02180a43
     ;;
   macOS-ARM64|Darwin-arm64)
     system=aarch64-darwin
-    sha256=e4e17c51ed1213c61118eb0e0098c30c5bbb238b282504aaeff7126abf5096de
+    sha256=a8dc735d1f022ba80eb835b31888149cd7ac9ec4c9e8d085ba94bfcb5d128857
     ;;
   *) echo "No supported Blueprint binary for this runner" >&2; exit 1 ;;
 esac
