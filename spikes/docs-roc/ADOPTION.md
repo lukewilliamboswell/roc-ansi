@@ -139,7 +139,8 @@ native provisioning leaves roughly 2.6 seconds versus 89.3 seconds. These are
 single observations, not controlled statistical benchmarks.
 
 The restored Blueprint cache was 150,391,895 bytes (about 143 MiB), covering the
-configuration compiler, stable scripting compiler, packages and renderer. No
+configuration compiler, stable scripting compiler and renderer. Roc packages
+use a separate cache and are not covered by this Actions cache. No
 renderer or locked compiler fetch appeared in the warm-run log. Restoring a
 cache still transfers bytes from GitHub's cache service; it avoids upstream
 asset downloads, not all network use. Verification/re-extraction and compiler
@@ -185,3 +186,9 @@ These are candidate adoption/utility issues; do not mistake them for lost manual
 content or claim complete Asciidoctor compatibility. The release's documentation
 also explicitly disclaims printed contents page references, chapter headers and
 PDF table column weights.
+
+## Feedback for shared adoption guidance
+
+[Blueprint and roc-automation documentation feedback](UPSTREAM-DOCS-FEEDBACK.md)
+separates published guidance from the integration glue this repository supplied,
+and lists concrete shared documentation/action improvements for later migrations.
