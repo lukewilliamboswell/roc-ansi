@@ -59,7 +59,10 @@ runs of the same workload can restore the renderer and locked compiler archives;
 Blueprint still verifies them and recreates its store trees. A lockfile change
 starts a new cache. Different jobs intentionally have separate caches. Blueprint's
 installer itself still downloads its small verified executable each run; the
-floating package compiler is managed separately by `setup-roc`.
+floating package compiler is managed separately by `setup-roc`. Inspection of
+that pinned action confirmed it has no cache: it downloads and extracts the
+nightly again in each job. Compiler caching by resolved nightly tag is a
+remaining opportunity, separate from the renderer migration.
 
 The `Documentation renderer spike` workflow now consumes the released utility,
 with no renderer source compilation. A manual dispatch with `compare_legacy`
@@ -111,6 +114,47 @@ both HTML download links correctly target that filename. Outputs are under
 150,705 bytes, tagged PDF 2.0. API assembly restored 88 reference pages across
 main and seven releases.
 
+## Linux CI measurements
+
+[First comparison, run 39180976642](https://github.com/lukewilliamboswell/roc-ansi/actions/runs/39180976642)
+used the same commit and generated-input hashes on separate fresh Ubuntu runners.
+[Warm native run 39181087922](https://github.com/lukewilliamboswell/roc-ansi/actions/runs/39181087922)
+passed with an exact download-cache hit. Each native job finished in 51 seconds,
+including independent PDF verification installation and artifact upload.
+
+| Stage | Native, cold artifacts | Native, restored artifacts | Docker backend |
+| --- | ---: | ---: | ---: |
+| Generate inputs, including Blueprint compiler/tool bootstrap | 18.61 s | 14.85 s | about 19 s |
+| Provision native renderer | about 2 s | about 1 s | included below |
+| Complete render action | 0.614 s | 0.630 s | 89.275 s |
+| Native renderer process, inside action | 0.48 s / 29,948 KiB RSS | 0.40 s / 30,756 KiB RSS | not measured |
+| API generation and seven archive downloads | 7.48 s | 6.90 s | 6.59 s |
+
+The Docker action spent 34.5 seconds obtaining/extracting its base image,
+37.3 seconds installing Chromium/Node/npm/Python/Mermaid, and 10 seconds exporting
+the image. The remainder includes manual rendering and orchestration. The image
+was 3.36 GB on disk; the native executable is 21.4 MB. Image size is not measured
+network transfer. The render-action reduction was about 99.3%; even adding cold
+native provisioning leaves roughly 2.6 seconds versus 89.3 seconds. These are
+single observations, not controlled statistical benchmarks.
+
+The restored Blueprint cache was 150,391,895 bytes (about 143 MiB), covering the
+configuration compiler, stable scripting compiler, packages and renderer. No
+renderer or locked compiler fetch appeared in the warm-run log. Restoring a
+cache still transfers bytes from GitHub's cache service; it avoids upstream
+asset downloads, not all network use. Verification/re-extraction and compiler
+configuration work still happen. The latest package compiler remains a separate
+71,984,136-byte download per job with the pinned setup action. Published API
+archives also remain fetched on each site build. Those are remaining bandwidth
+opportunities; this change does not claim zero-download PRs.
+
+The first Docker render succeeded but its strict acceptance step exposed two
+existing links to a missing `examples.html#learn-from-the-examples` title anchor.
+The validator now reports those gaps for the legacy comparison and requires
+all native anchors to resolve. Both saved outputs passed the adjusted validator
+locally; no native link requirement was relaxed. Thus the first comparison run
+has a failed baseline-validation status despite usable rendering measurements.
+
 ## Comparison with current live Asciidoctor output
 
 The baseline was downloaded October 19 from the existing Pages site. Its PDF
@@ -132,6 +176,8 @@ Remaining PDF differences worth reviewing before deployment:
 - Printed contents includes three levels despite this manual's `toclevels: 2`.
 - The native PDF does not honour table column weights or reproduce HTML sidebar
   styling. Those are explicit limitations of this utility candidate.
+- PDF body headings omit the source section numbering, and the book title repeats
+  at the start of the body. HTML section numbering is retained.
 - Running headers use the book title rather than the current chapter. Pagination,
   typefaces and spacing differ; theme parity is not established.
 
