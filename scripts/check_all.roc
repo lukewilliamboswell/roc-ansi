@@ -83,6 +83,8 @@ check_scripts! = |roc_stable| {
 	for module_name in ["Headers", "Html", "Notes", "Ratchet", "Release", "Report", "Spec", "Text"] {
 		roc_stable.run!(["test", "scripts/src/${module_name}.roc"])?
 	}
+	# Bundle path tests need the app's cli dependency for pure Path operations.
+	roc_stable.run!(["test", "scripts/src/Bundle.roc", "--main=scripts/build_bundle.roc"])?
 	for script in Files.direct_roc_files!("scripts")? {
 		roc_stable.run!(["check", Path.to_os_str(script)])?
 	}

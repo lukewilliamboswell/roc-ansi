@@ -28,9 +28,11 @@ Bundle := [].{
 		report = roc.capture_utf8!(args, "package")?
 		match Str.split_on(report, "\n").keep_oks(|line| if line.starts_with("Created: ") Ok(line.drop_prefix("Created: ").trim()) else Err(NotCreated)) {
 			[created] => {
-				bundle = Path.utf8(created)
+				# The compiler may report a path relative to its package cwd.
+				# The requested output directory is already absolute.
+				bundle = bundle_path(output, created)?
 				Script.require_file!(bundle)?
-				Script.info!("BUNDLE", created)?
+				Script.info!("BUNDLE", Path.display(bundle))?
 				Ok(bundle)
 			}
 			_ => Script.fail!("could not find the bundle path in the output of roc bundle:\n${report}")
@@ -87,3 +89,14 @@ Bundle := [].{
 		result
 	}
 }
+
+# Only the filename comes from the compiler report; the destination is the
+# directory we explicitly supplied, regardless of how the compiler prints it.
+bundle_path = |output, created| {
+	name = Script.file_name(Path.utf8(created))?
+	Ok(Path.join(output, name))
+}
+
+expect bundle_path(Path.utf8("dist"), "../dist/archive.tar.zst") == Ok(Path.utf8("dist/archive.tar.zst"))
+expect bundle_path(Path.utf8("dist"), "/tmp/output/archive.tar.zst") == Ok(Path.utf8("dist/archive.tar.zst"))
+expect bundle_path(Path.utf8("dist"), "archive.tar.zst") == Ok(Path.utf8("dist/archive.tar.zst"))
