@@ -41,7 +41,7 @@ DocsArchive := [].{
 				Path.copy_dir!(source, Path.join(stage, version))?
 				staged = entries.map(|entry| Path.to_os_str(Path.join(stage, entry)))
 				_ = Script.command("chmod").capture!(["0644"].concat(staged), ".", [])?
-				_ = Script.command("touch").capture!(["-d", "1980-01-01T00:00:00Z"].concat(staged), ".", [])?
+				_ = Script.Command.{ base: Cmd.new("touch").env_str("TZ", "UTC"), program: "touch" }.capture!(["-t", "198001010000"].concat(staged), ".", [])?
 				# -X leaves out owner and timestamp extras, -D directory entries;
 				# -@ reads the entries to add. TZ fixes how the time is stored.
 				_ = Script.Command.{ base: Cmd.new("zip").env_str("TZ", "UTC"), program: "zip" }.capture!(["-q", "-X", "-D", Path.to_os_str(archive), "-@"], stage, Str.to_utf8(Str.join_with(entries, "\n")))?
@@ -158,7 +158,7 @@ list_tarball! = |archive| {
 }
 
 sha256! = |path| {
-	report = Script.command("sha256sum").capture_utf8!([Path.to_os_str(path)], ".")?
+	report = Script.command("shasum").capture_utf8!(["-a", "256", Path.to_os_str(path)], ".")?
 	match Str.split_first(report, " ") {
 		Ok({ before, .. }) => Ok(before)
 		Err(_) => Err(UnreadableDigest(report))

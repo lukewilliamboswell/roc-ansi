@@ -11,14 +11,21 @@ and how you checked it. A bug fix or a new behaviour comes with a test.
 
 You need three things:
 
-* https://nixos.org/download[Nix], with flakes enabled.
 * The `blueprint` command from
   https://github.com/lukewilliamboswell/roc-blueprint[roc-blueprint], at the
   release named by the platform URL at the top of `Blueprint.roc`. Download the
   binary for your system from that release and check it against the release's
-  `blueprint.sha256`, or run `nix profile install github:lukewilliamboswell/roc-blueprint/<version>`.
+  `blueprint.sha256`, make it executable and put it on `PATH`.
 * A current Roc https://github.com/roc-lang/nightlies/releases[nightly] on your
   `PATH` as `roc`.
+* The host tools listed in `Expect` in `Blueprint.roc`: `chmod`, `gh`, `git`,
+  `gzip`, `shasum`, `tar`, `test`, `touch`, `unzip` and `zip`.
+
+Nix is not needed. The file and archive tools supplied by Linux and macOS
+work; GNU coreutils is not required. Install GitHub CLI (`gh`) separately.
+Blueprint downloads the pinned tooling compiler and its Roc packages on first
+use. Run `blueprint update` after changing its declarations, and commit the
+lock file. A checkout already has the lock it needs.
 
 == Two compilers
 

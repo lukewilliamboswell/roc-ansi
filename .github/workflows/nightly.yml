@@ -62,14 +62,8 @@ jobs:
             *) echo "::error::not a nightly release tag: $tag"; exit 1 ;;
           esac
 
-      - name: Install Nix and blueprint
-        uses: lukewilliamboswell/roc-automation/actions/setup-blueprint@7fdb8be46b12da9b119023c3a5aac28a9fdaa72b
-        with:
-          # From the roc-blueprint release that the platform URL in Blueprint.roc names.
-          version: 0.4.0
-          sha256-x86_64-linux: 3fe15840aa1ae884a943e1973fbf07d67ae53d7a295edd32916f25c962df6480
-          sha256-aarch64-linux: 008e44c522ece7263d0871817e3b98693a57f8025878931423479638bba0e5bf
-          sha256-aarch64-darwin: 614f58813b91c344c90659cd161fd9afde309a5eab40b85e88ceb0ef4da21743
+      - name: Install blueprint without Nix
+        uses: ./.github/actions/setup-blueprint
 
       - name: Install the Roc nightly
         uses: roc-lang/setup-roc@f5a74bf90aa694b43ab4a7cbfdb19273bc6aa697
