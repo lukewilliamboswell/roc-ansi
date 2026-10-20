@@ -28,12 +28,12 @@ document = {
 ## Insert one value into the middle of the document, `count` times over.
 insert : PieceTable.PieceTable(U8), U64 -> PieceTable.PieceTable(U8)
 insert = |table, count|
-	if count == 0 table else insert(PieceTable.insert(table, { values: ['x'], index: 5 }), count - 1)
+	if (count == 0) table else insert(PieceTable.insert(table, { values: ['x'], index: 5 }), count - 1)
 
 ## Delete the value in the middle of the document, `count` times over.
 delete : PieceTable.PieceTable(U8), U64 -> PieceTable.PieceTable(U8)
 delete = |table, count|
-	if count == 0 table else delete(PieceTable.delete(table, { index: 5 }), count - 1)
+	if (count == 0) table else delete(PieceTable.delete(table, { index: 5 }), count - 1)
 
 test! : List(U8) => U8
 test! = |bytes| {

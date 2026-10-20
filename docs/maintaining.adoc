@@ -30,8 +30,15 @@ which gives the reasons behind each practice.
 
 The package is pure Roc, so every job runs on Linux only. Blueprint fetches
 its tooling compiler directly; no workflow installs Nix. The local setup action
-caches only Blueprint's downloaded artifacts, keyed on the lock and installer.
-Extracted trees are rebuilt from verified artifacts. CI checks that every task
+calls roc-automation's shared installer with Nix disabled and artifact caching
+enabled. Cache keys distinguish the workflow, job, Blueprint release, installer
+and lock.
+
+Extracted trees are rebuilt from verified artifacts; Roc package sources use
+a separate cache. Setup provisions Blueprint's fixed configuration compiler
+before installing the floating package nightly, so its archive is saved even
+when those compiler versions temporarily match. Job summaries report the
+verified installer, cache hit and bootstrap duration. CI checks that every task
 reports no package provider and runs with no `nix` on `PATH`.
 
 `nightly.yml` keeps one tracking issue: opened on the first failure, updated by
@@ -53,8 +60,11 @@ Change the tooling compiler:: Change the tag in `Fetch("roc-stable", Recipes.roc
 check fails until they agree. Run `blueprint update roc-stable` and fix any
 script the new compiler breaks.
 Upgrade Blueprint:: Change the platform URL at the top of `Blueprint.roc`, and
-the version and reviewed checksums in `.github/actions/setup-blueprint/install.sh`
-from the same roc-blueprint release. Run `blueprint update` and review the new lock.
+the pinned shared setup action in `.github/actions/setup-blueprint/action.yml`.
+Use a shared revision that records that release's checksums, or supply reviewed
+`sha256-*` overrides in the local action when adopting a release ahead of its
+registry. Remove overrides when the shared registry covers the release.
+Run `blueprint update` and review the lock.
 Update a script dependency:: Change its URL in every script header and under
 `RocPackages` in `Blueprint.roc`. Task-only Roc bundles are content-addressed
 and are not recorded in the lock.

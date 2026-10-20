@@ -9,7 +9,7 @@
 # release named below; it runs the scripts under scripts/. The package and the
 # examples are checked with whatever `roc` is on PATH, which is meant to be the
 # latest nightly, so nothing here provides a bare `roc`.
-app [config] { pf: platform "https://github.com/lukewilliamboswell/roc-blueprint/releases/download/0.6.0-rc1/UMnTgKxbYavSsoeQUGPM7Vde2WHEFzES2VaFcX1qtYj.tar.zst" }
+app [config] { pf: platform "https://github.com/lukewilliamboswell/roc-blueprint/releases/download/0.6.0/BenWAmrQp3qFLJPgGerHFPzzAn7ouXDew69CCg2LTtQX.tar.zst" }
 
 import pf.Recipes
 
@@ -26,7 +26,7 @@ config = [
 				"https://github.com/roc-lang/http/releases/download/1.0.0/6ZUwqYhCS8PU9Mo6MF7oV82ET2o7KYb57CLKDq4cq4sS.tar.zst",
 			]),
 			# Programs the scripts start.
-			Expect(["chmod", "gh", "git", "gzip", "roc", "shasum", "tar", "touch", "unzip", "zip"]),
+			Expect(["chmod", "gh", "git", "gzip", "roc", "shasum", "tar", "test", "touch", "unzip", "zip"]),
 		],
 	),
 	Shell("default", [Use("dev")]),

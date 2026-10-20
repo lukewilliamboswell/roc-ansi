@@ -19,7 +19,7 @@ You need three things:
 * A current Roc https://github.com/roc-lang/nightlies/releases[nightly] on your
   `PATH` as `roc`.
 * The host tools listed in `Expect` in `Blueprint.roc`: `chmod`, `gh`, `git`,
-  `gzip`, `shasum`, `tar`, `touch`, `unzip` and `zip`.
+  `gzip`, `shasum`, `tar`, `test`, `touch`, `unzip` and `zip`.
 
 Nix is not needed. The file and archive tools supplied by Linux and macOS
 work; GNU coreutils is not required. Install GitHub CLI (`gh`) separately.
