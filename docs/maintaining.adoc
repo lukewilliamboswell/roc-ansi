@@ -48,13 +48,25 @@ and separate preparation and API generation timings. Rendering uses a
 precompiled Roc binary rather than an Asciidoctor Docker image. The site's HTML,
 PDF, Markdown and `llms.txt` come from the same AsciiDoc sources.
 
-The nightly rollout follows the 0.13.3 patch release: its examples archive
-contains the canonical version-1 suite required by the shared compatibility
-runner. Earlier archives remain immutable. After publication, `nightly.yml`
-will delegate to roc-automation's pinned published-release workflow. Successful
-compiler diagnostics are retained; incomplete or failed setup cannot be
-reported as a compatibility pass. Exact release and nightly overrides provide
-read-only diagnostic reruns.
+`nightly.yml` delegates to roc-automation's pinned published-release workflow
+on one Linux runner, without Blueprint or Nix prerequisites. Release 0.13.3 is
+the first archive with the required canonical version-1 suite; earlier archives
+remain immutable and cannot be tested by this runner. Publish 0.13.3 before
+merging the caller migration.
+
+The shared runner verifies the release asset's identity, validates its declared
+bundle dependencies, and preserves stdout and stderr from successful compiler
+commands. Only complete evidence from every declared runner establishes a
+compatibility pass. Setup failures, timeouts and missing results cannot close
+the tracking issue. The shared workflow serializes runs and isolates issue
+write permissions from example execution.
+
+Dispatch `nightly.yml` with `nightly-tag`, `release-tag`, or both to reproduce a
+specific final release/compiler pair. Empty inputs resolve the latest pair.
+Exact overrides are diagnostic runs and do not update the tracking issue.
+The shared workflow runs only from the default branch; dispatching a PR branch
+is not a compatibility test. Inspect selection, per-target diagnostics and the
+aggregate result artifacts on the completed run.
 
 == Update the tooling
 
