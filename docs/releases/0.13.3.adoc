@@ -22,3 +22,12 @@ app [main!] {
 * CI reports renderer provisioning, rendering, preparation and API reference
   timings separately, with renderer memory and output sizes.
 * The shared nightly compatibility runner retains successful compiler diagnostics.
+
+== Supply-chain evidence
+
+* The source bundle gains SPDX and CycloneDX sidecars bound to its final SHA-256,
+  plus retained signed provenance and SBOM-attestation evidence.
+* Every source module carries its copyright and UPL-1.0 notice.
+* The source inventory has no external package dependencies. Compiler/toolchain
+  closure remains an explicit coverage gap; examples and documentation are
+  separate deliverables.

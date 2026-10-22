@@ -33,6 +33,8 @@ include::overview.adoc[leveloffset=+1]
 
 include::getting-started.adoc[leveloffset=+1]
 
+include::supply-chain.adoc[leveloffset=+1]
+
 include::examples.adoc[leveloffset=+1]
 
 include::contributing.adoc[leveloffset=+1]
