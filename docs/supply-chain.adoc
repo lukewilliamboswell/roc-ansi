@@ -96,8 +96,9 @@ code and from dependencies fetched later.
 Blueprint 0.7 accepts this source supplier into a source inventory. Its native
 inventory importer currently rejects the source target: a downstream application
 must not relabel the source archive as a native executable to bypass that check.
-The confirmed repro is in `tests/supply-chain/blueprint-source-import/`; native
-consumer chaining through Blueprint requires an upstream fix. Standards-based
+The confirmed repro is in `tests/supply-chain/blueprint-source-import/` and
+https://github.com/lukewilliamboswell/roc-blueprint/issues/61[Blueprint issue 61];
+native consumer chaining through Blueprint requires that upstream fix. Standards-based
 SBOM consumers can retain the source identity and model their own transformation
 into an executable, without treating this source inventory as proof of the
 resulting binary's full closure.

@@ -51,6 +51,11 @@ Nothing pins a compiler for the package or the examples. Each script names
 `roc-stable`'s release in its `roc` header field, so that running one with a
 different compiler says why it misbehaves.
 
+The released SBOM utility uses its own fixed `roc-sbom` compiler matching
+Blueprint 0.7.0. That compiler is only needed by `blueprint run sbom`; it does
+not choose which nightly tests the package. Blueprint also embeds its own
+configuration compiler.
+
 == Run the checks
 
 [source,sh]

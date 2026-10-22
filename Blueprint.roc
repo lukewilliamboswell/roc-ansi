@@ -5,10 +5,10 @@
 #     blueprint shell        # the environment, to run scripts/*.roc directly
 #     blueprint update       # refresh Blueprint.lock
 #
-# Two compilers are in play and are not interchangeable. `roc-stable` is the
-# release named below; it runs the scripts under scripts/. The package and the
-# examples are checked with whatever `roc` is on PATH, which is meant to be the
-# latest nightly, so nothing here provides a bare `roc`.
+# `roc-stable` runs repository scripts; `roc` on PATH tests the package and
+# examples on the latest nightly, so nothing here provides a bare `roc`.
+# The released SBOM app has its own matching `roc-sbom` compiler. Blueprint
+# embeds its configuration compiler independently of these environment inputs.
 app [config] { pf: platform "https://github.com/lukewilliamboswell/roc-blueprint/releases/download/0.7.0/2zwBq8cAkEPfRNMaWgtwCsVwxSJ3z9FncazjNofBXspG.tar.zst" }
 
 import pf.Recipes
@@ -41,8 +41,8 @@ config = [
 	),
 	Environment("docs", [Programs([Fetch("roc-docs", docs_renderer)]), Expect(["realpath", "sh"])]),
 	Environment("sbom", [
+		Extend("dev"),
 		Programs([
-			Fetch("roc-stable", Recipes.roc_nightly("nightly-2026-10-09-258ab27")),
 			Fetch("roc-sbom", Recipes.roc_nightly("nightly-2026-10-21-5349569")),
 		]),
 		RocPackages([
