@@ -1,3 +1,7 @@
+# Copyright © 2023 Luke Boswell and subsequent authors
+# Licensed under the Universal Permissive License (UPL), Version 1.0.
+# SPDX-License-Identifier: UPL-1.0
+
 import Style
 
 ## [Control](https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_(Control_Sequence_Introducer)_sequences)

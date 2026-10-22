@@ -34,6 +34,7 @@ jobs:
       release_version: ${{ steps.validate.outputs.release_version }}
       is_prerelease: ${{ steps.validate.outputs.is_prerelease }}
       nightly_tag: ${{ steps.nightly.outputs.tag }}
+      bundle_filename: ${{ steps.sbom.outputs.bundle }}
 
     steps:
       - name: Require the default branch for publication
@@ -101,7 +102,6 @@ jobs:
           DOCS_VERSION: ${{ steps.validate.outputs.release_version }}
         run: blueprint run package-docs
 
-      # The manual attached to a release names that release.
       - name: Provision and measure the locked documentation renderer
         id: renderer
         uses: lukewilliamboswell/roc-automation/actions/blueprint-tool@b47646ec2dee9c1f9f3acc984394832092acc4de # tools-0.3.0
@@ -110,6 +110,35 @@ jobs:
           label: roc-docs tools-0.3.0
           measure: 'true'
           output-directory: .docs-out
+
+
+      - name: Generate and validate artifact-bound source SBOMs
+        id: sbom
+        env:
+          RELEASE_VERSION: ${{ steps.validate.outputs.release_version }}
+        run: |
+          set -euo pipefail
+          python3 "${{ steps.renderer.outputs.measure-script }}" --label source-sbom --metrics "$RUNNER_TEMP/source-sbom.json" --output dist -- blueprint run sbom
+          cp LICENSE dist/LICENSE
+          bundles=(dist/*.tar.zst)
+          test "${#bundles[@]}" = 1
+          printf 'bundle=%s\n' "$(basename "${bundles[0]}")" >> "$GITHUB_OUTPUT"
+
+      - name: Cache the independent SBOM schema validator downloads
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ~/.cache/pip
+          key: sbom-validator-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('sbom/validator-requirements.txt') }}
+
+      - name: Independently validate the SPDX standard schema
+        run: |
+          set -euo pipefail
+          python3 -m venv "$RUNNER_TEMP/sbom-validator"
+          "$RUNNER_TEMP/sbom-validator/bin/pip" install --require-hashes -r sbom/validator-requirements.txt
+          printf '%s  %s\n' 4126dc29f15e92feec92e9622f4939131ad58b125d6f578aa93e980a6e6f3212 sbom/schema/spdx-2.3.schema.json | sha256sum -c -
+          "$RUNNER_TEMP/sbom-validator/bin/check-jsonschema" --schemafile sbom/schema/roc-ansi-source.schema.json dist/*.spdx-2.3.json
+
+      # The manual attached to a release names that release.
 
       - name: Write the parts of the manual that depend on what is released
         env:
@@ -144,6 +173,7 @@ jobs:
             ${{ steps.renderer.outputs.metrics-path }}
             ${{ runner.temp }}/docs-preparation.json
             ${{ runner.temp }}/docs-api.json
+            ${{ runner.temp }}/source-sbom.json
           retention-days: 7
 
       - name: Upload the release candidate
@@ -152,6 +182,12 @@ jobs:
           name: release-candidate
           path: |
             dist/*.tar.zst
+            dist/*.spdx.json
+            dist/*.spdx-2.3.json
+            dist/*.cdx.json
+            dist/*.sbom-inventory.json
+            dist/*.sbom-evidence.json
+            dist/LICENSE
             dist/roc-ansi-examples-*.zip
             dist/roc-ansi-docs-*.zip
             .docs-out/roc-ansi-*.pdf
@@ -206,6 +242,8 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: write
+      id-token: write
+      attestations: write
     environment:
       name: release
 
@@ -215,6 +253,78 @@ jobs:
         with:
           name: release-candidate
           path: candidate
+
+      # This job checks out nothing and executes no candidate source. Attest
+      # the exact tested files, retaining both statements for downstream use.
+      - name: Require the source bundle and its complete SBOM sidecar set
+        env:
+          BUNDLE: ${{ needs.build.outputs.bundle_filename }}
+          VERSION: ${{ needs.build.outputs.release_version }}
+        run: |
+          set -euo pipefail
+          test -n "$BUNDLE"
+          test "$(basename "$BUNDLE")" = "$BUNDLE"
+          for suffix in '' .spdx.json .spdx-2.3.json .cdx.json .sbom-inventory.json .sbom-evidence.json; do
+            test -f "candidate/dist/$BUNDLE$suffix"
+            test ! -L "candidate/dist/$BUNDLE$suffix"
+          done
+          # Independently rehash the inert candidate files before signing.
+          digest=$(sha256sum "candidate/dist/$BUNDLE" | cut -d ' ' -f 1)
+          bytes=$(wc -c < "candidate/dist/$BUNDLE")
+          inventory=$(sha256sum "candidate/dist/$BUNDLE.sbom-inventory.json" | cut -d ' ' -f 1)
+          jq -e --arg commit "$GITHUB_SHA" --arg run "$GITHUB_RUN_ID" --arg attempt "$GITHUB_RUN_ATTEMPT" \
+            --arg file "$BUNDLE" --arg version "$VERSION" --arg sha "$digest" --argjson bytes "$bytes" --arg inventory "$inventory" \
+            '.repository == "lukewilliamboswell/roc-ansi" and .source_commit == $commit and .run_id == $run and .run_attempt == $attempt and .subject.filename == $file and .subject.version == $version and .subject.target == "source" and .subject.sha256 == $sha and .subject.bytes == $bytes and .inventory_sha256 == $inventory and (.sidecars | length) == 3' \
+            "candidate/dist/$BUNDLE.sbom-evidence.json"
+          for suffix in .spdx.json .spdx-2.3.json .cdx.json; do
+            sidecar_sha=$(sha256sum "candidate/dist/$BUNDLE$suffix" | cut -d ' ' -f 1)
+            sidecar_bytes=$(wc -c < "candidate/dist/$BUNDLE$suffix")
+            jq -e --arg file "$BUNDLE$suffix" --arg sha "$sidecar_sha" --argjson bytes "$sidecar_bytes" \
+              '[.sidecars[] | select(.filename == $file and .sha256 == $sha and .bytes == $bytes)] | length == 1' \
+              "candidate/dist/$BUNDLE.sbom-evidence.json"
+          done
+          jq -e --arg file "$BUNDLE" --arg version "$VERSION" --arg sha "$digest" \
+            '[.packages[] | select(.SPDXID == "SPDXRef-Subject")] | length == 1 and .[0].name == $file and .[0].versionInfo == $version and .[0].checksums == [{algorithm:"SHA256",checksumValue:$sha}]' \
+            "candidate/dist/$BUNDLE.spdx-2.3.json"
+          for file in "candidate/dist/LICENSE" "candidate/dist/roc-ansi-examples-$VERSION.zip" "candidate/dist/roc-ansi-docs-$VERSION.zip" "candidate/.docs-out/roc-ansi-$VERSION.pdf"; do
+            test -f "$file" && test ! -L "$file"
+          done
+          assets=(candidate/dist/* candidate/.docs-out/*.pdf)
+          test "${#assets[@]}" = 10
+
+      - name: Attest the tested release assets and SBOM evidence
+        id: provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: |
+            candidate/dist/*
+            candidate/.docs-out/*.pdf
+          create-storage-record: false
+
+      - name: Attest source bundle composition
+        id: composition
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: candidate/dist/${{ needs.build.outputs.bundle_filename }}
+          sbom-path: candidate/dist/${{ needs.build.outputs.bundle_filename }}.spdx-2.3.json
+          create-storage-record: false
+
+      - name: Retain and verify authenticated release evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          BUNDLE: ${{ needs.build.outputs.bundle_filename }}
+          PROVENANCE: ${{ steps.provenance.outputs.bundle-path }}
+          COMPOSITION: ${{ steps.composition.outputs.bundle-path }}
+        run: |
+          set -euo pipefail
+          policy=(--repo "$GH_REPO" --signer-workflow "$GH_REPO/.github/workflows/release.yml" --source-ref refs/heads/main --source-digest "$GITHUB_SHA" --signer-digest "$GITHUB_SHA" --deny-self-hosted-runners)
+          for asset in candidate/dist/* candidate/.docs-out/*.pdf; do
+            gh attestation verify "$asset" "${policy[@]}" --bundle "$PROVENANCE"
+          done
+          gh attestation verify "candidate/dist/$BUNDLE" "${policy[@]}" --predicate-type https://spdx.dev/Document --bundle "$COMPOSITION"
+          cp "$PROVENANCE" candidate/dist/roc-ansi-provenance.sigstore.json
+          cp "$COMPOSITION" candidate/dist/roc-ansi-sbom.sigstore.json
 
       # A published release is never completed or corrected afterwards. So
       # every asset goes onto a draft, is downloaded back and compared with
@@ -314,6 +424,7 @@ jobs:
             ${{ steps.renderer.outputs.metrics-path }}
             ${{ runner.temp }}/docs-preparation.json
             ${{ runner.temp }}/docs-api.json
+            ${{ runner.temp }}/source-sbom.json
           retention-days: 7
 
       - name: Upload Pages artifact

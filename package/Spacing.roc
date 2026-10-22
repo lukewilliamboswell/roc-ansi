@@ -1,3 +1,7 @@
+# Copyright © 2023 Luke Boswell and subsequent authors
+# Licensed under the Universal Permissive License (UPL), Version 1.0.
+# SPDX-License-Identifier: UPL-1.0
+
 ## Helpers for horizontal and vertical whitespace.
 Spacing := [Padding(Side, U64)].{
 	is_eq : _

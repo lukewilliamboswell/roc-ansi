@@ -137,6 +137,18 @@ A release holds:
 
 | `roc-ansi-<version>.pdf`
 | This manual
+
+| `<hash>.tar.zst.spdx.json`, `.spdx-2.3.json`, `.cdx.json`
+| Source-bundle SBOMs: SPDX 3.0.1/2.3 and CycloneDX 1.7
+
+| `<hash>.tar.zst.sbom-inventory.json`, `.sbom-evidence.json`
+| Resolved source inventory and the exact file/source/run mappings
+
+| `roc-ansi-provenance.sigstore.json`, `roc-ansi-sbom.sigstore.json`
+| Retained provenance and source-composition attestations
+
+| `LICENSE`
+| Copyright and UPL-1.0 terms, also referenced inside each source module
 |===
 
 No follow-up pull request is needed, because nothing on `main` names its own

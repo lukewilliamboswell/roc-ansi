@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "allOf": [
+    {
+      "$ref": "spdx-2.3.schema.json"
+    },
+    {
+      "properties": {
+        "packages": {
+          "contains": {
+            "type": "object",
+            "required": [
+              "SPDXID",
+              "name",
+              "licenseDeclared",
+              "supplier"
+            ],
+            "properties": {
+              "SPDXID": {
+                "const": "SPDXRef-roc-ansi"
+              },
+              "name": {
+                "const": "roc-ansi"
+              },
+              "licenseDeclared": {
+                "const": "UPL-1.0"
+              },
+              "supplier": {
+                "const": "Person: Luke Boswell"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "relationships": {
+          "contains": {
+            "type": "object",
+            "required": [
+              "spdxElementId",
+              "relationshipType",
+              "relatedSpdxElement"
+            ],
+            "properties": {
+              "spdxElementId": {
+                "const": "SPDXRef-DOCUMENT"
+              },
+              "relationshipType": {
+                "const": "DESCRIBES"
+              },
+              "relatedSpdxElement": {
+                "const": "SPDXRef-Subject"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "relationships": {
+          "contains": {
+            "type": "object",
+            "required": [
+              "spdxElementId",
+              "relationshipType",
+              "relatedSpdxElement"
+            ],
+            "properties": {
+              "spdxElementId": {
+                "const": "SPDXRef-Subject"
+              },
+              "relationshipType": {
+                "const": "CONTAINS"
+              },
+              "relatedSpdxElement": {
+                "const": "SPDXRef-roc-ansi"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "relationships": {
+          "contains": {
+            "type": "object",
+            "required": [
+              "spdxElementId",
+              "relationshipType",
+              "relatedSpdxElement"
+            ],
+            "properties": {
+              "spdxElementId": {
+                "const": "SPDXRef-compiler"
+              },
+              "relationshipType": {
+                "const": "BUILD_DEPENDENCY_OF"
+              },
+              "relatedSpdxElement": {
+                "const": "SPDXRef-Subject"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "not": {
+        "properties": {
+          "relationships": {
+            "contains": {
+              "type": "object",
+              "required": [
+                "spdxElementId",
+                "relationshipType",
+                "relatedSpdxElement"
+              ],
+              "properties": {
+                "spdxElementId": {
+                  "const": "SPDXRef-Subject"
+                },
+                "relationshipType": {
+                  "const": "CONTAINS"
+                },
+                "relatedSpdxElement": {
+                  "const": "SPDXRef-compiler"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
