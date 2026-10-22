@@ -50,9 +50,10 @@ PDF, Markdown and `llms.txt` come from the same AsciiDoc sources.
 
 `nightly.yml` delegates to roc-automation's pinned published-release workflow
 on one Linux runner, without Blueprint or Nix prerequisites. Release 0.13.3 is
-the first archive with the required canonical version-1 suite; earlier archives
-remain immutable and cannot be tested by this runner. Publish 0.13.3 before
-merging the caller migration.
+the first archive with the canonical examples specification required by this
+runner. `schema_version` identifies the JSON format; examples have no separate
+version and are captured with the package release. Earlier archives remain
+immutable and cannot be tested by this runner.
 
 The shared runner verifies the release asset's identity, validates its declared
 bundle dependencies, and preserves stdout and stderr from successful compiler

@@ -1,6 +1,6 @@
 name: Nightly compatibility
 
-# Publish the canonical 0.13.3 examples archive before enabling this caller.
+# Examples archives from package release 0.13.3 use the canonical specification.
 # The shared workflow selects one immutable release/compiler pair and owns
 # validation, successful compiler diagnostics, execution and issue reporting.
 on:
