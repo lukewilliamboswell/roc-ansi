@@ -34,6 +34,7 @@ jobs:
       release_version: ${{ steps.validate.outputs.release_version }}
       is_prerelease: ${{ steps.validate.outputs.is_prerelease }}
       nightly_tag: ${{ steps.nightly.outputs.tag }}
+      bundle_filename: ${{ steps.sbom.outputs.bundle }}
 
     steps:
       - name: Require the default branch for publication
@@ -101,6 +102,18 @@ jobs:
           DOCS_VERSION: ${{ steps.validate.outputs.release_version }}
         run: blueprint run package-docs
 
+      - name: Generate and validate artifact-bound source SBOMs
+        id: sbom
+        env:
+          RELEASE_VERSION: ${{ steps.validate.outputs.release_version }}
+        run: |
+          set -euo pipefail
+          blueprint run sbom
+          cp LICENSE dist/LICENSE
+          bundles=(dist/*.tar.zst)
+          test "${#bundles[@]}" = 1
+          printf 'bundle=%s\n' "$(basename "${bundles[0]}")" >> "$GITHUB_OUTPUT"
+
       # The manual attached to a release names that release.
       - name: Provision and measure the locked documentation renderer
         id: renderer
@@ -152,6 +165,12 @@ jobs:
           name: release-candidate
           path: |
             dist/*.tar.zst
+            dist/*.spdx.json
+            dist/*.spdx-2.3.json
+            dist/*.cdx.json
+            dist/*.sbom-inventory.json
+            dist/*.sbom-evidence.json
+            dist/LICENSE
             dist/roc-ansi-examples-*.zip
             dist/roc-ansi-docs-*.zip
             .docs-out/roc-ansi-*.pdf
@@ -206,6 +225,8 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: write
+      id-token: write
+      attestations: write
     environment:
       name: release
 
@@ -215,6 +236,53 @@ jobs:
         with:
           name: release-candidate
           path: candidate
+
+      # This job checks out nothing and executes no candidate source. Attest
+      # the exact tested files, retaining both statements for downstream use.
+      - name: Require the source bundle and its complete SBOM sidecar set
+        env:
+          BUNDLE: ${{ needs.build.outputs.bundle_filename }}
+        run: |
+          set -euo pipefail
+          test -n "$BUNDLE"
+          test "$(basename "$BUNDLE")" = "$BUNDLE"
+          for suffix in '' .spdx.json .spdx-2.3.json .cdx.json .sbom-inventory.json .sbom-evidence.json; do
+            test -f "candidate/dist/$BUNDLE$suffix"
+            test ! -L "candidate/dist/$BUNDLE$suffix"
+          done
+
+      - name: Attest the tested release assets and SBOM evidence
+        id: provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: |
+            candidate/dist/*
+            candidate/.docs-out/*.pdf
+          create-storage-record: false
+
+      - name: Attest source bundle composition
+        id: composition
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: candidate/dist/${{ needs.build.outputs.bundle_filename }}
+          sbom-path: candidate/dist/${{ needs.build.outputs.bundle_filename }}.spdx-2.3.json
+          create-storage-record: false
+
+      - name: Retain and verify authenticated release evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          BUNDLE: ${{ needs.build.outputs.bundle_filename }}
+          PROVENANCE: ${{ steps.provenance.outputs.bundle-path }}
+          COMPOSITION: ${{ steps.composition.outputs.bundle-path }}
+        run: |
+          set -euo pipefail
+          policy=(--repo "$GH_REPO" --signer-workflow "$GH_REPO/.github/workflows/release.yml" --source-ref refs/heads/main --source-digest "$GITHUB_SHA" --signer-digest "$GITHUB_SHA" --deny-self-hosted-runners)
+          gh attestation verify "candidate/dist/$BUNDLE" "${policy[@]}" --bundle "$PROVENANCE"
+          gh attestation verify "candidate/dist/$BUNDLE.spdx-2.3.json" "${policy[@]}" --bundle "$PROVENANCE"
+          gh attestation verify "candidate/dist/$BUNDLE" "${policy[@]}" --predicate-type https://spdx.dev/Document --bundle "$COMPOSITION"
+          cp "$PROVENANCE" candidate/dist/roc-ansi-provenance.sigstore.json
+          cp "$COMPOSITION" candidate/dist/roc-ansi-sbom.sigstore.json
 
       # A published release is never completed or corrected afterwards. So
       # every asset goes onto a draft, is downloaded back and compared with

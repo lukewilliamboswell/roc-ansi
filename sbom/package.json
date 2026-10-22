@@ -1,0 +1,249 @@
+{
+  "profile": "blueprint-spdx-3.0-v1",
+  "components": [
+    {
+      "producer": "Person: Luke Boswell",
+      "license": "UPL-1.0",
+      "license_url": "",
+      "modified": "",
+      "target": "source",
+      "origin": "reviewed",
+      "id": "roc-ansi",
+      "name": "roc-ansi",
+      "version": "@RELEASE@",
+      "identity": "https://github.com/lukewilliamboswell/roc-ansi/tree/@COMMIT@/package",
+      "download": "@BUNDLE_URL@",
+      "sha256": "@BUNDLE_SHA256@"
+    },
+    {
+      "producer": "Organization: Roc contributors",
+      "license": "NOASSERTION",
+      "license_url": "",
+      "modified": "SHA-256 identifies the actual build compiler executable; its native dependency closure is outside this source inventory.",
+      "target": "",
+      "origin": "reviewed",
+      "id": "compiler",
+      "name": "roc",
+      "version": "@COMPILER@",
+      "identity": "https://github.com/roc-lang/nightlies/releases/tag/@COMPILER@",
+      "download": "NOASSERTION",
+      "sha256": "@COMPILER_SHA256@"
+    }
+  ],
+  "relationships": [
+    {
+      "from": "Subject",
+      "to": "roc-ansi",
+      "relation": "contains",
+      "scope": "",
+      "basis": "Exact source bundle; first-party source and artifact share the verified bundle SHA-256."
+    },
+    {
+      "from": "Subject",
+      "to": "compiler",
+      "relation": "dependsOn",
+      "scope": "build",
+      "basis": "Compiler used for roc bundle; compiler code is not shipped inside the source archive."
+    }
+  ],
+  "coverage": [
+    {
+      "scope": "shipped-source",
+      "status": "complete",
+      "reason": "Archive members and their bytes are checked against the package source tree. This SBOM covers the Roc source bundle only.",
+      "contact": "https://github.com/lukewilliamboswell/roc-ansi/issues"
+    },
+    {
+      "scope": "external-package-dependencies",
+      "status": "verified-empty",
+      "reason": "roc deps package/main.roc reports only the root package. No direct or transitive external package dependencies.",
+      "contact": "https://github.com/lukewilliamboswell/roc-ansi/issues"
+    },
+    {
+      "scope": "vendored-source",
+      "status": "verified-empty",
+      "reason": "The reviewed package consists solely of first-party modules; it contains no vendored source.",
+      "contact": "https://github.com/lukewilliamboswell/roc-ansi/issues"
+    },
+    {
+      "scope": "build-tool-closure",
+      "status": "incomplete",
+      "reason": "The compiler executable is identified as build-only. Its native dependencies and other CI tooling are outside the shipped source dependency closure; this is not an executable SBOM.",
+      "contact": "https://github.com/lukewilliamboswell/roc-ansi/issues"
+    }
+  ],
+  "inputs": [
+    {
+      "input": "program:roc-stable:x86_64-linux",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "program:roc-stable:aarch64-linux",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "program:roc-stable:x86_64-darwin",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "program:roc-stable:aarch64-darwin",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "program:roc-docs:x86_64-linux",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "program:roc-docs:aarch64-linux",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "program:roc-docs:aarch64-darwin",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "program:roc-sbom:x86_64-linux",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "program:roc-sbom:aarch64-linux",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "program:roc-sbom:x86_64-darwin",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "program:roc-sbom:aarch64-darwin",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "roc-package:CZsY7tYZwR3rj9kYbpaCfxki2yVAaRL8bBwMLvB2xkbA",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "roc-package:6ZUwqYhCS8PU9Mo6MF7oV82ET2o7KYb57CLKDq4cq4sS",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "roc-package:Gj3zVDr3qrQa6aTh7Z1zgUfe9NeBE6R76T5ho3xrc8af",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "build-source:roc-CZsY7tYZwR3rj9kYbpaCfxki2yVAaRL8bBwMLvB2xkbA",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "build-source:roc-6ZUwqYhCS8PU9Mo6MF7oV82ET2o7KYb57CLKDq4cq4sS",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "build-source:roc-Gj3zVDr3qrQa6aTh7Z1zgUfe9NeBE6R76T5ho3xrc8af",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "task:sbom",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "task:sbom-tool",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "task:docs",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "task:docs-path",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "task:check",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "task:examples",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "task:bundle",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "task:test-bundle",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "task:package-examples",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "task:package-docs",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "task:check-version",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "task:release-notes",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "task:fetch-published",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "task:test-published",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "task:install-snippet",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "task:site",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "task:serve",
+      "component": "",
+      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    }
+  ],
+  "imported_documents": [],
+  "unavailable_sboms": []
+}

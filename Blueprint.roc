@@ -21,6 +21,8 @@ docs_renderer = |system| match system {
 	_ => Unavailable
 }
 
+sbom_app = "https://github.com/lukewilliamboswell/roc-blueprint/releases/download/0.7.0/roc-blueprint-sbom-2pLqc6Kr6KE3fw5JE4z17TMnhKYP3npqDMBTVm9K2oKP.tar.zst"
+
 config = [
 	Name("roc-ansi"),
 	Environment(
@@ -38,7 +40,21 @@ config = [
 		],
 	),
 	Environment("docs", [Programs([Fetch("roc-docs", docs_renderer)]), Expect(["realpath", "sh"])]),
+	Environment("sbom", [
+		Programs([
+			Fetch("roc-stable", Recipes.roc_nightly("nightly-2026-10-09-258ab27")),
+			Fetch("roc-sbom", Recipes.roc_nightly("nightly-2026-10-21-5349569")),
+		]),
+		RocPackages([
+			"https://github.com/roc-lang/basic-cli/releases/download/0.26.0-rc2/Gj3zVDr3qrQa6aTh7Z1zgUfe9NeBE6R76T5ho3xrc8af.tar.zst",
+			"https://github.com/roc-lang/basic-cli/releases/download/0.25.0/CZsY7tYZwR3rj9kYbpaCfxki2yVAaRL8bBwMLvB2xkbA.tar.zst",
+			"https://github.com/roc-lang/http/releases/download/1.0.0/6ZUwqYhCS8PU9Mo6MF7oV82ET2o7KYb57CLKDq4cq4sS.tar.zst",
+		]),
+		Expect(["blueprint", "env", "git", "realpath", "roc", "sh", "shasum", "tar"]),
+	]),
 	Shell("default", [Use("dev")]),
+	Task("sbom", [Use("sbom"), Run(["scripts/release_sbom.roc"])]),
+	Task("sbom-tool", [Use("sbom"), Run(["roc-sbom", "run", sbom_app])]),
 	Task("docs", [Use("docs"), Run(["roc-docs", "build", "--workspace", ".", "--docs-directory", "docs", "--entrypoint", "index.adoc", "--pdf-filename", "roc-ansi.pdf", "--site-url", "https://lukewilliamboswell.github.io/roc-ansi/"])]),
 	Task("docs-path", [Use("docs"), Run(["sh", "-c", "realpath \"$(command -v roc-docs)\""])]),
 	# Everything CI checks.

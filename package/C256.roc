@@ -1,3 +1,7 @@
+# Copyright © 2023 Luke Boswell and subsequent authors
+# Licensed under the Universal Permissive License (UPL), Version 1.0.
+# SPDX-License-Identifier: UPL-1.0
+
 import Rgb
 
 ## [Ansi 256 colors](https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit)
