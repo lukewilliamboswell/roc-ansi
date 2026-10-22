@@ -1,4 +1,6 @@
 # Development environment and tasks for roc-ansi, realised by roc-blueprint without Nix.
+# Until Blueprint 0.7 is released, the platform is a sibling roc-blueprint
+# checkout and `blueprint` below is the CLI built in it, ../roc-blueprint/blueprint.
 #
 #     blueprint run check    # everything CI checks
 #     blueprint run serve    # build the documentation site and preview it
@@ -9,7 +11,7 @@
 # release named below; it runs the scripts under scripts/. The package and the
 # examples are checked with whatever `roc` is on PATH, which is meant to be the
 # latest nightly, so nothing here provides a bare `roc`.
-app [config] { pf: platform "https://github.com/lukewilliamboswell/roc-blueprint/releases/download/0.6.0/BenWAmrQp3qFLJPgGerHFPzzAn7ouXDew69CCg2LTtQX.tar.zst" }
+app [config] { pf: platform "../roc-blueprint/blueprint-platform/main.roc" }
 
 import pf.Recipes
 
