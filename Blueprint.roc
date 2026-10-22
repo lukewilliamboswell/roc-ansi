@@ -1,6 +1,4 @@
 # Development environment and tasks for roc-ansi, realised by roc-blueprint without Nix.
-# Until Blueprint 0.7 is released, the platform is a sibling roc-blueprint
-# checkout and `blueprint` below is the CLI built in it, ../roc-blueprint/blueprint.
 #
 #     blueprint run check    # everything CI checks
 #     blueprint run serve    # build the documentation site and preview it
@@ -11,9 +9,17 @@
 # release named below; it runs the scripts under scripts/. The package and the
 # examples are checked with whatever `roc` is on PATH, which is meant to be the
 # latest nightly, so nothing here provides a bare `roc`.
-app [config] { pf: platform "../roc-blueprint/blueprint-platform/main.roc" }
+app [config] { pf: platform "https://github.com/lukewilliamboswell/roc-blueprint/releases/download/0.7.0/2zwBq8cAkEPfRNMaWgtwCsVwxSJ3z9FncazjNofBXspG.tar.zst" }
 
 import pf.Recipes
+import pf.Config
+import pf.System
+
+docs_renderer : System -> Config.Download
+docs_renderer = |system| match system {
+	"x86_64-linux" | "aarch64-linux" | "aarch64-darwin" => File("https://github.com/lukewilliamboswell/roc-automation/releases/download/tools-0.3.0/roc-docs-${system.to_str()}")
+	_ => Unavailable
+}
 
 config = [
 	Name("roc-ansi"),
@@ -31,7 +37,10 @@ config = [
 			Expect(["chmod", "gh", "git", "gzip", "roc", "shasum", "tar", "test", "touch", "unzip", "zip"]),
 		],
 	),
+	Environment("docs", [Programs([Fetch("roc-docs", docs_renderer)]), Expect(["realpath", "sh"])]),
 	Shell("default", [Use("dev")]),
+	Task("docs", [Use("docs"), Run(["roc-docs", "build", "--workspace", ".", "--docs-directory", "docs", "--entrypoint", "index.adoc", "--pdf-filename", "roc-ansi.pdf", "--site-url", "https://lukewilliamboswell.github.io/roc-ansi/"])]),
+	Task("docs-path", [Use("docs"), Run(["sh", "-c", "realpath \"$(command -v roc-docs)\""])]),
 	# Everything CI checks.
 	Task("check", [Use("dev"), Run(["scripts/check_all.roc"])]),
 	# The examples alone, compared with tests/spec.json. To record new output:

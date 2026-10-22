@@ -1,0 +1,24 @@
+= roc-ansi 0.13.3
+
+This patch changes no package APIs or example output. It upgrades the release
+examples archive to the canonical roc-automation compatibility suite format.
+The suite declares its release and immutable dependencies, and records explicit
+arguments, input, standard output, standard error and exit status for every case.
+
+== Use this release
+
+[source,roc]
+----
+app [main!] {
+    ansi: "{package-url}",
+}
+----
+
+== Tooling and documentation
+
+* Blueprint 0.7.0 provides the development environment without Nix.
+* roc-automation tools-0.3.0 renders the manual as HTML, PDF and Markdown,
+  replacing the Asciidoctor Docker image.
+* CI reports renderer provisioning, rendering, preparation and API reference
+  timings separately, with renderer memory and output sizes.
+* The shared nightly compatibility runner retains successful compiler diagnostics.

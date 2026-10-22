@@ -18,6 +18,7 @@ Spec := [].{
 		stdin : Try(Str, [Missing]),
 		exit_code : Try(I32, [Missing]),
 		stdout : Try(Str, [Missing]),
+		stderr : Try(Str, [Missing]),
 		skip : Try(Skip, [Missing]),
 	}
 
@@ -51,6 +52,34 @@ Spec := [].{
 	render : List(App) -> Str
 	render = |apps| {
 		compact = Json.to_str({ apps: apps })
+		"${Str.from_utf8_lossy(indent(Str.to_utf8(compact), 0, Outside, []))}\n"
+	}
+
+	## Canonical published-release suite consumed by roc-automation. Keep the
+	## editable repository spec compact while making every archived default explicit.
+	published : Str, Str, List(App) -> Str
+	published = |version, url, apps| {
+		compact = Json.to_str({
+			schema_version: 1.U64,
+			release: version,
+			dependencies: [url],
+			apps: apps.map(
+				|example| {
+					path: example.path,
+					cases: example.cases.map(
+						|case| {
+							name: case.name,
+							args: case.args.ok_or([]),
+							stdin: case.stdin.ok_or(""),
+							stdout: case.stdout.ok_or(""),
+							stderr: case.stderr.ok_or(""),
+							exit_code: case.exit_code.ok_or(0),
+							skip: case.skip,
+						},
+					),
+				},
+			),
+		})
 		"${Str.from_utf8_lossy(indent(Str.to_utf8(compact), 0, Outside, []))}\n"
 	}
 
@@ -105,7 +134,7 @@ indent = |bytes, depth, state, out|
 new_line = |out, depth| out.append('\n').concat(List.repeat(' ', depth * 2))
 
 case : Spec.Case
-case = { name: "default", args: Err(Missing), stdin: Err(Missing), exit_code: Err(Missing), stdout: Ok("a, \"b\"\n"), skip: Err(Missing) }
+case = { name: "default", args: Err(Missing), stdin: Err(Missing), exit_code: Err(Missing), stdout: Ok("a, \"b\"\n"), stderr: Err(Missing), skip: Err(Missing) }
 
 colors : Spec.App
 colors = { path: "examples/colors.roc", cases: [case] }
@@ -125,3 +154,6 @@ expect Spec.problems([{ path: "examples/colors.roc", cases: [{ ..case, stdout: E
 expect Spec.problems([{ path: "examples/colors.roc", cases: [{ ..case, skip: Ok({ reason: "", issue: "" }) }] }], ["examples/colors.roc"]) == ["examples/colors.roc [default]: a skip needs a reason", "examples/colors.roc [default]: a skip needs a link to the issue that tracks it"]
 expect Spec.problems([{ path: "examples/colors.roc", cases: [{ ..case, stdout: Err(Missing), skip: Ok({ reason: "compiler bug", issue: "https://github.com/roc-lang/roc/issues/1" }) }] }], ["examples/colors.roc"]) == []
 expect Spec.label(colors, case) == "colors" and Spec.label({ path: "examples/colors.roc", cases: [case, { ..case, name: "wide" }] }, case) == "colors [default]"
+
+expect Spec.parse(Spec.published("0.13.3", "https://example.com/bundle.tar.zst", [colors])) == Ok([{ ..colors, cases: [{ ..case, args: Ok([]), stdin: Ok(""), stderr: Ok(""), exit_code: Ok(0) }] }])
+expect Spec.published("0.13.3", "https://example.com/bundle.tar.zst", [colors]).contains("\"schema_version\": 1")

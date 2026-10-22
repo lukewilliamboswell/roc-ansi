@@ -5,19 +5,14 @@ runs:
   using: composite
   steps:
     - name: Install stable Blueprint and restore downloaded artifacts
-      uses: lukewilliamboswell/roc-automation/actions/setup-blueprint@8837e0fc99418b3fcbb04b25a0d789293858f15b
+      uses: lukewilliamboswell/roc-automation/actions/setup-blueprint@b47646ec2dee9c1f9f3acc984394832092acc4de # tools-0.3.0
       with:
         install-nix: 'false'
         cache: 'true'
         cache-workload: ${{ github.job }}
-        # This shared revision does not yet record stable 0.6.0 checksums.
-        # Reviewed against 0.6.0/blueprint.sha256 and its asset digests.
-        sha256-x86_64-linux: 027b2c4d48084d7f6a49b60a378b14dc19920de78c245db3ddffb1db034c74e0
-        sha256-aarch64-linux: f328879d0121f97bce52456dacd9a52a3f50f8dde68056797bb0163d02180a43
-        sha256-aarch64-darwin: a8dc735d1f022ba80eb835b31888149cd7ac9ec4c9e8d085ba94bfcb5d128857
 
-    # Run before installing the floating package compiler, so a temporarily
-    # matching nightly cannot leave the fixed bootstrap archive out of the cache.
+    # Validate the released platform contract and provision the embedded
+    # configuration compiler before installing the floating package compiler.
     - name: Validate configuration and provision Blueprint compiler
       shell: bash
       run: |
@@ -25,4 +20,4 @@ runs:
         blueprint check
         elapsed=$((SECONDS - start))
         echo "Blueprint configuration bootstrap and validation: $elapsed seconds"
-        printf '\n### Blueprint configuration bootstrap\n\n%s seconds, including any fixed compiler download, verification and configuration check.\n' "$elapsed" >> "$GITHUB_STEP_SUMMARY"
+        printf '\n### Blueprint configuration bootstrap\n\n%s seconds, including embedded compiler provisioning, verification and configuration check.\n' "$elapsed" >> "$GITHUB_STEP_SUMMARY"
