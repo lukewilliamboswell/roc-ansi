@@ -138,6 +138,20 @@ jobs:
           printf '%s  %s\n' 4126dc29f15e92feec92e9622f4939131ad58b125d6f578aa93e980a6e6f3212 sbom/schema/spdx-2.3.schema.json | sha256sum -c -
           "$RUNNER_TEMP/sbom-validator/bin/check-jsonschema" --schemafile sbom/schema/roc-ansi-source.schema.json dist/*.spdx-2.3.json
 
+      - name: Source SBOMs enter source and native inventories
+        run: |
+          set -euo pipefail
+          fixture=tests/supply-chain/blueprint-source-import
+          for target in source x86_64-linux aarch64-linux; do
+            blueprint run sbom-tool -- inspect "$fixture/Spec" "$fixture/Lock" "$fixture/composition.json" "$target" "$RUNNER_TEMP/source-import-$target.json"
+          done
+          jq '.imported_documents[0].sha256 = ("0" * 64)' "$fixture/composition.json" > "$RUNNER_TEMP/bad-supplier.json"
+          if blueprint run sbom-tool -- inspect "$fixture/Spec" "$fixture/Lock" "$RUNNER_TEMP/bad-supplier.json" x86_64-linux "$RUNNER_TEMP/invalid-import.json" > "$RUNNER_TEMP/invalid-import.log" 2>&1; then
+            echo 'A modified supplier document was accepted' >&2
+            exit 1
+          fi
+          grep -F 'imported SBOM content digest mismatch' "$RUNNER_TEMP/invalid-import.log"
+
       # The manual attached to a release names that release.
 
       - name: Write the parts of the manual that depend on what is released
@@ -187,6 +201,8 @@ jobs:
             dist/*.cdx.json
             dist/*.sbom-inventory.json
             dist/*.sbom-evidence.json
+            dist/*.sbom-members.json
+            dist/*.sbom-manifest.json
             dist/LICENSE
             dist/roc-ansi-examples-*.zip
             dist/roc-ansi-docs-*.zip
@@ -264,7 +280,7 @@ jobs:
           set -euo pipefail
           test -n "$BUNDLE"
           test "$(basename "$BUNDLE")" = "$BUNDLE"
-          for suffix in '' .spdx.json .spdx-2.3.json .cdx.json .sbom-inventory.json .sbom-evidence.json; do
+          for suffix in '' .spdx.json .spdx-2.3.json .cdx.json .sbom-inventory.json .sbom-evidence.json .sbom-members.json .sbom-manifest.json .spdx-2.3.sbom-manifest.json; do
             test -f "candidate/dist/$BUNDLE$suffix"
             test ! -L "candidate/dist/$BUNDLE$suffix"
           done
@@ -283,6 +299,24 @@ jobs:
               '[.sidecars[] | select(.filename == $file and .sha256 == $sha and .bytes == $bytes)] | length == 1' \
               "candidate/dist/$BUNDLE.sbom-evidence.json"
           done
+          members_sha=$(sha256sum "candidate/dist/$BUNDLE.sbom-members.json" | cut -d ' ' -f 1)
+          jq -e --arg sha "$members_sha" '.members_sha256 == $sha and (.manifests | length) == 2' "candidate/dist/$BUNDLE.sbom-evidence.json"
+          jq -e --arg file "$BUNDLE" --arg sha "$digest" '.archive == $file and .sha256 == $sha and (.members | length) > 0' "candidate/dist/$BUNDLE.sbom-members.json"
+          for suffix in .sbom-manifest.json .spdx-2.3.sbom-manifest.json; do
+            manifest_sha=$(sha256sum "candidate/dist/$BUNDLE$suffix" | cut -d ' ' -f 1)
+            manifest_bytes=$(wc -c < "candidate/dist/$BUNDLE$suffix")
+            jq -e --arg file "$BUNDLE$suffix" --arg sha "$manifest_sha" --argjson bytes "$manifest_bytes" \
+              '[.manifests[] | select(.filename == $file and .sha256 == $sha and .bytes == $bytes)] | length == 1' "candidate/dist/$BUNDLE.sbom-evidence.json"
+            jq -e --arg file "$BUNDLE" --arg version "$VERSION" --arg sha "$digest" --argjson bytes "$bytes" --arg inventory "$inventory" \
+              '.profile == "blueprint-spdx-3.0-v1" and .subject.filename == $file and .subject.version == $version and .subject.target == "source" and .subject.sha256 == $sha and .subject.size == $bytes and .inventory_sha256 == $inventory' "candidate/dist/$BUNDLE$suffix"
+            jq -e --slurpfile evidence "candidate/dist/$BUNDLE.sbom-evidence.json" \
+              'all(.sidecars[]; . as $item | any($evidence[0].sidecars[]; .filename == $item.filename and .sha256 == $item.sha256 and .bytes == $item.size))' "candidate/dist/$BUNDLE$suffix"
+            if [ "$suffix" = .sbom-manifest.json ]; then
+              jq -e --arg b "$BUNDLE" '[.sidecars[] | {filename,format}] == [{filename:($b+".cdx.json"),format:"cyclonedx-1.7"},{filename:($b+".spdx.json"),format:"spdx-3.0.1"}]' "candidate/dist/$BUNDLE$suffix"
+            else
+              jq -e --arg b "$BUNDLE" '[.sidecars[] | {filename,format}] == [{filename:($b+".spdx-2.3.json"),format:"spdx-2.3"}]' "candidate/dist/$BUNDLE$suffix"
+            fi
+          done
           jq -e --arg file "$BUNDLE" --arg version "$VERSION" --arg sha "$digest" \
             '[.packages[] | select(.SPDXID == "SPDXRef-Subject")] | length == 1 and .[0].name == $file and .[0].versionInfo == $version and .[0].checksums == [{algorithm:"SHA256",checksumValue:$sha}]' \
             "candidate/dist/$BUNDLE.spdx-2.3.json"
@@ -290,7 +324,7 @@ jobs:
             test -f "$file" && test ! -L "$file"
           done
           assets=(candidate/dist/* candidate/.docs-out/*.pdf)
-          test "${#assets[@]}" = 10
+          test "${#assets[@]}" = 13
 
       - name: Attest the tested release assets and SBOM evidence
         id: provenance

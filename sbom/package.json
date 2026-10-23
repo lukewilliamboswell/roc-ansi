@@ -28,7 +28,8 @@
       "identity": "https://github.com/roc-lang/nightlies/releases/tag/@COMPILER@",
       "download": "NOASSERTION",
       "sha256": "@COMPILER_SHA256@"
-    }
+    },
+    "@ARCHIVE_COMPONENTS@"
   ],
   "relationships": [
     {
@@ -44,7 +45,8 @@
       "relation": "dependsOn",
       "scope": "build",
       "basis": "Compiler used for roc bundle; compiler code is not shipped inside the source archive."
-    }
+    },
+    "@ARCHIVE_RELATIONSHIPS@"
   ],
   "coverage": [
     {
@@ -109,26 +111,6 @@
       "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
     },
     {
-      "input": "program:roc-sbom:x86_64-linux",
-      "component": "",
-      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
-    },
-    {
-      "input": "program:roc-sbom:aarch64-linux",
-      "component": "",
-      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
-    },
-    {
-      "input": "program:roc-sbom:x86_64-darwin",
-      "component": "",
-      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
-    },
-    {
-      "input": "program:roc-sbom:aarch64-darwin",
-      "component": "",
-      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
-    },
-    {
       "input": "roc-package:CZsY7tYZwR3rj9kYbpaCfxki2yVAaRL8bBwMLvB2xkbA",
       "component": "",
       "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
@@ -139,22 +121,12 @@
       "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
     },
     {
-      "input": "roc-package:Gj3zVDr3qrQa6aTh7Z1zgUfe9NeBE6R76T5ho3xrc8af",
-      "component": "",
-      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
-    },
-    {
       "input": "build-source:roc-CZsY7tYZwR3rj9kYbpaCfxki2yVAaRL8bBwMLvB2xkbA",
       "component": "",
       "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
     },
     {
       "input": "build-source:roc-6ZUwqYhCS8PU9Mo6MF7oV82ET2o7KYb57CLKDq4cq4sS",
-      "component": "",
-      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
-    },
-    {
-      "input": "build-source:roc-Gj3zVDr3qrQa6aTh7Z1zgUfe9NeBE6R76T5ho3xrc8af",
       "component": "",
       "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
     },
@@ -242,6 +214,21 @@
       "input": "task:serve",
       "component": "",
       "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "program:blueprint-sbom:x86_64-linux",
+      "component": "",
+      "reason": "Native SBOM generator; its code is not included in the source bundle."
+    },
+    {
+      "input": "program:blueprint-sbom:aarch64-linux",
+      "component": "",
+      "reason": "Native SBOM generator; its code is not included in the source bundle."
+    },
+    {
+      "input": "program:blueprint-sbom:aarch64-darwin",
+      "component": "",
+      "reason": "Native SBOM generator; its code is not included in the source bundle."
     }
   ],
   "imported_documents": [],
