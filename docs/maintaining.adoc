@@ -131,7 +131,7 @@ A release holds:
 | `<hash>.tar.zst.sbom-inventory.json`, `.sbom-evidence.json`
 | Resolved source inventory and the exact file/source/run mappings
 
-| `<hash>.tar.zst.sbom-members.json`, `.sbom-manifest.json`, `.spdx-2.3.sbom-manifest.json`
+| SBOM member list and manifests
 | Archive-member inventory and producer manifests binding each SBOM to its bytes
 
 | `roc-ansi-provenance.sigstore.json`, `roc-ansi-sbom.sigstore.json`
