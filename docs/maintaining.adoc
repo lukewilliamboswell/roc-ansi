@@ -28,27 +28,33 @@ which gives the reasons behind each practice.
 | The manual and site build; `main` deploys them
 |===
 
-The package is pure Roc, so every job runs on Linux only. Blueprint fetches
-its tooling compiler directly; no workflow installs Nix. The local setup action
-calls roc-automation's shared installer with Nix disabled and artifact caching
-enabled. Cache keys distinguish the workflow, job, Blueprint release, installer
-and lock.
+The package is pure Roc, so CI uses Linux without Nix. The local setup action
+pins roc-automation tools-0.3.0 and selects Blueprint 0.8.0 from the platform
+URL. The shared installer verifies and caches the CLI by release, system and
+executable digest. Blueprint embeds its configuration compiler; the separate
+`roc-stable` script compiler remains pinned, and the package nightly floats.
 
-Extracted trees are rebuilt from verified artifacts; Roc package sources use
-a separate cache. Setup provisions Blueprint's fixed configuration compiler
-before installing the floating package nightly, so its archive is saved even
-when those compiler versions temporarily match. Job summaries report the
-verified installer, cache hit and bootstrap duration. CI checks that every task
-reports no package provider and runs with no `nix` on `PATH`.
+Downloaded utilities and compiler archives use Blueprint's verified artifact
+cache, keyed by workflow, job, Blueprint release and lock. Extracted trees are
+recreated and verified, while Roc package sources have a separate cache. A cold
+job downloads the locked utilities; a warm job restores and verifies them.
+Changing the lock invalidates the corresponding cache key. The floating nightly
+may still need a fresh download when its version changes.
 
-`nightly.yml` keeps one tracking issue: opened on the first failure, updated by
-later failures, and closed by the next pass. A failure there means the latest
-release needs a patch release. A published archive is never edited. A run that
-fails before any example ran, such as a failed download, opens no issue.
+The documentation jobs use `blueprint-tool` to resolve `docs-path` to the
+verified renderer in the store. CI reports executable digest and bytes,
+provisioning duration, native rendering time and peak RSS, output file sizes,
+and separate preparation and API generation timings. Rendering uses a
+precompiled Roc binary rather than an Asciidoctor Docker image. The site's HTML,
+PDF, Markdown and `llms.txt` come from the same AsciiDoc sources.
 
-To re-run a past combination, dispatch `nightly.yml` with a `nightly_tag`, a
-`release_tag`, or both. Left empty, they mean the latest nightly and the latest
-full release.
+The nightly rollout follows the 0.13.3 patch release: its examples archive
+contains the canonical version-1 suite required by the shared compatibility
+runner. Earlier archives remain immutable. After publication, `nightly.yml`
+will delegate to roc-automation's pinned published-release workflow. Successful
+compiler diagnostics are retained; incomplete or failed setup cannot be
+reported as a compatibility pass. Exact release and nightly overrides provide
+read-only diagnostic reruns.
 
 == Update the tooling
 
@@ -64,7 +70,8 @@ the pinned shared setup action in `.github/actions/setup-blueprint/action.yml`.
 Use a shared revision that records that release's checksums, or supply reviewed
 `sha256-*` overrides in the local action when adopting a release ahead of its
 registry. Remove overrides when the shared registry covers the release.
-Run `blueprint update` and review the lock.
+Run `blueprint update` and review `blueprint lock show --json` (format 2)
+as well as the lock diff.
 Update a script dependency:: Change its URL in every script header and under
 `RocPackages` in `Blueprint.roc`. Task-only Roc bundles are content-addressed
 and are not recorded in the lock.
@@ -117,6 +124,21 @@ A release holds:
 
 | `roc-ansi-<version>.pdf`
 | This manual
+
+| `<hash>.tar.zst.spdx.json`, `.spdx-2.3.json`, `.cdx.json`
+| Source-bundle SBOMs: SPDX 3.0.1/2.3 and CycloneDX 1.7
+
+| `<hash>.tar.zst.sbom-inventory.json`, `.sbom-evidence.json`
+| Resolved source inventory and the exact file/source/run mappings
+
+| SBOM member list and manifests
+| Archive-member inventory and producer manifests binding each SBOM to its bytes
+
+| `roc-ansi-provenance.sigstore.json`, `roc-ansi-sbom.sigstore.json`
+| Retained provenance and source-composition attestations
+
+| `LICENSE`
+| Copyright and UPL-1.0 terms, also referenced inside each source module
 |===
 
 No follow-up pull request is needed, because nothing on `main` names its own

@@ -36,15 +36,26 @@ jobs:
           version: nightly-new-compiler
 
       # The first program in the manual names the latest release's bundle URL.
+      - name: Provision and measure the locked documentation renderer
+        id: renderer
+        uses: lukewilliamboswell/roc-automation/actions/blueprint-tool@b47646ec2dee9c1f9f3acc984394832092acc4de # tools-0.3.0
+        with:
+          task: docs-path
+          label: roc-docs tools-0.3.0
+          measure: 'true'
+          output-directory: .docs-out
+
       - name: Write the parts of the manual that depend on what is released
         env:
           GH_TOKEN: ${{ github.token }}
-        run: blueprint run install-snippet
+        run: python3 "${{ steps.renderer.outputs.measure-script }}" --label preparation --metrics "$RUNNER_TEMP/docs-preparation.json" -- blueprint run install-snippet
 
       - id: docs
         name: Render the manual as a site and a PDF
-        uses: lukewilliamboswell/roc-automation/actions/build-docs@7fdb8be46b12da9b119023c3a5aac28a9fdaa72b
+        uses: lukewilliamboswell/roc-automation/actions/build-docs@b47646ec2dee9c1f9f3acc984394832092acc4de # tools-0.3.0
         with:
+          renderer-binary: ${{ steps.renderer.outputs.binary }}
+          site-url: https://lukewilliamboswell.github.io/roc-ansi/
           pdf-filename: roc-ansi.pdf
           docs-version: ${{ github.event_name == 'pull_request' && format('main (pull request {0})', github.event.number) || 'main' }}
 
@@ -53,7 +64,18 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           FETCH_RELEASE_DOCS: "1"
           SITE_OUTPUT: ${{ steps.docs.outputs.site-directory }}
-        run: blueprint run site
+        run: python3 "${{ steps.renderer.outputs.measure-script }}" --label api --metrics "$RUNNER_TEMP/docs-api.json" --output "$SITE_OUTPUT" -- blueprint run site
+
+      - name: Retain documentation measurements
+        if: always() && steps.renderer.outputs.metrics-path != ''
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: docs-metrics-${{ github.job }}
+          path: |
+            ${{ steps.renderer.outputs.metrics-path }}
+            ${{ runner.temp }}/docs-preparation.json
+            ${{ runner.temp }}/docs-api.json
+          retention-days: 7
 
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:

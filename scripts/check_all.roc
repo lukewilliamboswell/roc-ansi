@@ -17,6 +17,7 @@ import src/Headers
 import src/Release
 import src/Script
 import src/Site
+import src/Spec
 
 ## Everything CI checks, in one command.
 ##
@@ -158,8 +159,12 @@ check_release_artifacts! = |roc| {
 					return Script.fail!("the archived ${Path.display(example.path)} differs by more than its package dependency")
 				}
 			}
-			if Path.read_utf8!(unpacked.spec)? != Path.read_utf8!(Archive.spec)? {
-				return Script.fail!("the examples archive does not hold ${Path.display(Archive.spec)} unchanged")
+			apps = match Spec.parse(Path.read_utf8!(Archive.spec)?) {
+				Ok(value) => value
+				Err(_) => return Script.fail!("invalid examples specification")
+			}
+			if Path.read_utf8!(unpacked.spec)? != Spec.published(unpacked.version, unpacked.url, apps) {
+				return Script.fail!("the examples archive does not hold the canonical release suite with unchanged expectations")
 			}
 			Script.pass!("archived examples differ from the repository's only in the package dependency")
 		},

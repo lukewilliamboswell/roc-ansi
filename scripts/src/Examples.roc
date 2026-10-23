@@ -199,12 +199,18 @@ case! = |options, executable, case| {
 		Ok(text) => text
 		Err(_) => return Ok({ case, outcome: Fail, problem: "stdout is not UTF-8" })
 	}
+	actual_stderr = match Str.from_utf8(output.stderr_bytes) {
+		Ok(text) => text
+		Err(_) => return Ok({ case, outcome: Fail, problem: "stderr is not UTF-8" })
+	}
 	match options.mode {
-		Update => Ok({ case: { ..case, stdout: Ok(actual), exit_code: if code == 0 Err(Missing) else Ok(code) }, outcome: Pass, problem: "" })
+		Update => Ok({ case: { ..case, stderr: if actual_stderr == "" Err(Missing) else Ok(actual_stderr), stdout: Ok(actual), exit_code: if code == 0 Err(Missing) else Ok(code) }, outcome: Pass, problem: "" })
 		Compare => {
 			wanted_code = case.exit_code ?? 0
 			problem = if code != wanted_code {
 				"expected exit code ${wanted_code.to_str()}, got ${code.to_str()}\n${Str.from_utf8_lossy(output.stderr_bytes)}"
+			} else if actual_stderr != (case.stderr ?? "") {
+				"unexpected stderr\n    expected ${visible(case.stderr ?? "")}\n    actual   ${visible(actual_stderr)}"
 			} else {
 				match case.stdout {
 					Ok(wanted) if wanted != actual => "unexpected stdout\n    expected ${visible(wanted)}\n    actual   ${visible(actual)}"

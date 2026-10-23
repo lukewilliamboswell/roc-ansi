@@ -19,7 +19,7 @@ You need three things:
 * A current Roc https://github.com/roc-lang/nightlies/releases[nightly] on your
   `PATH` as `roc`.
 * The host tools listed in `Expect` in `Blueprint.roc`: `chmod`, `gh`, `git`,
-  `gzip`, `shasum`, `tar`, `test`, `touch`, `unzip` and `zip`.
+  `gzip`, `realpath`, `sh`, `shasum`, `tar`, `test`, `touch`, `unzip` and `zip`.
 
 Nix is not needed. The file and archive tools supplied by Linux and macOS
 work; GNU coreutils is not required. Install GitHub CLI (`gh`) separately.
@@ -50,6 +50,10 @@ package, and it only exists inside `blueprint run` and `blueprint shell`.
 Nothing pins a compiler for the package or the examples. Each script names
 `roc-stable`'s release in its `roc` header field, so that running one with a
 different compiler says why it misbehaves.
+
+The released SBOM utility is a checksum-locked native executable from Blueprint
+0.8.0. `blueprint run sbom` provisions it without compiling an SBOM app or
+installing another Roc compiler. Blueprint embeds its configuration compiler.
 
 == Run the checks
 
@@ -160,19 +164,20 @@ platform because its host counts allocations. Nothing is fuzzed there.
 The manual is the AsciiDoc under `docs/`, one chapter per file, rendered by the
 shared https://lukewilliamboswell.github.io/roc-automation/#build-docs[build-docs]
 action. Every pull request builds it, and the site can be downloaded from the
-`Documentation` workflow run. To build it yourself you need Docker and a
-checkout of roc-automation:
+`Documentation` workflow run. Blueprint provisions the locked native renderer
+from roc-automation tools-0.3.0; no container or sibling checkout is needed:
 
 [source,sh]
 ----
 blueprint run install-snippet
-python3 ../roc-automation/actions/build-docs/build_docs.py --workspace . --pdf-filename roc-ansi.pdf
+blueprint run docs -- --docs-version main
 blueprint run serve
 ----
 
 The first command writes the parts of the manual that depend on what has been
 released into `docs/generated/`, which needs `gh` to be authenticated. The
-second renders the site and the PDF into `.docs-out/site`. The last adds the
+second renders HTML and chapter Markdown into `.docs-out/site`, and the PDF
+into `.docs-out/roc-ansi.pdf`. The last adds the
 API reference for `main` and serves the site on a free port, or the one named
 by `SITE_PORT`; with `FETCH_RELEASE_DOCS=1` it also restores the API reference
 of every release.

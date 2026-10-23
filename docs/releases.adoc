@@ -4,4 +4,6 @@ Each release has its notes in `docs/releases/`, newest first. Releases before
 0.13.2 have theirs on the
 https://github.com/lukewilliamboswell/roc-ansi/releases[releases page].
 
+include::releases/0.13.3.adoc[leveloffset=+1]
+
 include::releases/0.13.2.adoc[leveloffset=+1]

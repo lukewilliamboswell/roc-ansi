@@ -5,6 +5,7 @@ import Files
 import Headers
 import Release
 import Script
+import Spec
 import Text
 
 ## The examples archive attached to each release.
@@ -60,7 +61,11 @@ Archive := [].{
 				Path.create_all!(staged_examples)?
 				names = stage_examples!(Files.direct_roc_files!("examples")?, staged_examples, url, [])?
 				Path.write_utf8!(Path.join(stage, "README.md"), Release.examples_readme(version, url))?
-				Path.copy!(Archive.spec, Path.join(stage, "spec.json"))?
+				apps = match Spec.parse(Path.read_utf8!(Archive.spec)?) {
+					Ok(value) => value
+					Err(_) => return Script.fail!("invalid examples specification")
+				}
+				Path.write_utf8!(Path.join(stage, "spec.json"), Spec.published(version, url, apps))?
 				entries = ["${root}/README.md", "${root}/spec.json"].concat(names.map(|name| "${root}/examples/${name}"))
 				# -X leaves out owner and timestamp extras; -@ reads the entries to add.
 				_ = Script.command("zip").capture!(["-q", "-X", Path.to_os_str(archive), "-@"], temporary, Str.to_utf8(Str.join_with(entries, "\n")))?
