@@ -7,9 +7,9 @@
 #
 # `roc-stable` runs repository scripts; `roc` on PATH tests the package and
 # examples on the latest nightly, so nothing here provides a bare `roc`.
-# The released SBOM app has its own matching `roc-sbom` compiler. Blueprint
-# embeds its configuration compiler independently of these environment inputs.
-app [config] { pf: platform "https://github.com/lukewilliamboswell/roc-blueprint/releases/download/0.7.0/2zwBq8cAkEPfRNMaWgtwCsVwxSJ3z9FncazjNofBXspG.tar.zst" }
+# The released SBOM utility is a native executable. Blueprint embeds its
+# configuration compiler independently of these environment inputs.
+app [config] { pf: platform "https://github.com/lukewilliamboswell/roc-blueprint/releases/download/0.8.0/FbJymjYdCxx9vqMcau7r4tQfeAbnVGqqJoYrLGqPCqKu.tar.zst" }
 
 import pf.Recipes
 import pf.Config
@@ -21,7 +21,11 @@ docs_renderer = |system| match system {
 	_ => Unavailable
 }
 
-sbom_app = "https://github.com/lukewilliamboswell/roc-blueprint/releases/download/0.7.0/roc-blueprint-sbom-2pLqc6Kr6KE3fw5JE4z17TMnhKYP3npqDMBTVm9K2oKP.tar.zst"
+sbom_binary : System -> Config.Download
+sbom_binary = |system| match system {
+	"x86_64-linux" | "aarch64-linux" | "aarch64-darwin" => File("https://github.com/lukewilliamboswell/roc-blueprint/releases/download/0.8.0/blueprint-sbom-${system.to_str()}")
+	_ => Unavailable
+}
 
 config = [
 	Name("roc-ansi"),
@@ -42,19 +46,12 @@ config = [
 	Environment("docs", [Programs([Fetch("roc-docs", docs_renderer)]), Expect(["realpath", "sh"])]),
 	Environment("sbom", [
 		Extend("dev"),
-		Programs([
-			Fetch("roc-sbom", Recipes.roc_nightly("nightly-2026-10-21-5349569")),
-		]),
-		RocPackages([
-			"https://github.com/roc-lang/basic-cli/releases/download/0.26.0-rc2/Gj3zVDr3qrQa6aTh7Z1zgUfe9NeBE6R76T5ho3xrc8af.tar.zst",
-			"https://github.com/roc-lang/basic-cli/releases/download/0.25.0/CZsY7tYZwR3rj9kYbpaCfxki2yVAaRL8bBwMLvB2xkbA.tar.zst",
-			"https://github.com/roc-lang/http/releases/download/1.0.0/6ZUwqYhCS8PU9Mo6MF7oV82ET2o7KYb57CLKDq4cq4sS.tar.zst",
-		]),
+		Programs([Fetch("blueprint-sbom", sbom_binary)]),
 		Expect(["blueprint", "env", "git", "realpath", "roc", "sh", "shasum", "tar"]),
 	]),
 	Shell("default", [Use("dev")]),
 	Task("sbom", [Use("sbom"), Run(["scripts/release_sbom.roc"])]),
-	Task("sbom-tool", [Use("sbom"), Run(["roc-sbom", "run", sbom_app])]),
+	Task("sbom-tool", [Use("sbom"), Run(["blueprint-sbom"])]),
 	Task("docs", [Use("docs"), Run(["roc-docs", "build", "--workspace", ".", "--docs-directory", "docs", "--entrypoint", "index.adoc", "--pdf-filename", "roc-ansi.pdf", "--site-url", "https://lukewilliamboswell.github.io/roc-ansi/"])]),
 	Task("docs-path", [Use("docs"), Run(["sh", "-c", "realpath \"$(command -v roc-docs)\""])]),
 	# Everything CI checks.

@@ -29,7 +29,7 @@ which gives the reasons behind each practice.
 |===
 
 The package is pure Roc, so CI uses Linux without Nix. The local setup action
-pins roc-automation tools-0.3.0 and selects Blueprint 0.7.0 from the platform
+pins roc-automation tools-0.3.0 and selects Blueprint 0.8.0 from the platform
 URL. The shared installer verifies and caches the CLI by release, system and
 executable digest. Blueprint embeds its configuration compiler; the separate
 `roc-stable` script compiler remains pinned, and the package nightly floats.
@@ -130,6 +130,9 @@ A release holds:
 
 | `<hash>.tar.zst.sbom-inventory.json`, `.sbom-evidence.json`
 | Resolved source inventory and the exact file/source/run mappings
+
+| `<hash>.tar.zst.sbom-members.json`, `.sbom-manifest.json`, `.spdx-2.3.sbom-manifest.json`
+| Archive-member inventory and producer manifests binding each SBOM to its bytes
 
 | `roc-ansi-provenance.sigstore.json`, `roc-ansi-sbom.sigstore.json`
 | Retained provenance and source-composition attestations
