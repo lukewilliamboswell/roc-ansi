@@ -1,133 +1,31 @@
 name: Nightly compatibility
 
-# Answers one question each day: does the release people download today still
-# work with today's compiler?
-#
-# It runs the examples archive attached to the latest release, exactly as
-# published, on the latest Roc nightly. Nothing from the default branch is
-# tested except the scripts that drive the run. A failure means the release
-# needs a patch release; this workflow never commits, merges or publishes.
+# Examples archives from package release 0.13.3 use the canonical specification.
+# The shared workflow selects one immutable release/compiler pair and owns
+# validation, successful compiler diagnostics, execution and issue reporting.
 on:
   schedule:
-    # Once daily, about four hours after the upstream 09:00 UTC build.
     - cron: "7 13 * * *"
   workflow_dispatch:
     inputs:
-      nightly_tag:
-        description: "Nightly release tag to test with, e.g. nightly-2026-10-09-258ab27; empty uses the latest"
+      nightly-tag:
+        description: "Exact nightly tag for a diagnostic rerun; empty resolves latest"
         type: string
         default: ""
-      release_tag:
-        description: "Release to test, e.g. 0.13.2; empty uses the latest full release"
+      release-tag:
+        description: "Exact final release tag for a diagnostic rerun; empty resolves latest"
         type: string
         default: ""
 
 permissions: {}
 
-concurrency:
-  group: nightly-compatibility
-  cancel-in-progress: false
-
 jobs:
-  test:
-    name: Latest release on the latest nightly
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
+  compatibility:
     permissions:
       contents: read
-    outputs:
-      nightly: ${{ steps.nightly.outputs.tag }}
-      release: ${{ steps.release.outputs.tag }}
-      # The outcome of the one step that runs the examples. It is empty when
-      # an earlier step failed, which says nothing about compatibility.
-      outcome: ${{ steps.examples.outcome }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      # Resolved once, so the whole run uses one compiler.
-      - name: Resolve the Roc nightly
-        id: nightly
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REQUESTED: ${{ inputs.nightly_tag }}
-        run: |
-          tag="$REQUESTED"
-          if [ -z "$tag" ]; then
-            tag="$(gh api repos/roc-lang/nightlies/releases/latest --jq .tag_name)"
-          fi
-          case "$tag" in
-            nightly-*) echo "tag=$tag" >> "$GITHUB_OUTPUT" ;;
-            *) echo "::error::not a nightly release tag: $tag"; exit 1 ;;
-          esac
-
-      - name: Install blueprint without Nix
-        uses: ./.github/actions/setup-blueprint
-
-      - name: Install the Roc nightly
-        uses: roc-lang/setup-roc@f5a74bf90aa694b43ab4a7cbfdb19273bc6aa697
-        with:
-          version: nightly-new-compiler
-          nightly-tag: ${{ steps.nightly.outputs.tag }}
-
-      # Before anything has been released this reports no archive, and the
-      # run passes with a notice.
-      - name: Download the release's examples archive
-        id: release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ inputs.release_tag }}
-          OUTPUT_DIR: ${{ runner.temp }}/published
-        run: blueprint run fetch-published
-
-      - name: Test the examples archive as published
-        id: examples
-        if: steps.release.outputs.archive != ''
-        env:
-          EXAMPLES_ARCHIVE: ${{ steps.release.outputs.archive }}
-        run: blueprint run test-published
-
-  # Keeps one tracking issue: opened on the first failure, updated on later
-  # failures, closed on the next pass. It checks out nothing and runs no code
-  # from this repository or from a release. It acts only on the result of
-  # running the examples: a run that failed before then, in setup or in the
-  # download, says nothing about the release and opens no issue.
-  report:
-    name: Track the result in an issue
-    needs: test
-    if: ${{ always() && (needs.test.outputs.outcome == 'success' || needs.test.outputs.outcome == 'failure') }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
       issues: write
-    steps:
-      - name: Open, update or close the tracking issue
-        env:
-          GH_TOKEN: ${{ github.token }}
-          OUTCOME: ${{ needs.test.outputs.outcome }}
-          NIGHTLY: ${{ needs.test.outputs.nightly }}
-          RELEASE: ${{ needs.test.outputs.release }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          TITLE: The latest release fails on the latest Roc nightly
-        run: |
-          set -euo pipefail
-          # Only an issue this workflow opened is ever updated or closed.
-          number=$(
-            gh issue list --repo "$GITHUB_REPOSITORY" --state open --limit 200 --json number,title,author |
-              jq --raw-output --arg title "$TITLE" \
-                '[.[] | select(.title == $title and .author.is_bot)][0].number // empty'
-          )
-          if [ "$OUTCOME" = success ]; then
-            if [ -n "$number" ]; then
-              gh issue close "$number" --repo "$GITHUB_REPOSITORY" \
-                --comment "Release $RELEASE passes with $NIGHTLY: $RUN_URL"
-            fi
-          elif [ -n "$number" ]; then
-            gh issue comment "$number" --repo "$GITHUB_REPOSITORY" \
-              --body "Release $RELEASE still fails with $NIGHTLY: $RUN_URL"
-          else
-            gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body "The examples archive of release $RELEASE failed with $NIGHTLY: $RUN_URL
-
-          The archive is immutable, so the fix is a patch release that works with this compiler. This issue is updated by each failing run of the Nightly compatibility workflow and closed by the next passing one."
-          fi
+    uses: lukewilliamboswell/roc-automation/.github/workflows/nightly-compatibility.yml@7aff4132691ad4fc348abe9df146a57512b49bd6 # tools-0.4.0
+    with:
+      nightly-tag: ${{ inputs.nightly-tag || '' }}
+      release-tag: ${{ inputs.release-tag || '' }}
+      runners: '["ubuntu-24.04"]'
