@@ -34,7 +34,7 @@ jobs:
       release_version: ${{ steps.validate.outputs.release_version }}
       is_prerelease: ${{ steps.validate.outputs.is_prerelease }}
       nightly_tag: ${{ steps.nightly.outputs.tag }}
-      bundle_filename: ${{ steps.sbom.outputs.bundle }}
+      bundle_filename: ${{ steps.sbom_inputs.outputs.bundle }}
 
     steps:
       - name: Require the default branch for publication
@@ -73,7 +73,7 @@ jobs:
           release_version: ${{ github.event_name == 'workflow_dispatch' && inputs.release_version || '' }}
           dry_run: ${{ github.event_name != 'workflow_dispatch' }}
           # Roc rejects 0.0.0 in a package URL, so this is the lowest version.
-          dry_run_version: 0.0.1-dry-run
+          dry_run_version: 0.0.1-dryrun
           github_token: ${{ github.token }}
 
       # Requires the release notes, and stops a version that understates what
@@ -104,25 +104,53 @@ jobs:
 
       - name: Provision and measure the locked documentation renderer
         id: renderer
-        uses: lukewilliamboswell/roc-automation/actions/blueprint-tool@b47646ec2dee9c1f9f3acc984394832092acc4de # tools-0.3.0
+        uses: lukewilliamboswell/roc-automation/actions/blueprint-tool@7aff4132691ad4fc348abe9df146a57512b49bd6 # tools-0.4.0
         with:
           task: docs-path
-          label: roc-docs tools-0.3.0
+          label: roc-docs tools-0.4.0
           measure: 'true'
           output-directory: .docs-out
 
 
-      - name: Generate and validate artifact-bound source SBOMs
-        id: sbom
+      - name: Check committed source and prepare the reviewed composition
+        id: sbom_inputs
         env:
           RELEASE_VERSION: ${{ steps.validate.outputs.release_version }}
         run: |
           set -euo pipefail
-          python3 "${{ steps.renderer.outputs.measure-script }}" --label source-sbom --metrics "$RUNNER_TEMP/source-sbom.json" --output dist -- blueprint run sbom
+          python3 "${{ steps.renderer.outputs.measure-script }}" --label source-sbom-prepare --metrics "$RUNNER_TEMP/source-sbom-prepare.json" -- blueprint run prepare-sbom
           cp LICENSE dist/LICENSE
           bundles=(dist/*.tar.zst)
           test "${#bundles[@]}" = 1
           printf 'bundle=%s\n' "$(basename "${bundles[0]}")" >> "$GITHUB_OUTPUT"
+          printf 'started=%s\n' "$(date +%s)" >> "$GITHUB_OUTPUT"
+
+      - name: Generate and check SBOMs with the shared native tool
+        id: sbom
+        uses: lukewilliamboswell/roc-automation/actions/sbom-sidecars@7aff4132691ad4fc348abe9df146a57512b49bd6 # tools-0.4.0
+        with:
+          files: dist/${{ steps.sbom_inputs.outputs.bundle }}
+          version: ${{ steps.validate.outputs.release_version }}
+          target: source
+          author: 'Person: Luke Boswell'
+          composition: .blueprint/sbom/prepared/composition.json
+          archive-members: reviewed
+          spdx-2-3: 'true'
+          url-base: https://github.com/${{ github.repository }}/releases/download/${{ steps.validate.outputs.release_version }}
+          namespace-base: https://github.com/${{ github.repository }}/sbom/${{ steps.validate.outputs.release_version }}
+
+      - name: Retain shared SBOM evidence and inventory
+        env:
+          BUNDLE: ${{ steps.sbom_inputs.outputs.bundle }}
+          INVENTORY: ${{ steps.sbom.outputs.inventory }}
+          EVIDENCE: ${{ steps.sbom.outputs.evidence }}
+          STARTED: ${{ steps.sbom_inputs.outputs.started }}
+        run: |
+          set -euo pipefail
+          cp "$INVENTORY" "dist/$BUNDLE.sbom-inventory.json"
+          cp "$EVIDENCE" "dist/$BUNDLE.sbom-evidence.json"
+          elapsed=$(( $(date +%s) - STARTED ))
+          printf '\n### Shared native SBOM generation\n\n%s seconds, including tool download, inspection, binding and checks.\n' "$elapsed" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Cache the independent SBOM schema validator downloads
         uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
@@ -162,7 +190,7 @@ jobs:
 
       - id: docs
         name: Render the manual as a PDF
-        uses: lukewilliamboswell/roc-automation/actions/build-docs@b47646ec2dee9c1f9f3acc984394832092acc4de # tools-0.3.0
+        uses: lukewilliamboswell/roc-automation/actions/build-docs@7aff4132691ad4fc348abe9df146a57512b49bd6 # tools-0.4.0
         with:
           renderer-binary: ${{ steps.renderer.outputs.binary }}
           site-url: https://lukewilliamboswell.github.io/roc-ansi/
@@ -187,7 +215,7 @@ jobs:
             ${{ steps.renderer.outputs.metrics-path }}
             ${{ runner.temp }}/docs-preparation.json
             ${{ runner.temp }}/docs-api.json
-            ${{ runner.temp }}/source-sbom.json
+            ${{ runner.temp }}/source-sbom-prepare.json
           retention-days: 7
 
       - name: Upload the release candidate
@@ -195,10 +223,7 @@ jobs:
         with:
           name: release-candidate
           path: |
-            dist/*.tar.zst
-            dist/*.spdx.json
-            dist/*.spdx-2.3.json
-            dist/*.cdx.json
+            ${{ steps.sbom.outputs.assets }}
             dist/*.sbom-inventory.json
             dist/*.sbom-evidence.json
             dist/*.sbom-members.json
@@ -280,43 +305,41 @@ jobs:
           set -euo pipefail
           test -n "$BUNDLE"
           test "$(basename "$BUNDLE")" = "$BUNDLE"
-          for suffix in '' .spdx.json .spdx-2.3.json .cdx.json .sbom-inventory.json .sbom-evidence.json .sbom-members.json .sbom-manifest.json .spdx-2.3.sbom-manifest.json; do
+          for suffix in '' .spdx.json .spdx-2.3.json .cdx.json .sbom-inventory.json .sbom-evidence.json .sbom-members.json .sbom-manifest.json; do
             test -f "candidate/dist/$BUNDLE$suffix"
             test ! -L "candidate/dist/$BUNDLE$suffix"
           done
-          # Independently rehash the inert candidate files before signing.
           digest=$(sha256sum "candidate/dist/$BUNDLE" | cut -d ' ' -f 1)
           bytes=$(wc -c < "candidate/dist/$BUNDLE")
           inventory=$(sha256sum "candidate/dist/$BUNDLE.sbom-inventory.json" | cut -d ' ' -f 1)
-          jq -e --arg commit "$GITHUB_SHA" --arg run "$GITHUB_RUN_ID" --arg attempt "$GITHUB_RUN_ATTEMPT" \
-            --arg file "$BUNDLE" --arg version "$VERSION" --arg sha "$digest" --argjson bytes "$bytes" --arg inventory "$inventory" \
-            '.repository == "lukewilliamboswell/roc-ansi" and .source_commit == $commit and .run_id == $run and .run_attempt == $attempt and .subject.filename == $file and .subject.version == $version and .subject.target == "source" and .subject.sha256 == $sha and .subject.bytes == $bytes and .inventory_sha256 == $inventory and (.sidecars | length) == 3' \
+          # Treat the shared envelope as data: independently bind it to this
+          # run and every actual candidate file before either signing action.
+          jq -e --arg commit "$GITHUB_SHA" --arg run "$GITHUB_RUN_ID" --arg attempt "$GITHUB_RUN_ATTEMPT" --arg workflow "$GITHUB_WORKFLOW_REF" \
+            --arg file "$BUNDLE" --arg version "$VERSION" --arg sha "$digest" --argjson size "$bytes" --arg inventory "$inventory" \
+            '.format == "roc-automation-sbom-evidence-v1" and .source.server == "https://github.com" and .source.repository == "lukewilliamboswell/roc-ansi" and .source.commit == $commit and .producer.run_id == $run and .producer.run_attempt == $attempt and .producer.workflow == $workflow and (.subjects | length) == 1 and .subjects[0].name == $file and .subjects[0].path == ("dist/"+$file) and .subjects[0].version == $version and .subjects[0].target == "source" and .subjects[0].sha256 == $sha and .subjects[0].size == $size and .subjects[0].inventory_sha256 == $inventory and (.subjects[0].sidecars | length) == 4' \
             "candidate/dist/$BUNDLE.sbom-evidence.json"
-          for suffix in .spdx.json .spdx-2.3.json .cdx.json; do
-            sidecar_sha=$(sha256sum "candidate/dist/$BUNDLE$suffix" | cut -d ' ' -f 1)
-            sidecar_bytes=$(wc -c < "candidate/dist/$BUNDLE$suffix")
-            jq -e --arg file "$BUNDLE$suffix" --arg sha "$sidecar_sha" --argjson bytes "$sidecar_bytes" \
-              '[.sidecars[] | select(.filename == $file and .sha256 == $sha and .bytes == $bytes)] | length == 1' \
+          for suffix in .spdx.json .spdx-2.3.json .cdx.json .sbom-manifest.json; do
+            case "$suffix" in
+              .spdx.json) format=SPDX-3.0.1 ;;
+              .spdx-2.3.json) format=SPDX-2.3 ;;
+              .cdx.json) format=CycloneDX-1.7 ;;
+              .sbom-manifest.json) format=manifest ;;
+            esac
+            sha=$(sha256sum "candidate/dist/$BUNDLE$suffix" | cut -d ' ' -f 1)
+            size=$(wc -c < "candidate/dist/$BUNDLE$suffix")
+            jq -e --arg file "$BUNDLE$suffix" --arg sha "$sha" --argjson size "$size" --arg format "$format" \
+              '[.subjects[0].sidecars[] | select(.name == $file and .path == ("dist/"+$file) and .sha256 == $sha and .size == $size and .format == $format)] | length == 1' \
               "candidate/dist/$BUNDLE.sbom-evidence.json"
           done
-          members_sha=$(sha256sum "candidate/dist/$BUNDLE.sbom-members.json" | cut -d ' ' -f 1)
-          jq -e --arg sha "$members_sha" '.members_sha256 == $sha and (.manifests | length) == 2' "candidate/dist/$BUNDLE.sbom-evidence.json"
+          jq -e --arg file "$BUNDLE" --arg version "$VERSION" --arg sha "$digest" --argjson size "$bytes" --arg inventory "$inventory" \
+            '.profile == "blueprint-spdx-3.0-v1" and .subject.filename == $file and .subject.version == $version and .subject.target == "source" and .subject.sha256 == $sha and .subject.size == $size and .inventory_sha256 == $inventory and [.sidecars[] | {filename,format}] == [{filename:($file+".cdx.json"),format:"cyclonedx-1.7"},{filename:($file+".spdx.json"),format:"spdx-3.0.1"}]' \
+            "candidate/dist/$BUNDLE.sbom-manifest.json"
+          jq -e --slurpfile evidence "candidate/dist/$BUNDLE.sbom-evidence.json" \
+            'all(.sidecars[]; . as $item | any($evidence[0].subjects[0].sidecars[]; .name == $item.filename and .sha256 == $item.sha256 and .size == $item.size))' \
+            "candidate/dist/$BUNDLE.sbom-manifest.json"
           jq -e --arg file "$BUNDLE" --arg sha "$digest" '.archive == $file and .sha256 == $sha and (.members | length) > 0' "candidate/dist/$BUNDLE.sbom-members.json"
-          for suffix in .sbom-manifest.json .spdx-2.3.sbom-manifest.json; do
-            manifest_sha=$(sha256sum "candidate/dist/$BUNDLE$suffix" | cut -d ' ' -f 1)
-            manifest_bytes=$(wc -c < "candidate/dist/$BUNDLE$suffix")
-            jq -e --arg file "$BUNDLE$suffix" --arg sha "$manifest_sha" --argjson bytes "$manifest_bytes" \
-              '[.manifests[] | select(.filename == $file and .sha256 == $sha and .bytes == $bytes)] | length == 1' "candidate/dist/$BUNDLE.sbom-evidence.json"
-            jq -e --arg file "$BUNDLE" --arg version "$VERSION" --arg sha "$digest" --argjson bytes "$bytes" --arg inventory "$inventory" \
-              '.profile == "blueprint-spdx-3.0-v1" and .subject.filename == $file and .subject.version == $version and .subject.target == "source" and .subject.sha256 == $sha and .subject.size == $bytes and .inventory_sha256 == $inventory' "candidate/dist/$BUNDLE$suffix"
-            jq -e --slurpfile evidence "candidate/dist/$BUNDLE.sbom-evidence.json" \
-              'all(.sidecars[]; . as $item | any($evidence[0].sidecars[]; .filename == $item.filename and .sha256 == $item.sha256 and .bytes == $item.size))' "candidate/dist/$BUNDLE$suffix"
-            if [ "$suffix" = .sbom-manifest.json ]; then
-              jq -e --arg b "$BUNDLE" '[.sidecars[] | {filename,format}] == [{filename:($b+".cdx.json"),format:"cyclonedx-1.7"},{filename:($b+".spdx.json"),format:"spdx-3.0.1"}]' "candidate/dist/$BUNDLE$suffix"
-            else
-              jq -e --arg b "$BUNDLE" '[.sidecars[] | {filename,format}] == [{filename:($b+".spdx-2.3.json"),format:"spdx-2.3"}]' "candidate/dist/$BUNDLE$suffix"
-            fi
-          done
+          jq -e --slurpfile inventory "candidate/dist/$BUNDLE.sbom-inventory.json" \
+            'all(.members[]; . as $member | any($inventory[0].components[]; .name == $member.name and .sha256 == $member.sha256))' "candidate/dist/$BUNDLE.sbom-members.json"
           jq -e --arg file "$BUNDLE" --arg version "$VERSION" --arg sha "$digest" \
             '[.packages[] | select(.SPDXID == "SPDXRef-Subject")] | length == 1 and .[0].name == $file and .[0].versionInfo == $version and .[0].checksums == [{algorithm:"SHA256",checksumValue:$sha}]' \
             "candidate/dist/$BUNDLE.spdx-2.3.json"
@@ -324,7 +347,7 @@ jobs:
             test -f "$file" && test ! -L "$file"
           done
           assets=(candidate/dist/* candidate/.docs-out/*.pdf)
-          test "${#assets[@]}" = 13
+          test "${#assets[@]}" = 12
 
       - name: Attest the tested release assets and SBOM evidence
         id: provenance
@@ -356,7 +379,7 @@ jobs:
           for asset in candidate/dist/* candidate/.docs-out/*.pdf; do
             gh attestation verify "$asset" "${policy[@]}" --bundle "$PROVENANCE"
           done
-          gh attestation verify "candidate/dist/$BUNDLE" "${policy[@]}" --predicate-type https://spdx.dev/Document --bundle "$COMPOSITION"
+          gh attestation verify "candidate/dist/$BUNDLE" "${policy[@]}" --predicate-type https://spdx.dev/Document/v2.3 --bundle "$COMPOSITION"
           cp "$PROVENANCE" candidate/dist/roc-ansi-provenance.sigstore.json
           cp "$COMPOSITION" candidate/dist/roc-ansi-sbom.sigstore.json
 
@@ -421,10 +444,10 @@ jobs:
       # The release is published, so it is now the latest one the manual names.
       - name: Provision and measure the locked documentation renderer
         id: renderer
-        uses: lukewilliamboswell/roc-automation/actions/blueprint-tool@b47646ec2dee9c1f9f3acc984394832092acc4de # tools-0.3.0
+        uses: lukewilliamboswell/roc-automation/actions/blueprint-tool@7aff4132691ad4fc348abe9df146a57512b49bd6 # tools-0.4.0
         with:
           task: docs-path
-          label: roc-docs tools-0.3.0
+          label: roc-docs tools-0.4.0
           measure: 'true'
           output-directory: .docs-out
 
@@ -435,7 +458,7 @@ jobs:
 
       - id: docs
         name: Render the manual as a site and a PDF
-        uses: lukewilliamboswell/roc-automation/actions/build-docs@b47646ec2dee9c1f9f3acc984394832092acc4de # tools-0.3.0
+        uses: lukewilliamboswell/roc-automation/actions/build-docs@7aff4132691ad4fc348abe9df146a57512b49bd6 # tools-0.4.0
         with:
           renderer-binary: ${{ steps.renderer.outputs.binary }}
           site-url: https://lukewilliamboswell.github.io/roc-ansi/
@@ -458,7 +481,7 @@ jobs:
             ${{ steps.renderer.outputs.metrics-path }}
             ${{ runner.temp }}/docs-preparation.json
             ${{ runner.temp }}/docs-api.json
-            ${{ runner.temp }}/source-sbom.json
+            ${{ runner.temp }}/source-sbom-prepare.json
           retention-days: 7
 
       - name: Upload Pages artifact

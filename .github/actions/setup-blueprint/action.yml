@@ -5,13 +5,8 @@ runs:
   using: composite
   steps:
     - name: Install stable Blueprint and restore downloaded artifacts
-      uses: lukewilliamboswell/roc-automation/actions/setup-blueprint@b47646ec2dee9c1f9f3acc984394832092acc4de # tools-0.3.0
+      uses: lukewilliamboswell/roc-automation/actions/setup-blueprint@7aff4132691ad4fc348abe9df146a57512b49bd6 # tools-0.4.0
       with:
-        # tools-0.3.0 predates Blueprint 0.8; reviewed release API digests.
-        # Remove overrides when adopting a shared registry that includes 0.8.
-        sha256-x86_64-linux: 6525dbf7961304f023e80f58cd6c6a017f8b2af1a6418ace0533d6f3e0eaf2ac
-        sha256-aarch64-linux: a967c3d3d3deb5ae492c0d9adf2e4b951179c8dec51a65e0624302ce03fb6687
-        sha256-aarch64-darwin: 3555fdeba44b393aa0f254ef2d6f78664bd57f41c13edf19e8342bf784c41263
         install-nix: 'false'
         cache: 'true'
         cache-workload: ${{ github.job }}

@@ -52,8 +52,10 @@ Nothing pins a compiler for the package or the examples. Each script names
 different compiler says why it misbehaves.
 
 The released SBOM utility is a checksum-locked native executable from Blueprint
-0.8.0. `blueprint run sbom` provisions it without compiling an SBOM app or
-installing another Roc compiler. Blueprint embeds its configuration compiler.
+0.8.0. `blueprint run prepare-sbom` checks the source and prepares reviewed
+composition. The release workflow uses the shared `sbom-sidecars` action to
+generate and check the sidecars; `blueprint run sbom-tool` exposes the native
+tool for local inspection. Blueprint embeds its configuration compiler.
 
 == Run the checks
 
@@ -165,7 +167,7 @@ The manual is the AsciiDoc under `docs/`, one chapter per file, rendered by the
 shared https://lukewilliamboswell.github.io/roc-automation/#build-docs[build-docs]
 action. Every pull request builds it, and the site can be downloaded from the
 `Documentation` workflow run. Blueprint provisions the locked native renderer
-from roc-automation tools-0.3.0; no container or sibling checkout is needed:
+from roc-automation tools-0.4.0; no container or sibling checkout is needed:
 
 [source,sh]
 ----
