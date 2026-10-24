@@ -152,7 +152,7 @@ release. A published release is never changed: if one is wrong, publish a new
 version.
 
 On a pull request the workflow builds and tests the same things under the
-version `0.0.1-dry-run`, renders the newest notes, and publishes nothing.
+version `0.0.1-dryrun`, renders the newest notes, and publishes nothing.
 
 A release candidate, such as `0.14.0-rc1`, goes through the same workflow. It
 is marked as a prerelease, is never the latest release, and needs its own

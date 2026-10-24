@@ -73,7 +73,7 @@ jobs:
           release_version: ${{ github.event_name == 'workflow_dispatch' && inputs.release_version || '' }}
           dry_run: ${{ github.event_name != 'workflow_dispatch' }}
           # Roc rejects 0.0.0 in a package URL, so this is the lowest version.
-          dry_run_version: 0.0.1-dry-run
+          dry_run_version: 0.0.1-dryrun
           github_token: ${{ github.token }}
 
       # Requires the release notes, and stops a version that understates what
