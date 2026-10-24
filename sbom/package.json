@@ -131,7 +131,7 @@
       "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
     },
     {
-      "input": "task:sbom",
+      "input": "task:prepare-sbom",
       "component": "",
       "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
     },

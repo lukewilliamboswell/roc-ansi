@@ -13,10 +13,11 @@ Each source bundle has these sidecars:
 * `<bundle>.cdx.json`: CycloneDX 1.7, from the same inventory.
 * `<bundle>.sbom-inventory.json`: resolved components, relationships and coverage.
 * `<bundle>.sbom-members.json`: every archive member's name, size and SHA-256.
-* `<bundle>.sbom-manifest.json` and `<bundle>.spdx-2.3.sbom-manifest.json`:
-  Blueprint's manifests binding sidecars to subject bytes and inventory.
+* `<bundle>.sbom-manifest.json`: Blueprint's manifest binding the SPDX 3.0.1
+  and CycloneDX sidecars to subject bytes and inventory.
 * `<bundle>.sbom-evidence.json`: the artifact/sidecar hashes, source commit and
-  producing workflow run and attempt.
+  producing workflow run and attempt, in the shared
+  `roc-automation-sbom-evidence-v1` format. It binds all three SBOM formats.
 
 `roc-ansi-provenance.sigstore.json` authenticates the tested release files,
 including the sidecars and evidence. `roc-ansi-sbom.sigstore.json` binds the
@@ -56,7 +57,8 @@ gh release download "$version" --repo "$repo" \
   --pattern "$bundle.sbom-evidence.json" \
   --pattern "$bundle.sbom-inventory.json" \
   --pattern "$bundle.sbom-members.json" \
-  --pattern "$bundle.spdx-2.3.sbom-manifest.json" \
+  --pattern "$bundle.sbom-manifest.json" \
+  --pattern "$bundle.spdx.json" --pattern "$bundle.cdx.json" \
   --pattern 'roc-ansi-*.sigstore.json'
 
 gh attestation verify "$bundle" --repo "$repo" \
@@ -75,7 +77,7 @@ gh attestation verify "$bundle" --repo "$repo" \
   --signer-workflow "$repo/.github/workflows/release.yml" \
   --source-ref refs/heads/main --source-digest "$commit" \
   --signer-digest "$commit" --deny-self-hosted-runners \
-  --predicate-type https://spdx.dev/Document \
+  --predicate-type https://spdx.dev/Document/v2.3 \
   --bundle roc-ansi-sbom.sigstore.json
 
 expected=$(jq -r '.packages[] | select(.SPDXID == "SPDXRef-Subject") | .checksums[] | select(.algorithm == "SHA256") | .checksumValue' "$bundle.spdx-2.3.json")
@@ -84,12 +86,13 @@ test "$actual" = "$expected"
 ----
 
 With the verified Blueprint 0.8 native utility on PATH, validate the downloaded
-manifest against the subject, SPDX 2.3 sidecar and resolved inventory:
+manifest against the subject and resolved inventory, and check all three
+sidecars together:
 
 [source,sh]
 ----
-blueprint-sbom check --manifest "$bundle.spdx-2.3.sbom-manifest.json" \
-  --artifacts . --inventory "$bundle.sbom-inventory.json"
+blueprint-sbom check --manifest "$bundle.sbom-manifest.json" \
+  --artifacts . --inventory "$bundle.sbom-inventory.json" "$bundle.spdx-2.3.json"
 ----
 
 Also validate the standard schema and read the coverage statements. CI checks

@@ -17,7 +17,7 @@ import pf.System
 
 docs_renderer : System -> Config.Download
 docs_renderer = |system| match system {
-	"x86_64-linux" | "aarch64-linux" | "aarch64-darwin" => File("https://github.com/lukewilliamboswell/roc-automation/releases/download/tools-0.3.0/roc-docs-${system.to_str()}")
+	"x86_64-linux" | "aarch64-linux" | "aarch64-darwin" => File("https://github.com/lukewilliamboswell/roc-automation/releases/download/tools-0.4.0/roc-docs-${system.to_str()}")
 	_ => Unavailable
 }
 
@@ -40,7 +40,7 @@ config = [
 				"https://github.com/roc-lang/http/releases/download/1.0.0/6ZUwqYhCS8PU9Mo6MF7oV82ET2o7KYb57CLKDq4cq4sS.tar.zst",
 			]),
 			# Programs the scripts start.
-			Expect(["chmod", "gh", "git", "gzip", "roc", "shasum", "tar", "test", "touch", "unzip", "zip"]),
+			Expect(["chmod", "gh", "git", "gzip", "realpath", "roc", "sh", "shasum", "tar", "test", "touch", "unzip", "zip"]),
 		],
 	),
 	Environment("docs", [Programs([Fetch("roc-docs", docs_renderer)]), Expect(["realpath", "sh"])]),
@@ -50,7 +50,7 @@ config = [
 		Expect(["blueprint", "env", "git", "realpath", "roc", "sh", "shasum", "tar"]),
 	]),
 	Shell("default", [Use("dev")]),
-	Task("sbom", [Use("sbom"), Run(["scripts/release_sbom.roc"])]),
+	Task("prepare-sbom", [Use("dev"), Run(["scripts/prepare_sbom.roc"])]),
 	Task("sbom-tool", [Use("sbom"), Run(["blueprint-sbom"])]),
 	Task("docs", [Use("docs"), Run(["roc-docs", "build", "--workspace", ".", "--docs-directory", "docs", "--entrypoint", "index.adoc", "--pdf-filename", "roc-ansi.pdf", "--site-url", "https://lukewilliamboswell.github.io/roc-ansi/"])]),
 	Task("docs-path", [Use("docs"), Run(["sh", "-c", "realpath \"$(command -v roc-docs)\""])]),

@@ -38,10 +38,10 @@ jobs:
       # The first program in the manual names the latest release's bundle URL.
       - name: Provision and measure the locked documentation renderer
         id: renderer
-        uses: lukewilliamboswell/roc-automation/actions/blueprint-tool@b47646ec2dee9c1f9f3acc984394832092acc4de # tools-0.3.0
+        uses: lukewilliamboswell/roc-automation/actions/blueprint-tool@7aff4132691ad4fc348abe9df146a57512b49bd6 # tools-0.4.0
         with:
           task: docs-path
-          label: roc-docs tools-0.3.0
+          label: roc-docs tools-0.4.0
           measure: 'true'
           output-directory: .docs-out
 
@@ -52,7 +52,7 @@ jobs:
 
       - id: docs
         name: Render the manual as a site and a PDF
-        uses: lukewilliamboswell/roc-automation/actions/build-docs@b47646ec2dee9c1f9f3acc984394832092acc4de # tools-0.3.0
+        uses: lukewilliamboswell/roc-automation/actions/build-docs@7aff4132691ad4fc348abe9df146a57512b49bd6 # tools-0.4.0
         with:
           renderer-binary: ${{ steps.renderer.outputs.binary }}
           site-url: https://lukewilliamboswell.github.io/roc-ansi/

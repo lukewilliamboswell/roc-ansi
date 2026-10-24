@@ -17,7 +17,7 @@ app [main!] {
 == Tooling and documentation
 
 * Blueprint 0.8.0 provides the development environment without Nix.
-* roc-automation tools-0.3.0 renders the manual as HTML, PDF and Markdown,
+* roc-automation tools-0.4.0 renders the manual as HTML, PDF and Markdown,
   replacing the Asciidoctor Docker image.
 * CI reports renderer provisioning, rendering, preparation and API reference
   timings separately, with renderer memory and output sizes.
