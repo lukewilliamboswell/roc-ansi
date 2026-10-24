@@ -29,7 +29,7 @@ which gives the reasons behind each practice.
 |===
 
 The package is pure Roc, so CI uses Linux without Nix. The local setup action
-pins roc-automation tools-0.3.0 and selects Blueprint 0.8.0 from the platform
+pins roc-automation tools-0.4.0 and selects Blueprint 0.8.0 from the platform
 URL. The shared installer verifies and caches the CLI by release, system and
 executable digest. Blueprint embeds its configuration compiler; the separate
 `roc-stable` script compiler remains pinned, and the package nightly floats.
@@ -40,6 +40,12 @@ recreated and verified, while Roc package sources have a separate cache. A cold
 job downloads the locked utilities; a warm job restores and verifies them.
 Changing the lock invalidates the corresponding cache key. The floating nightly
 may still need a fresh download when its version changes.
+
+SBOM generation uses the shared tools-0.4.0 `sbom-sidecars` action. The
+`prepare-sbom` task supplies product-specific source checks and reviewed
+composition; the shared action owns native generation and its evidence envelope.
+It currently downloads its digest-verified native generator per job. The local
+`sbom-tool` helper is provisioned through Blueprint's artifact cache.
 
 The documentation jobs use `blueprint-tool` to resolve `docs-path` to the
 verified renderer in the store. CI reports executable digest and bytes,
@@ -144,8 +150,8 @@ A release holds:
 | `<hash>.tar.zst.sbom-inventory.json`, `.sbom-evidence.json`
 | Resolved source inventory and the exact file/source/run mappings
 
-| SBOM member list and manifests
-| Archive-member inventory and producer manifests binding each SBOM to its bytes
+| SBOM member list and manifest
+| Archive-member inventory and producer manifest; the shared evidence envelope binds all formats
 
 | `roc-ansi-provenance.sigstore.json`, `roc-ansi-sbom.sigstore.json`
 | Retained provenance and source-composition attestations
@@ -159,7 +165,7 @@ release. A published release is never changed: if one is wrong, publish a new
 version.
 
 On a pull request the workflow builds and tests the same things under the
-version `0.0.1-dry-run`, renders the newest notes, and publishes nothing.
+version `0.0.1-dryrun`, renders the newest notes, and publishes nothing.
 
 A release candidate, such as `0.14.0-rc1`, goes through the same workflow. It
 is marked as a prerelease, is never the latest release, and needs its own

@@ -92,7 +92,7 @@ Release := [].{
 	## The version a pull request builds and tests its release under. It is
 	## never published.
 	dry_run_version : Str
-	dry_run_version = "0.0.1-dry-run"
+	dry_run_version = "0.0.1-dryrun"
 
 	## The documentation archive attached to the release `version`.
 	docs_archive : Str -> Str
