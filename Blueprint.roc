@@ -30,6 +30,13 @@ sbom_binary = |system| match system {
 	_ => Unavailable
 }
 
+# The utility behind the shared release workflow, from a roc-automation tools release.
+release_package : System -> Config.Download
+release_package = |system| match system {
+	"x86_64-linux" | "aarch64-linux" | "aarch64-darwin" => File("https://github.com/lukewilliamboswell/roc-automation/releases/download/tools-0.5.0/release-package-${system.to_str()}")
+	_ => Unavailable
+}
+
 config = [
 	Name("roc-ansi"),
 	Environment(
@@ -52,9 +59,13 @@ config = [
 		Programs([Fetch("blueprint-sbom", sbom_binary)]),
 		Expect(["blueprint", "env", "git", "realpath", "roc", "sh", "shasum", "tar"]),
 	]),
+	# The shared release workflow runs this utility against the `roc` on PATH; a
+	# maintainer runs the same task locally, such as `-- test-examples --update`.
+	Environment("release", [Programs([Fetch("release-package", release_package)]), Expect(["roc", "git", "gh", "tar", "unzip", "zip", "chmod", "touch", "env"])]),
 	Shell("default", [Use("dev")]),
 	# Everything checked before the release workflow packages anything.
 	Task("check", [Use("dev"), Run(["scripts/check_all.roc"])]),
+	Task("release-package", [Use("release"), Run(["release-package"])]),
 	# The reviewed SBOM composition for the bundle the release workflow built.
 	Task("prepare-sbom", [Use("dev"), Run(["scripts/prepare_sbom.roc"])]),
 	Task("sbom-tool", [Use("sbom"), Run(["blueprint-sbom"])]),
