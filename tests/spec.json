@@ -3,7 +3,11 @@
     {
       "cases": [
         {
+          "args": [],
+          "exit_code": 0,
           "name": "default",
+          "stderr": "",
+          "stdin": "",
           "stdout": "The \u001b[32m\u001b[49mGREEN\u001b[0m frog, the \u001b[34m\u001b[49mBLUE\u001b[0m bird, and the \u001b[31m\u001b[49mRED\u001b[0m ant shared a leaf.\n"
         }
       ],
@@ -12,7 +16,11 @@
     {
       "cases": [
         {
+          "args": [],
+          "exit_code": 0,
           "name": "default",
+          "stderr": "",
+          "stdin": "",
           "stdout": "\u001b[39m\u001b[49mDefault color\u001b[0m\nANSI 16 colors\n\u001b[31m\u001b[49mStandard Red   fg\u001b[0m\n\u001b[32m\u001b[49mStandard Green fg\u001b[0m\n\u001b[34m\u001b[49mStandard Blue  fg\u001b[0m\n\u001b[39m\u001b[101mBright   Red   bg\u001b[0m\n\u001b[39m\u001b[102mBright   Green bg\u001b[0m\n\u001b[39m\u001b[104mBright   Blue  bg\u001b[0m\n\u001b[91m\u001b[40m{ fg: Bright Red, bg: Standard Black }\u001b[0m\n\u001b[32m\u001b[41m{ fg: Standard Green, bg: Standard Red }\u001b[0m\n\u001b[38;5;247m\u001b[48;5;51mANSI 256 colors\u001b[0m\n\u001b[38;5;236m\u001b[48;5;208m{ fg: DarkGray, bg: Orange }\u001b[0m\nRGB colors, these are not supported in all terminals\n\u001b[38;2;0;128;128m\u001b[48;2;152;255;152m{ fg: DarkTeal, bg: MintGreen }\u001b[0m\n\u001b[38;2;255;102;102m\u001b[48;2;65;105;225m{ fg: CoralPink, bg: RoyalBlue }\u001b[0m\n\u001b[38;2;153;50;204m\u001b[48;2;255;165;0m{ fg: ElectricPurple, bg: Tangerine }\u001b[0m\n"
         }
       ],
@@ -21,7 +29,11 @@
     {
       "cases": [
         {
+          "args": [],
+          "exit_code": 0,
           "name": "default",
+          "stderr": "",
+          "stdin": "",
           "stdout": "\u001b[1mChoose a task\u001b[0m\n\n\u001b[32m\u001b[49m\u001b[1m> Generate report\u001b[0m\n\u001b[37m\u001b[49m- Sync cache\u001b[0m\n\u001b[37m\u001b[49m- Publish bundle\u001b[0m\n\n\u001b[34m\u001b[49mENTER to run, ESC to quit\u001b[0m\n"
         }
       ],
@@ -30,7 +42,11 @@
     {
       "cases": [
         {
+          "args": [],
+          "exit_code": 0,
           "name": "default",
+          "stderr": "",
+          "stdin": "",
           "stdout": "Piece table preview: ello colorful terminal\n"
         }
       ],
@@ -39,11 +55,18 @@
     {
       "cases": [
         {
+          "args": [],
+          "exit_code": 0,
           "name": "default",
+          "stderr": "",
+          "stdin": "",
           "stdout": "\u001b[1mBold On\u001b[0m\n\u001b[2mFaint On\u001b[0m\n\u001b[3mItalic On\u001b[0m\n\u001b[9mStrikethrough On\u001b[0m\n\u001b[4mUnderline On\u001b[0m\n\u001b[7mInvert On\u001b[0m\n\u001b[1m\u001b[3m\u001b[9m\u001b[4mCombination\u001b[0m\nThis should not have any style\n"
         }
       ],
       "path": "examples/styles.roc"
     }
-  ]
+  ],
+  "dependencies": [],
+  "release": "working-tree",
+  "schema_version": 1
 }

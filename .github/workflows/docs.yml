@@ -2,12 +2,15 @@ name: Documentation
 
 # Renders the manual in docs/ and adds the API reference beside it. A pull
 # request builds the site, so a broken manual fails review, and the result can
-# be downloaded from the run. Only the default branch deploys it.
+# be downloaded from the run. The default branch deploys it, and so does a
+# final release, because the site leads with the latest release.
 on:
   push:
     branches: [main]
   pull_request:
   workflow_dispatch:
+  release:
+    types: [published]
 
 permissions: {}
 
@@ -85,7 +88,7 @@ jobs:
   # the build job produced.
   deploy:
     name: Deploy the site
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || (github.event_name == 'release' && !github.event.release.prerelease))
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
