@@ -1,12 +1,15 @@
 # Development environment and tasks for roc-ansi, realised by roc-blueprint without Nix.
 #
-#     blueprint run check    # everything CI checks
+#     blueprint run check    # everything the release workflow checks before packaging
 #     blueprint run serve    # build the documentation site and preview it
 #     blueprint shell        # the environment, to run scripts/*.roc directly
 #     blueprint update       # refresh Blueprint.lock
 #
 # `roc-stable` runs repository scripts; `roc` on PATH tests the package and
 # examples on the latest nightly, so nothing here provides a bare `roc`.
+# Building, testing and publishing a release is the shared roc-automation
+# workflow that .github/workflows/release.yml calls; it runs the `check`,
+# `prepare-sbom`, `install-snippet` and `docs-path` tasks here.
 # The released SBOM utility is a native executable. Blueprint embeds its
 # configuration compiler independently of these environment inputs.
 app [config] { pf: platform "https://github.com/lukewilliamboswell/roc-blueprint/releases/download/0.8.0/FbJymjYdCxx9vqMcau7r4tQfeAbnVGqqJoYrLGqPCqKu.tar.zst" }
@@ -27,6 +30,13 @@ sbom_binary = |system| match system {
 	_ => Unavailable
 }
 
+# The utility behind the shared release workflow, from a roc-automation tools release.
+release_package : System -> Config.Download
+release_package = |system| match system {
+	"x86_64-linux" | "aarch64-linux" | "aarch64-darwin" => File("https://github.com/lukewilliamboswell/roc-automation/releases/download/tools-0.5.0/release-package-${system.to_str()}")
+	_ => Unavailable
+}
+
 config = [
 	Name("roc-ansi"),
 	Environment(
@@ -40,7 +50,7 @@ config = [
 				"https://github.com/roc-lang/http/releases/download/1.0.0/6ZUwqYhCS8PU9Mo6MF7oV82ET2o7KYb57CLKDq4cq4sS.tar.zst",
 			]),
 			# Programs the scripts start.
-			Expect(["chmod", "gh", "git", "gzip", "realpath", "roc", "sh", "shasum", "tar", "test", "touch", "unzip", "zip"]),
+			Expect(["gh", "git", "gzip", "realpath", "roc", "sh", "shasum", "tar", "unzip"]),
 		],
 	),
 	Environment("docs", [Programs([Fetch("roc-docs", docs_renderer)]), Expect(["realpath", "sh"])]),
@@ -49,26 +59,18 @@ config = [
 		Programs([Fetch("blueprint-sbom", sbom_binary)]),
 		Expect(["blueprint", "env", "git", "realpath", "roc", "sh", "shasum", "tar"]),
 	]),
+	# The shared release workflow runs this utility against the `roc` on PATH; a
+	# maintainer runs the same task locally, such as `-- test-examples --update`.
+	Environment("release", [Programs([Fetch("release-package", release_package)]), Expect(["roc", "git", "gh", "tar", "unzip", "zip", "chmod", "touch", "env"])]),
 	Shell("default", [Use("dev")]),
+	# Everything checked before the release workflow packages anything.
+	Task("check", [Use("dev"), Run(["scripts/check_all.roc"])]),
+	Task("release-package", [Use("release"), Run(["release-package"])]),
+	# The reviewed SBOM composition for the bundle the release workflow built.
 	Task("prepare-sbom", [Use("dev"), Run(["scripts/prepare_sbom.roc"])]),
 	Task("sbom-tool", [Use("sbom"), Run(["blueprint-sbom"])]),
 	Task("docs", [Use("docs"), Run(["roc-docs", "build", "--workspace", ".", "--docs-directory", "docs", "--entrypoint", "index.adoc", "--pdf-filename", "roc-ansi.pdf", "--site-url", "https://lukewilliamboswell.github.io/roc-ansi/"])]),
 	Task("docs-path", [Use("docs"), Run(["sh", "-c", "realpath \"$(command -v roc-docs)\""])]),
-	# Everything CI checks.
-	Task("check", [Use("dev"), Run(["scripts/check_all.roc"])]),
-	# The examples alone, compared with tests/spec.json. To record new output:
-	# blueprint shell, then scripts/test_examples.roc -- --update
-	Task("examples", [Use("dev"), Run(["scripts/test_examples.roc"])]),
-	# The steps of a release, which .github/workflows/release.yml runs in order.
-	Task("bundle", [Use("dev"), Run(["scripts/build_bundle.roc"])]),
-	Task("test-bundle", [Use("dev"), Run(["scripts/test_bundle.roc"])]),
-	Task("package-examples", [Use("dev"), Run(["scripts/package_examples.roc"])]),
-	Task("package-docs", [Use("dev"), Run(["scripts/package_docs.roc"])]),
-	Task("check-version", [Use("dev"), Run(["scripts/check_version.roc"])]),
-	Task("release-notes", [Use("dev"), Run(["scripts/render_release_notes.roc"])]),
-	# The latest release's examples, as published, on the current compiler.
-	Task("fetch-published", [Use("dev"), Run(["scripts/fetch_published.roc"])]),
-	Task("test-published", [Use("dev"), Run(["scripts/test_published.roc"])]),
 	# The parts of the manual that depend on what is released; see docs/contributing.adoc.
 	Task("install-snippet", [Use("dev"), Run(["scripts/write_install_snippet.roc"])]),
 	# The API reference of the GitHub Pages site: add it to the rendered manual,

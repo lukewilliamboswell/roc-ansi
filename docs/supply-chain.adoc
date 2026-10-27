@@ -6,24 +6,18 @@ bundle and its evidence together when admitting roc-ansi into your own build.
 
 == What the evidence covers
 
-Each source bundle has these sidecars:
+From 0.13.4, each source bundle has these sidecars:
 
 * `<bundle>.spdx.json`: SPDX 3.0.1.
 * `<bundle>.spdx-2.3.json`: SPDX 2.3 for compatibility with existing consumers.
 * `<bundle>.cdx.json`: CycloneDX 1.7, from the same inventory.
-* `<bundle>.sbom-inventory.json`: resolved components, relationships and coverage.
-* `<bundle>.sbom-members.json`: every archive member's name, size and SHA-256.
 * `<bundle>.sbom-manifest.json`: Blueprint's manifest binding the SPDX 3.0.1
   and CycloneDX sidecars to subject bytes and inventory.
-* `<bundle>.sbom-evidence.json`: the artifact/sidecar hashes, source commit and
-  producing workflow run and attempt, in the shared
-  `roc-automation-sbom-evidence-v1` format. It binds all three SBOM formats.
 
-`roc-ansi-provenance.sigstore.json` authenticates the tested release files,
-including the sidecars and evidence. `roc-ansi-sbom.sigstore.json` binds the
-SPDX composition statement to the source bundle. Both are retained as release
-assets. The expected signer is this repository's `.github/workflows/release.yml`
-on `main`, at the release's source commit, using a GitHub-hosted runner.
+GitHub stores build-provenance attestations for the tested release files,
+including these sidecars. The shared release workflow signs them; the source
+is this repository's `main` at the release commit. The inventory, archive-member
+list, evidence envelope and `.sigstore.json` bundles are not release assets.
 
 The source inventory is independent of a CPU target. It covers the shipped
 first-party modules and their declared UPL-1.0 license. Archive membership and
@@ -36,71 +30,54 @@ The compiler is a build dependency, identified by its version and actual
 executable SHA-256. Its native dependency closure is explicitly incomplete;
 this source inventory does not establish a complete compiler/toolchain
 inventory or the composition of an executable compiled downstream. The examples,
-API archive and PDF are separate deliverables; their provenance is retained,
-but this source SBOM does not describe their contents.
+API archive and PDF are separate deliverables with their own provenance;
+this source SBOM does not describe their contents.
 
 == Verify a release before using it
 
 Select the bundle filename from the GitHub release. Its Roc content-hash name
 and its SHA-256 are different identities: use the SHA-256 in the SBOM to check
-the delivered archive bytes.
+the delivered archive bytes. The shared workflow revision below is the one
+reviewed for 0.13.4; review a later release's workflow pin before changing it.
 
 [source,sh]
 ----
 repo=lukewilliamboswell/roc-ansi
-version=0.13.3
+version=0.13.4
 bundle='<bundle filename from the release>'
 commit=$(gh api "repos/$repo/commits/$version" --jq .sha)
+automation=2f8bd90acbfba5b1e6e8a50a0ba3c29a7816f25d
+signer=lukewilliamboswell/roc-automation/.github/workflows/release-package.yml
 
 gh release download "$version" --repo "$repo" \
   --pattern "$bundle" --pattern "$bundle.spdx-2.3.json" \
-  --pattern "$bundle.sbom-evidence.json" \
-  --pattern "$bundle.sbom-inventory.json" \
-  --pattern "$bundle.sbom-members.json" \
   --pattern "$bundle.sbom-manifest.json" \
-  --pattern "$bundle.spdx.json" --pattern "$bundle.cdx.json" \
-  --pattern 'roc-ansi-*.sigstore.json'
+  --pattern "$bundle.spdx.json" --pattern "$bundle.cdx.json"
 
-gh attestation verify "$bundle" --repo "$repo" \
-  --signer-workflow "$repo/.github/workflows/release.yml" \
-  --source-ref refs/heads/main --source-digest "$commit" \
-  --signer-digest "$commit" --deny-self-hosted-runners \
-  --bundle roc-ansi-provenance.sigstore.json
-
-gh attestation verify "$bundle.spdx-2.3.json" --repo "$repo" \
-  --signer-workflow "$repo/.github/workflows/release.yml" \
-  --source-ref refs/heads/main --source-digest "$commit" \
-  --signer-digest "$commit" --deny-self-hosted-runners \
-  --bundle roc-ansi-provenance.sigstore.json
-
-gh attestation verify "$bundle" --repo "$repo" \
-  --signer-workflow "$repo/.github/workflows/release.yml" \
-  --source-ref refs/heads/main --source-digest "$commit" \
-  --signer-digest "$commit" --deny-self-hosted-runners \
-  --predicate-type https://spdx.dev/Document/v2.3 \
-  --bundle roc-ansi-sbom.sigstore.json
+for asset in "$bundle" "$bundle.spdx-2.3.json" \
+  "$bundle.sbom-manifest.json" "$bundle.spdx.json" "$bundle.cdx.json"; do
+  gh attestation verify "$asset" --repo "$repo" \
+    --signer-workflow "$signer" --signer-digest "$automation" \
+    --source-ref refs/heads/main --source-digest "$commit" \
+    --deny-self-hosted-runners || exit 1
+done
 
 expected=$(jq -r '.packages[] | select(.SPDXID == "SPDXRef-Subject") | .checksums[] | select(.algorithm == "SHA256") | .checksumValue' "$bundle.spdx-2.3.json")
 actual=$(shasum -a 256 "$bundle" | cut -d ' ' -f 1)
 test "$actual" = "$expected"
 ----
 
-With the verified Blueprint 0.8 native utility on PATH, validate the downloaded
-manifest against the subject and resolved inventory, and check all three
-sidecars together:
+Read the coverage statements as well as verifying signatures. Keep your own
+admitted copy, expected signer policy and verification results. A signature
+binds the bytes to the producer; the declared source coverage still needs review.
 
-[source,sh]
-----
-blueprint-sbom check --manifest "$bundle.sbom-manifest.json" \
-  --artifacts . --inventory "$bundle.sbom-inventory.json" "$bundle.spdx-2.3.json"
-----
+== Legacy evidence in 0.13.3
 
-Also validate the standard schema and read the coverage statements. CI checks
-the SPDX 2.3 rendering against an unchanged, digest-pinned official schema using
-an independent pinned validator. Blueprint separately checks subject bytes,
-resolved inventory and graph agreement across all three formats. Keep your own
-admitted copy, expected signer policy and verification results; a short-lived
-Actions artifact is not the release evidence channel.
+Release 0.13.3 also published the resolved inventory, archive-member list,
+evidence envelope and two retained `.sigstore.json` bundles. It used this
+repository's own release workflow and supplied a separate SPDX composition
+attestation. Its verification commands and expected signer are preserved in
+https://github.com/lukewilliamboswell/roc-ansi/blob/0.13.3/docs/supply-chain.adoc[the 0.13.3 verification guide].
 
 == Chain into your own inventory
 

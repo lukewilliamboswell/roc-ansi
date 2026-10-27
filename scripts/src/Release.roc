@@ -28,18 +28,6 @@ Release := [].{
 	valid_docs_version : Str -> Bool
 	valid_docs_version = |value| core_version(value)
 
-	## The `x.y.z` that `version` is a release or a prerelease of.
-	base_version : Str -> Str
-	base_version = |version|
-		match Str.split_first(version, "-") {
-			Ok({ before, .. }) => before
-			Err(_) => version
-		}
-
-	## Where the notes of the release `version` are written.
-	notes_file : Str -> Str
-	notes_file = |version| "docs/releases/${version}.adoc"
-
 	## Whether `value` is the file name `roc bundle` gives a package archive.
 	valid_bundle_file : Str -> Bool
 	valid_bundle_file = |value| value.ends_with(".tar.zst") and Text.is_alphanumeric(value.drop_suffix(".tar.zst"))
@@ -55,44 +43,15 @@ Release := [].{
 			Ok("https://github.com/${Release.repository}/releases/download/${version}/${bundle_file}")
 		}
 
-	## The release version a bundle URL belongs to, if it is one of this
-	## repository's immutable release bundle URLs.
-	version_of_bundle_url : Str -> Try(Str, [NotAReleaseBundle(Str)])
-	version_of_bundle_url = |url|
-		match Str.split_on(url.drop_prefix("https://github.com/${Release.repository}/releases/download/"), "/") {
-			[version, bundle_file] if Release.bundle_url(version, bundle_file) == Ok(url) => Ok(version)
-			_ => Err(NotAReleaseBundle(url))
-		}
-
-	## The single top-level directory of the examples archive.
-	examples_root : Str -> Str
-	examples_root = |version| "${Release.name}-examples-${version}"
-
-	## The examples archive attached to the release `version`.
+	## The examples archive attached to the release `version`, as the shared
+	## release workflow names it.
 	examples_archive : Str -> Str
-	examples_archive = |version| "${Release.examples_root(version)}.zip"
+	examples_archive = |version| "${Release.name}-examples-${version}.zip"
 
 	## Pick the examples archive out of the asset names of the release `version`.
 	find_examples_archive : Str, List(Str) -> [Zip(Str), Missing]
 	find_examples_archive = |version, assets|
 		if assets.contains(Release.examples_archive(version)) Zip(Release.examples_archive(version)) else Missing
-
-	## Whether `entry` may appear in the examples archive whose top-level
-	## directory is `root`: the README, the expected-output specification, or
-	## a Roc file directly inside `examples`.
-	valid_examples_entry : Str, Str -> Bool
-	valid_examples_entry = |root, entry|
-		entry == "${root}/README.md" or entry == "${root}/spec.json" or example_file(entry.drop_prefix("${root}/examples/")) and entry.starts_with("${root}/examples/")
-
-	## Whether `version` can be in a package URL. Roc reads 0.0.0 there as "no
-	## version" and rejects the URL, so the lowest usable version is 0.0.1.
-	publishable_version : Str -> Bool
-	publishable_version = |version| Release.valid_version(version) and version != "0.0.0" and !version.starts_with("0.0.0-")
-
-	## The version a pull request builds and tests its release under. It is
-	## never published.
-	dry_run_version : Str
-	dry_run_version = "0.0.1-dryrun"
 
 	## The documentation archive attached to the release `version`.
 	docs_archive : Str -> Str
@@ -176,32 +135,6 @@ Release := [].{
 				.append(""),
 			"\n",
 		)
-
-	## The README at the top of the examples archive.
-	examples_readme : Str, Str -> Str
-	examples_readme = |version, url|
-		Str.join_with(
-			[
-				"# ${Release.name} ${version} examples",
-				"",
-				"These are the ${Release.name} examples as they were when ${version} was released.",
-				"Each application depends on that release's package:",
-				"",
-				"    ${url}",
-				"",
-				"Install the Roc compiler named in the release notes, then run an example",
-				"from the `examples` directory:",
-				"",
-				"    cd examples",
-				"    roc colors.roc",
-				"",
-				"`spec.json` records what each example printed when ${version} was released.",
-				"",
-				"Release notes: https://github.com/${Release.repository}/releases/tag/${version}",
-				"",
-			],
-			"\n",
-		)
 }
 
 numbers = |version| Str.split_on(version, ".").map(|part| U64.from_str(part).ok_or(0))
@@ -214,8 +147,6 @@ compare_numbers = |left, right|
 		([], _) => Before
 		(_, []) => After
 	}
-
-example_file = |file_name| file_name.ends_with(".roc") and Text.is_plain(file_name.drop_suffix(".roc"), "-_")
 
 core_version = |value|
 	match Str.split_on(value, ".") {
@@ -232,11 +163,6 @@ expect Release.valid_bundle_file("Abc123.tar.zst") and !Release.valid_bundle_fil
 expect Release.bundle_url("0.14.0", "Abc123.tar.zst") == Ok(url)
 expect Release.bundle_url("latest", "Abc123.tar.zst") == Err(InvalidVersion("latest"))
 expect Release.bundle_url("0.14.0", "a/b.tar.zst") == Err(InvalidBundleFile("a/b.tar.zst"))
-expect Release.version_of_bundle_url(url) == Ok("0.14.0")
-expect Release.version_of_bundle_url("http://127.0.0.1:8000/Abc123.tar.zst").is_err()
-expect Release.version_of_bundle_url("../package/main.roc").is_err()
-expect Release.version_of_bundle_url("https://github.com/someone/roc-ansi/releases/download/0.14.0/Abc123.tar.zst").is_err()
-expect Release.version_of_bundle_url("https://github.com/lukewilliamboswell/roc-ansi/releases/download/latest/Abc123.tar.zst").is_err()
 expect Release.examples_archive("0.14.0") == "roc-ansi-examples-0.14.0.zip"
 expect Release.find_examples_archive("0.14.0", ["Abc123.tar.zst", "roc-ansi-docs-0.14.0.zip", "roc-ansi-examples-0.14.0.zip"]) == Zip("roc-ansi-examples-0.14.0.zip")
 expect Release.find_examples_archive("0.13.1", ["roc-ansi-examples-0.13.1.tar.gz"]) == Missing
@@ -245,18 +171,6 @@ expect Release.docs_archive("0.14.0") == "roc-ansi-docs-0.14.0.zip"
 expect Release.find_docs_archive("0.14.0", ["Abc123.tar.zst", "roc-ansi-docs-0.14.0.zip"]) == Zip("roc-ansi-docs-0.14.0.zip")
 expect Release.find_docs_archive("0.13.1", ["roc-ansi-docs-0.13.1.tar.gz", "roc-ansi-examples-0.13.1.tar.gz"]) == LegacyTarball("roc-ansi-docs-0.13.1.tar.gz")
 expect Release.find_docs_archive("0.7.0", ["Abc123.tar.zst"]) == Missing and Release.find_docs_archive("0.14.0", ["roc-ansi-docs-0.13.1.zip"]) == Missing
-expect Release.examples_readme("0.14.0", url).contains("    ${url}\n") and Release.examples_readme("0.14.0", url).ends_with("/releases/tag/0.14.0\n")
-expect Release.valid_examples_entry("roc-ansi-examples-0.14.0", "roc-ansi-examples-0.14.0/README.md")
-expect Release.valid_examples_entry("roc-ansi-examples-0.14.0", "roc-ansi-examples-0.14.0/spec.json") and !Release.valid_examples_entry("roc-ansi-examples-0.14.0", "roc-ansi-examples-0.14.0/examples/spec.json")
-expect Release.publishable_version("0.0.1-dry-run") and Release.publishable_version("0.14.0") and !Release.publishable_version("0.0.0") and !Release.publishable_version("0.0.0-rc1") and !Release.publishable_version("latest")
-expect Release.publishable_version(Release.dry_run_version)
-expect Release.valid_examples_entry("roc-ansi-examples-0.14.0", "roc-ansi-examples-0.14.0/examples/menu.roc")
-expect !Release.valid_examples_entry("roc-ansi-examples-0.14.0", "roc-ansi-examples-0.14.0/examples/../../escape.roc")
-expect !Release.valid_examples_entry("roc-ansi-examples-0.14.0", "roc-ansi-examples-0.14.0/examples/nested/app.roc")
-expect !Release.valid_examples_entry("roc-ansi-examples-0.14.0", "roc-ansi-examples-0.14.0/examples/notes.txt")
-expect !Release.valid_examples_entry("roc-ansi-examples-0.14.0", "roc-ansi-examples-0.13.0/examples/colors.roc")
-expect !Release.valid_examples_entry("roc-ansi-examples-0.14.0", "/etc/passwd")
-expect !Release.valid_examples_entry("roc-ansi-examples-0.14.0", "roc-ansi-examples-0.14.0/examples/.roc")
 expect Release.valid_docs_entry("0.14.0", "0.14.0/index.html") and Release.valid_docs_entry("0.14.0", "0.14.0/ANSI/") and Release.valid_docs_entry("0.14.0", "0.14.0")
 expect !Release.valid_docs_entry("0.14.0", "../escape") and !Release.valid_docs_entry("0.14.0", "/escape") and !Release.valid_docs_entry("0.14.0", "0.14.0/../../escape")
 expect !Release.valid_docs_entry("0.14.0", "0.13.0/index.html") and !Release.valid_docs_entry("0.14.0", "0.14.0//index.html") and !Release.valid_docs_entry("0.14.0", "0.14.0/a\\b") and !Release.valid_docs_entry("0.14.0", "")
@@ -264,5 +178,3 @@ expect Release.install_snippet("0.14.0", url, "roc-ansi-examples-0.14.0.zip").co
 expect Release.install_snippet("0.14.0", url, "roc-ansi-examples-0.14.0.zip").contains("* https://lukewilliamboswell.github.io/roc-ansi/0.14.0/[API reference]\n* https://github.com/lukewilliamboswell/roc-ansi/releases/download/0.14.0/roc-ansi-examples-0.14.0.zip[Examples]")
 expect Release.newest_first(["0.9.0", "0.13.1", "0.10.0", "0.13.0"]) == ["0.13.1", "0.13.0", "0.10.0", "0.9.0"]
 expect Release.api_versions(["0.9.0", "0.10.0"]) == "* https://lukewilliamboswell.github.io/roc-ansi/main/[main], which is not released yet\n* https://lukewilliamboswell.github.io/roc-ansi/0.10.0/[0.10.0]\n* https://lukewilliamboswell.github.io/roc-ansi/0.9.0/[0.9.0]\n"
-expect Release.base_version("0.14.0") == "0.14.0" and Release.base_version("1.0.0-rc.1") == "1.0.0"
-expect Release.notes_file("0.14.0") == "docs/releases/0.14.0.adoc"

@@ -11,25 +11,29 @@ which gives the reasons behind each practice.
 |===
 | Workflow | Runs on | What it shows
 
-| `ci.yml`
-| Pull requests, pushes to `main`
-| The working tree passes `blueprint run check` on the latest nightly
-
 | `release.yml`
 | Manual dispatch; pull requests as a dry run
-| The exact bundle, examples archive and documentation proposed for publication work
+| The working tree passes `blueprint run check` and its examples on the latest nightly, and the exact bundle, examples archive, documentation and SBOM sidecars proposed for publication work
 
 | `nightly.yml`
 | Daily
 | The latest release's examples archive still works on the latest nightly
 
 | `docs.yml`
-| Pull requests, pushes to `main`
-| The manual and site build; `main` deploys them
+| Pull requests, pushes to `main`, published releases
+| The manual and site build; `main` and a final release deploy them
 |===
 
+`release.yml` is a thin caller of roc-automation's shared
+https://lukewilliamboswell.github.io/roc-automation/workflows.html#the-shared-release-workflow-for-a-pure-package[release workflow]
+at a full commit SHA. The shared workflow owns the jobs; this repository owns
+its package, examples, `tests/spec.json`, notes and the Blueprint tasks the
+workflow calls: `check`, `prepare-sbom`, `install-snippet` and `docs-path`.
+The required status checks are `Release / Build and test the source` and
+`Release / Test the release candidate`.
+
 The package is pure Roc, so CI uses Linux without Nix. The local setup action
-pins roc-automation tools-0.4.0 and selects Blueprint 0.8.0 from the platform
+pins the reviewed roc-automation revision and selects Blueprint 0.8.0 from the platform
 URL. The shared installer verifies and caches the CLI by release, system and
 executable digest. Blueprint embeds its configuration compiler; the separate
 `roc-stable` script compiler remains pinned, and the package nightly floats.
@@ -41,10 +45,9 @@ job downloads the locked utilities; a warm job restores and verifies them.
 Changing the lock invalidates the corresponding cache key. The floating nightly
 may still need a fresh download when its version changes.
 
-SBOM generation uses the shared tools-0.4.0 `sbom-sidecars` action. The
-`prepare-sbom` task supplies product-specific source checks and reviewed
-composition; the shared action owns native generation and its evidence envelope.
-It currently downloads its digest-verified native generator per job. The local
+SBOM generation uses the shared `sbom-sidecars` action. The `prepare-sbom`
+task checks the bundle against the committed source and writes the reviewed
+composition; the shared action owns native generation and binding. The local
 `sbom-tool` helper is provisioned through Blueprint's artifact cache.
 
 The documentation jobs use `blueprint-tool` to resolve `docs-path` to the
@@ -112,19 +115,23 @@ roc bump --old <latest release bundle URL> package/main.roc
 
 The workflow then:
 
-. Rejects a version that already exists, one with no notes, and one that
-  `roc bump --expect` says understates the change.
-. Runs `blueprint run check`.
-. Builds the bundle, the examples archive, the documentation archive and this
-  manual as a PDF, and renders the notes with the real bundle URL and the
-  versions of `roc` and `roc-stable` it used. That record replaces a header
-  pin as the statement of what the release was built and tested with.
-. Tests the examples archive, unchanged, against the bundle.
-. Publishes. A separate job, which checks out nothing and runs no code from
-  the repository, creates a draft release at the tested commit, uploads every
-  asset, downloads each back and compares it with the tested file, and only
-  then publishes.
-. Rebuilds and deploys the site, unless the version is a release candidate.
+. Runs `blueprint run check`, then rejects a version that already exists, one
+  with no notes, and one that `roc bump --expect` says understates the change.
+. Runs the examples against the working tree and compares them with
+  `tests/spec.json`.
+. Builds the bundle, the examples archive, the documentation archive, the SBOM
+  sidecars and this manual as a PDF, and renders the notes with the real
+  bundle URL and the `roc` it used. That record replaces a header pin as the
+  statement of what the release was built and tested with.
+. Tests the examples archive, unchanged, against the bundle, in a job that has
+  no copy of this repository.
+. Publishes. A separate job, which checks out nothing from this repository and
+  runs none of its code, attests the tested files, creates a draft release at
+  the tested commit, uploads every asset, downloads each back and compares it
+  with the tested file, and only then publishes.
+. The caller dispatches `docs.yml` from `main` to rebuild and deploy the site,
+  unless the version is a release candidate. An explicit dispatch is needed
+  because a release created with `GITHUB_TOKEN` does not trigger workflows.
 
 A release holds:
 
@@ -144,21 +151,16 @@ A release holds:
 | `roc-ansi-<version>.pdf`
 | This manual
 
-| `<hash>.tar.zst.spdx.json`, `.spdx-2.3.json`, `.cdx.json`
-| Source-bundle SBOMs: SPDX 3.0.1/2.3 and CycloneDX 1.7
-
-| `<hash>.tar.zst.sbom-inventory.json`, `.sbom-evidence.json`
-| Resolved source inventory and the exact file/source/run mappings
-
-| SBOM member list and manifest
-| Archive-member inventory and producer manifest; the shared evidence envelope binds all formats
-
-| `roc-ansi-provenance.sigstore.json`, `roc-ansi-sbom.sigstore.json`
-| Retained provenance and source-composition attestations
+| `<hash>.tar.zst.spdx.json`, `.spdx-2.3.json`, `.cdx.json`, `.sbom-manifest.json`
+| Source-bundle SBOMs: SPDX 3.0.1/2.3 and CycloneDX 1.7, with the manifest that binds them to the bundle
 
 | `LICENSE`
 | Copyright and UPL-1.0 terms, also referenced inside each source module
 |===
+
+Build provenance for every asset is an attestation GitHub stores for the
+repository, not a release asset: `gh attestation verify <file> --repo
+lukewilliamboswell/roc-ansi` checks a downloaded file against it.
 
 No follow-up pull request is needed, because nothing on `main` names its own
 release. A published release is never changed: if one is wrong, publish a new
@@ -187,6 +189,6 @@ and its examples archive. Those parts are written by
 `blueprint run install-snippet` before the manual is rendered, because a bundle
 URL holds a hash nobody can write by hand.
 
-`docs.yml` builds the site on every pull request and deploys it from `main`.
-`release.yml` rebuilds and deploys it after publishing, since a release changes
-which one is the latest.
+`docs.yml` builds the site on every pull request and deploys it from `main`
+and after a final release is published, since a release changes which one is
+the latest.

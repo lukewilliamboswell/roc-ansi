@@ -2,12 +2,15 @@ name: Documentation
 
 # Renders the manual in docs/ and adds the API reference beside it. A pull
 # request builds the site, so a broken manual fails review, and the result can
-# be downloaded from the run. Only the default branch deploys it.
+# be downloaded from the run. The default branch deploys it, and so does a
+# final release, because the site leads with the latest release.
 on:
   push:
     branches: [main]
   pull_request:
   workflow_dispatch:
+  release:
+    types: [published]
 
 permissions: {}
 
@@ -38,7 +41,7 @@ jobs:
       # The first program in the manual names the latest release's bundle URL.
       - name: Provision and measure the locked documentation renderer
         id: renderer
-        uses: lukewilliamboswell/roc-automation/actions/blueprint-tool@7aff4132691ad4fc348abe9df146a57512b49bd6 # tools-0.4.0
+        uses: lukewilliamboswell/roc-automation/actions/blueprint-tool@2f8bd90acbfba5b1e6e8a50a0ba3c29a7816f25d # shared release workflow
         with:
           task: docs-path
           label: roc-docs tools-0.4.0
@@ -52,7 +55,7 @@ jobs:
 
       - id: docs
         name: Render the manual as a site and a PDF
-        uses: lukewilliamboswell/roc-automation/actions/build-docs@7aff4132691ad4fc348abe9df146a57512b49bd6 # tools-0.4.0
+        uses: lukewilliamboswell/roc-automation/actions/build-docs@2f8bd90acbfba5b1e6e8a50a0ba3c29a7816f25d # shared release workflow
         with:
           renderer-binary: ${{ steps.renderer.outputs.binary }}
           site-url: https://lukewilliamboswell.github.io/roc-ansi/
@@ -85,7 +88,7 @@ jobs:
   # the build job produced.
   deploy:
     name: Deploy the site
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || (github.event_name == 'release' && !github.event.release.prerelease))
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10

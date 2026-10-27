@@ -1,56 +1,16 @@
-import cli.Cmd
 import cli.Env
 import cli.OsStr
 import cli.Path
-import Files
 import Release
 import Script
 import Text
 
-## API documentation stored as a release asset and restored for the site.
+## API documentation restored from release assets for the site.
 ##
 ## Generated documentation is never committed. Each release attaches an
-## archive of its docs, and the site is assembled from those archives.
+## archive of its docs, built by the shared release workflow, and the site is
+## assembled from those archives.
 DocsArchive := [].{
-
-	## Pack the generated docs in `docs_root/<version>` into `output_dir`,
-	## returning the archive. Packing the same files twice gives the same
-	## bytes, so a retried release can tell its asset is already published.
-	pack! = |docs_root, version, output_dir| {
-		if !Release.valid_version(version) {
-			return Script.fail!("not a release version: ${version}")
-		}
-		source = Path.join(docs_root, version)
-		Script.require_file!(Path.join(source, "index.html"))?
-		Path.create_all!(output_dir)?
-		output = Path.absolute!(output_dir)?
-		archive = Path.join(output, Release.docs_archive(version))
-		# zip adds to an existing archive, which would keep entries from an earlier run.
-		if Path.exists!(archive)? {
-			Path.delete!(archive)?
-		}
-
-		# Regular files only, in byte order, so the archive does not depend on
-		# how the filesystem lists them. A symbolic link is an error.
-		root_prefix = "${Path.display(docs_root)}/"
-		entries = Text.sort(Files.all_files!(source)?.map(|path| Path.display(path).drop_prefix(root_prefix)))
-		Env.with_temp_dir!(
-			|stage| {
-				# A zip records each file's time and mode, so pack copies that
-				# all carry the same ones: the earliest time a zip can hold.
-				Path.copy_dir!(source, Path.join(stage, version))?
-				staged = entries.map(|entry| Path.to_os_str(Path.join(stage, entry)))
-				_ = Script.command("chmod").capture!(["0644"].concat(staged), ".", [])?
-				_ = Script.Command.{ base: Cmd.new("touch").env_str("TZ", "UTC"), program: "touch" }.capture!(["-t", "198001010000"].concat(staged), ".", [])?
-				# -X leaves out owner and timestamp extras, -D directory entries;
-				# -@ reads the entries to add. TZ fixes how the time is stored.
-				_ = Script.Command.{ base: Cmd.new("zip").env_str("TZ", "UTC"), program: "zip" }.capture!(["-q", "-X", "-D", Path.to_os_str(archive), "-@"], stage, Str.to_utf8(Str.join_with(entries, "\n")))?
-				Ok({})
-			},
-		)?
-		Script.info!("ARCHIVE", Path.display(archive))?
-		Ok(archive)
-	}
 
 	## Unpack the docs of `version` from `archive` into `output/<version>`,
 	## which must not exist. Every entry is checked before anything is written,

@@ -156,51 +156,6 @@
       "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
     },
     {
-      "input": "task:examples",
-      "component": "",
-      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
-    },
-    {
-      "input": "task:bundle",
-      "component": "",
-      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
-    },
-    {
-      "input": "task:test-bundle",
-      "component": "",
-      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
-    },
-    {
-      "input": "task:package-examples",
-      "component": "",
-      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
-    },
-    {
-      "input": "task:package-docs",
-      "component": "",
-      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
-    },
-    {
-      "input": "task:check-version",
-      "component": "",
-      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
-    },
-    {
-      "input": "task:release-notes",
-      "component": "",
-      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
-    },
-    {
-      "input": "task:fetch-published",
-      "component": "",
-      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
-    },
-    {
-      "input": "task:test-published",
-      "component": "",
-      "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
-    },
-    {
       "input": "task:install-snippet",
       "component": "",
       "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
@@ -229,6 +184,26 @@
       "input": "program:blueprint-sbom:aarch64-darwin",
       "component": "",
       "reason": "Native SBOM generator; its code is not included in the source bundle."
+    },
+    {
+      "input": "task:release-package",
+      "component": "",
+      "reason": "Release packaging utility; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "program:release-package:x86_64-linux",
+      "component": "",
+      "reason": "Release packaging utility; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "program:release-package:aarch64-linux",
+      "component": "",
+      "reason": "Release packaging utility; no code from this input is included in the Roc source bundle."
+    },
+    {
+      "input": "program:release-package:aarch64-darwin",
+      "component": "",
+      "reason": "Release packaging utility; no code from this input is included in the Roc source bundle."
     }
   ],
   "imported_documents": [],

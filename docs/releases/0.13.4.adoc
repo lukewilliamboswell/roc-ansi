@@ -1,0 +1,24 @@
+= roc-ansi 0.13.4
+
+This patch changes no package APIs or example output. The published examples
+use basic-cli 0.26.0, which avoids the `Stream` builtin-shadowing warning and
+nonzero compiler exit status on recent Roc nightlies.
+
+== Use this release
+
+[source,roc]
+----
+app [main!] {
+    ansi: "{package-url}",
+}
+----
+
+== Tooling and documentation
+
+* The shared roc-automation release workflow builds and tests the source,
+  bundles, examples, API documentation, manual and SBOM sidecars before
+  publishing the tested files.
+* Build provenance is stored in GitHub attestations and can be verified with
+  `gh attestation verify`. The SPDX and CycloneDX sidecars and their manifest
+  remain release assets.
+* Final releases explicitly refresh the documentation site.
