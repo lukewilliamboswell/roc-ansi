@@ -36,3 +36,18 @@ jobs:
       sbom-task: prepare-sbom
       manual: true
       docs-task: install-snippet
+
+  refresh-site:
+    name: Refresh the site after a final release
+    needs: Release
+    if: inputs.version != '' && !contains(inputs.version, '-')
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      # Releases created with GITHUB_TOKEN do not trigger release workflows.
+      - name: Dispatch the documentation workflow from main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh workflow run docs.yml --ref main
