@@ -5,7 +5,7 @@ runs:
   using: composite
   steps:
     - name: Install stable Blueprint and restore downloaded artifacts
-      uses: lukewilliamboswell/roc-automation/actions/setup-blueprint@2f8bd90acbfba5b1e6e8a50a0ba3c29a7816f25d # shared release workflow
+      uses: lukewilliamboswell/roc-automation/actions/setup-blueprint@dc5018181137543693bff75038990ef311b0b523 # single-runner nightly fix
       with:
         install-nix: 'false'
         cache: 'true'
