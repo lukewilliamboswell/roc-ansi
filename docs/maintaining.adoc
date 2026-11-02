@@ -151,8 +151,10 @@ A release holds:
 | `roc-ansi-<version>.pdf`
 | This manual
 
-| `<hash>.tar.zst.spdx.json`, `.spdx-2.3.json`, `.cdx.json`, `.sbom-manifest.json`
-| Source-bundle SBOMs: SPDX 3.0.1/2.3 and CycloneDX 1.7, with the manifest that binds them to the bundle
+| Bundle SBOM sidecars
+| Files beside `<hash>.tar.zst`, with suffixes `.spdx.json`, `.spdx-2.3.json`,
+  `.cdx.json` and `.sbom-manifest.json`: SPDX 3.0.1/2.3 and CycloneDX 1.7,
+  with the manifest that binds them to the bundle
 
 | `LICENSE`
 | Copyright and UPL-1.0 terms, also referenced inside each source module

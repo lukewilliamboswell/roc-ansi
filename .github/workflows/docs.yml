@@ -44,7 +44,7 @@ jobs:
         uses: lukewilliamboswell/roc-automation/actions/blueprint-tool@8454f8ed9acc026c85e31e87b132dfeeaf9f1b81 # verified manual badge evidence
         with:
           task: docs-path
-          label: roc-docs tools-0.4.0
+          label: roc-docs tools-0.9.0
           measure: 'true'
           output-directory: .docs-out
 
