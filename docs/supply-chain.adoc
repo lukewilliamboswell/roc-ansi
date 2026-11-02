@@ -71,14 +71,6 @@ Read the coverage statements as well as verifying signatures. Keep your own
 admitted copy, expected signer policy and verification results. A signature
 binds the bytes to the producer; the declared source coverage still needs review.
 
-== Legacy evidence in 0.13.3
-
-Release 0.13.3 also published the resolved inventory, archive-member list,
-evidence envelope and two retained `.sigstore.json` bundles. It used this
-repository's own release workflow and supplied a separate SPDX composition
-attestation. Its verification commands and expected signer are preserved in
-https://github.com/lukewilliamboswell/roc-ansi/blob/0.13.3/docs/supply-chain.adoc[the 0.13.3 verification guide].
-
 == Chain into your own inventory
 
 Preserve roc-ansi's immutable source location, release version, bundle SHA-256,

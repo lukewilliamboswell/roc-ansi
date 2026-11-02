@@ -164,9 +164,7 @@ Build provenance for every asset is an attestation GitHub stores for the
 repository, not a release asset: `gh attestation verify <file> --repo
 lukewilliamboswell/roc-ansi` checks a downloaded file against it.
 
-No follow-up pull request is needed, because nothing on `main` names its own
-release. A published release is never changed: if one is wrong, publish a new
-version.
+A published release is never changed: if one is wrong, publish a new version.
 
 On a pull request the workflow builds and tests the same things under the
 version `0.0.1-dryrun`, renders the newest notes, and publishes nothing.

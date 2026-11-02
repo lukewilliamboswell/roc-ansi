@@ -120,13 +120,11 @@ recorded too:
 
 [source,sh]
 ----
-roc build <roc-automation>/scripts/release_package.roc --output=release-package
-./release-package test-examples --update
+blueprint run release-package -- test-examples --update
 ----
 
-`release-package` is the utility the shared release workflow runs, built with
-the `roc` on `PATH`. That rewrites `tests/spec.json` from what the examples
-print now. Review the diff like any other change. An example that cannot run for a reason outside
+This rewrites `tests/spec.json` from what the examples print now. Review the diff
+like any other change. An example that cannot run for a reason outside
 this repository is skipped in the specification with a `reason` and an `issue`
 link; a skip without both is rejected.
 
@@ -170,7 +168,7 @@ The manual is the AsciiDoc under `docs/`, one chapter per file, rendered by the
 shared https://lukewilliamboswell.github.io/roc-automation/#build-docs[build-docs]
 action. Every pull request builds it, and the site can be downloaded from the
 `Documentation` workflow run. Blueprint provisions the locked native renderer
-from roc-automation tools-0.4.0; no container or sibling checkout is needed:
+named in `Blueprint.roc`; no container or sibling checkout is needed:
 
 [source,sh]
 ----
@@ -186,3 +184,9 @@ into `.docs-out/roc-ansi.pdf`. The last adds the
 API reference for `main` and serves the site on a free port, or the one named
 by `SITE_PORT`; with `FETCH_RELEASE_DOCS=1` it also restores the API reference
 of every release.
+
+== Write documentation
+
+Write for a current user or contributor task. Remove superseded explanations
+and keep release changes with their release. Follow the
+https://lukewilliamboswell.github.io/roc-automation/documentation.html#write-project-documentation[shared documentation guidance].
