@@ -42,6 +42,11 @@ Html := [].{
 	## is returned as it is.
 	enhance : Str, Str -> Try(Str, [IncompletePage])
 	enhance = |document, page| {
+		# Roc emits the search index as an HTML fragment, loaded by the search
+		# UI. It must retain its original bytes rather than receive page chrome.
+		if page == "search-index.html" or page.ends_with("/search-index.html") {
+			return Ok(document)
+		}
 		if !document.contains("</head>") or !document.contains("</body>") {
 			return Err(IncompletePage)
 		}
@@ -155,6 +160,9 @@ expect Html.root_of("main/index.html") == "../"
 expect Html.root_of("0.13.0/ANSI/index.html") == "../../"
 expect Html.enhance(manual_page, "index.html") == Ok(manual_page)
 expect Html.enhance("<p>fragment</p>", "index.html") == Err(IncompletePage)
+expect Html.enhance("<p>search result</p>", "main/search-index.html") == Ok("<p>search result</p>")
+expect Html.enhance("<p>search result</p>", "0.13.3/search-index.html") == Ok("<p>search result</p>")
+expect Html.enhance("<p>fragment</p>", "main/ANSI/index.html") == Err(IncompletePage)
 expect Html.enhance(module_page, "main/ANSI/index.html") == Ok("<html><head>\n<title>ANSI · roc-ansi</title>\n    <link rel=\"stylesheet\" href=\"../../docs-site.css\">\n</head><body>\n<nav id=\"sidebar-nav\"><h1 class=\"pkg-full-name\"><a href=\"../\">roc-ansi</a></h1>\n            <ul class=\"module-links\">\n                <li class=\"sidebar-entry sidebar-site-link\"><a href=\"../../\">← roc-ansi manual</a></li>\n</ul></nav>\n<div class=\"main-content\">\n<!--!x-->\n<h1>ANSI</h1></div>\n<footer><p><a href=\"../../\">roc-ansi</a> is open source under the UPL-1.0 license.</p></footer>\n</body></html>\n")
 expect {
 	enhanced = Html.enhance(index_page, "main/index.html")?

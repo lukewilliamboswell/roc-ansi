@@ -20,7 +20,7 @@ import pf.System
 
 docs_renderer : System -> Config.Download
 docs_renderer = |system| match system {
-	"x86_64-linux" | "aarch64-linux" | "aarch64-darwin" => File("https://github.com/lukewilliamboswell/roc-automation/releases/download/tools-0.4.0/roc-docs-${system.to_str()}")
+	"x86_64-linux" | "aarch64-linux" | "aarch64-darwin" => File("https://github.com/lukewilliamboswell/roc-automation/releases/download/tools-0.9.0/roc-docs-${system.to_str()}")
 	_ => Unavailable
 }
 
@@ -33,7 +33,7 @@ sbom_binary = |system| match system {
 # The utility behind the shared release workflow, from a roc-automation tools release.
 release_package : System -> Config.Download
 release_package = |system| match system {
-	"x86_64-linux" | "aarch64-linux" | "aarch64-darwin" => File("https://github.com/lukewilliamboswell/roc-automation/releases/download/tools-0.5.0/release-package-${system.to_str()}")
+	"x86_64-linux" | "aarch64-linux" | "aarch64-darwin" => File("https://github.com/lukewilliamboswell/roc-automation/releases/download/tools-0.9.0/release-package-${system.to_str()}")
 	_ => Unavailable
 }
 

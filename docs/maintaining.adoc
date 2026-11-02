@@ -151,8 +151,10 @@ A release holds:
 | `roc-ansi-<version>.pdf`
 | This manual
 
-| `<hash>.tar.zst.spdx.json`, `.spdx-2.3.json`, `.cdx.json`, `.sbom-manifest.json`
-| Source-bundle SBOMs: SPDX 3.0.1/2.3 and CycloneDX 1.7, with the manifest that binds them to the bundle
+| Bundle SBOM sidecars
+| Files beside `<hash>.tar.zst`, with suffixes `.spdx.json`, `.spdx-2.3.json`,
+  `.cdx.json` and `.sbom-manifest.json`: SPDX 3.0.1/2.3 and CycloneDX 1.7,
+  with the manifest that binds them to the bundle
 
 | `LICENSE`
 | Copyright and UPL-1.0 terms, also referenced inside each source module
@@ -162,9 +164,7 @@ Build provenance for every asset is an attestation GitHub stores for the
 repository, not a release asset: `gh attestation verify <file> --repo
 lukewilliamboswell/roc-ansi` checks a downloaded file against it.
 
-No follow-up pull request is needed, because nothing on `main` names its own
-release. A published release is never changed: if one is wrong, publish a new
-version.
+A published release is never changed: if one is wrong, publish a new version.
 
 On a pull request the workflow builds and tests the same things under the
 version `0.0.1-dryrun`, renders the newest notes, and publishes nothing.
