@@ -1,0 +1,15 @@
+= roc-ansi 0.13.5
+
+The five published examples use basic-cli 0.27.0 and work with Roc nightly
+`nightly-2026-11-07-ad3a5d2`. This fixes compilation failures caused by the
+nightly's iterator and stream API changes in basic-cli 0.26.0. Package APIs and
+example output are unchanged.
+
+== Use this release
+
+[source,roc]
+----
+app [main!] {
+    ansi: "{package-url}",
+}
+----
