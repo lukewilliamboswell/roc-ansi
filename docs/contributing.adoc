@@ -52,7 +52,7 @@ Nothing pins a compiler for the package or the examples. Each script names
 different compiler says why it misbehaves.
 
 The released SBOM utility is a checksum-locked native executable from Blueprint
-0.8.0. `blueprint run prepare-sbom` checks the source and prepares reviewed
+0.12.0. `blueprint run prepare-sbom` checks the source and prepares reviewed
 composition. The release workflow uses the shared `sbom-sidecars` action to
 generate and check the sidecars; `blueprint run sbom-tool` exposes the native
 tool for local inspection. Blueprint embeds its configuration compiler.

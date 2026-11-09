@@ -12,7 +12,7 @@
 # `prepare-sbom`, `install-snippet` and `docs-path` tasks here.
 # The released SBOM utility is a native executable. Blueprint embeds its
 # configuration compiler independently of these environment inputs.
-app [config] { pf: platform "https://github.com/lukewilliamboswell/roc-blueprint/releases/download/0.8.0/FbJymjYdCxx9vqMcau7r4tQfeAbnVGqqJoYrLGqPCqKu.tar.zst" }
+app [config] { pf: platform "https://github.com/lukewilliamboswell/roc-blueprint/releases/download/0.12.0/GSb71LxYHqLohZz8jMfawWEwQcyev9ZdVC26sfsDwfq8.tar.zst" }
 
 import pf.Recipes
 import pf.Config
@@ -20,20 +20,20 @@ import pf.System
 
 docs_renderer : System -> Config.Download
 docs_renderer = |system| match system {
-	"x86_64-linux" | "aarch64-linux" | "aarch64-darwin" => File("https://github.com/lukewilliamboswell/roc-automation/releases/download/tools-0.9.0/roc-docs-${system.to_str()}")
+	"x86_64-linux" | "aarch64-linux" | "aarch64-darwin" => File("https://github.com/lukewilliamboswell/roc-automation/releases/download/tools-0.10.1/roc-docs-${system.to_str()}")
 	_ => Unavailable
 }
 
 sbom_binary : System -> Config.Download
 sbom_binary = |system| match system {
-	"x86_64-linux" | "aarch64-linux" | "aarch64-darwin" => File("https://github.com/lukewilliamboswell/roc-blueprint/releases/download/0.8.0/blueprint-sbom-${system.to_str()}")
+	"x86_64-linux" | "aarch64-linux" | "aarch64-darwin" => File("https://github.com/lukewilliamboswell/roc-blueprint/releases/download/0.12.0/blueprint-sbom-${system.to_str()}")
 	_ => Unavailable
 }
 
 # The utility behind the shared release workflow, from a roc-automation tools release.
 release_package : System -> Config.Download
 release_package = |system| match system {
-	"x86_64-linux" | "aarch64-linux" | "aarch64-darwin" => File("https://github.com/lukewilliamboswell/roc-automation/releases/download/tools-0.9.0/release-package-${system.to_str()}")
+	"x86_64-linux" | "aarch64-linux" | "aarch64-darwin" => File("https://github.com/lukewilliamboswell/roc-automation/releases/download/tools-0.10.1/release-package-${system.to_str()}")
 	_ => Unavailable
 }
 

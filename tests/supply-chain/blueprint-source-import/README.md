@@ -5,7 +5,8 @@ Blueprint 0.8 fixes [issue 61](https://github.com/lukewilliamboswell/roc-bluepri
 These inert inputs preserve the actual generated roc-ansi candidate SBOM used
 to report it; they do not assert that 0.13.3 has been published.
 
-With the checksum-verified native Blueprint 0.8 SBOM tool (no compiler needed):
+With the checksum-verified native SBOM tool from the Blueprint release named in
+`Blueprint.roc` (no compiler needed):
 
 ```sh
 blueprint-sbom inspect Spec Lock composition.json source source-inventory.json
