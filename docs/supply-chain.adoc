@@ -41,15 +41,15 @@ this source SBOM does not describe their contents.
 Select the bundle filename from the GitHub release. Its Roc content-hash name
 and its SHA-256 are different identities: use the SHA-256 in the SBOM to check
 the delivered archive bytes. The shared workflow revision below is the one
-reviewed for 0.13.4; review a later release's workflow pin before changing it.
+reviewed for 0.14.0; review a later release's workflow pin before changing it.
 
 [source,sh]
 ----
 repo=lukewilliamboswell/roc-ansi
-version=0.13.4
+version=0.14.0
 bundle='<bundle filename from the release>'
 commit=$(gh api "repos/$repo/commits/$version" --jq .sha)
-automation=2f8bd90acbfba5b1e6e8a50a0ba3c29a7816f25d
+automation=6c796f299012707d2e9bad23fd6449ed93f1f475
 signer=lukewilliamboswell/roc-automation/.github/workflows/release-package.yml
 
 gh release download "$version" --repo "$repo" \

@@ -41,4 +41,5 @@ which depend on that release.
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). roc-ansi is open source under the
-[Universal Permissive License 1.0](LICENSE).
+[Universal Permissive License 1.0](LICENSE), with
+[third-party notices](THIRD_PARTY_LICENSES.md) for Unicode code and data.
