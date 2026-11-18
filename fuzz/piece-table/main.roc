@@ -1,6 +1,6 @@
 app [target] {
 	ansi: "../../package/main.roc",
-	fuzz: platform "https://github.com/lukewilliamboswell/roc-fuzz/releases/download/0.4.3/41NK5FShyGC9Z8HNpUdUeXMWwLmLNfFxsfmLvdPL4Fxb.tar.zst",
+	fuzz: platform "https://github.com/lukewilliamboswell/roc-fuzz/releases/download/0.6.2/3kyiehxxzwAsjM23uCQGJ3Hx7dAAdzSGtK3k9Jq7Egtu.tar.zst",
 }
 
 import fuzz.Fuzz
@@ -48,7 +48,11 @@ test = |{ document, index, value }| {
 
 target = Fuzz.target_with({
 	name: "piece-table",
-	generator: Fuzz.map(Fuzz.raw_bytes, generate),
-	test,
-	show: |case| "index=${case.index.to_str()} value=${case.value.to_str()} document=${Str.inspect(case.document)}",
+	generator: Fuzz.raw_bytes,
+	examples: [],
+	test: |bytes| test(generate(bytes)),
+	show: |bytes| {
+		case = generate(bytes)
+		"index=${case.index.to_str()} value=${case.value.to_str()} document=${Str.inspect(case.document)}"
+	},
 })

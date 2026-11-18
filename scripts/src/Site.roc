@@ -42,8 +42,8 @@ Site := [].{
 		main_docs = Path.join(output, "main")
 		roc
 			.cmd(["docs", "package/main.roc", "--output=${Path.display(main_docs)}"])
-			.env_str("ROC_DOCS_URL_ROOT", "${Html.base_path}/main")
-			.exec_cmd!()?
+			.env("ROC_DOCS_URL_ROOT", "${Html.base_path}/main")
+			.call!()?
 
 		enhanced = enhance_pages!(output)?
 		Script.info!("SITE", "${Path.display(output)}, with ${enhanced.to_str()} pages of API reference rewritten")

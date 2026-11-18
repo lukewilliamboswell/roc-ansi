@@ -111,7 +111,7 @@
       "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
     },
     {
-      "input": "roc-package:CZsY7tYZwR3rj9kYbpaCfxki2yVAaRL8bBwMLvB2xkbA",
+      "input": "roc-package:7brgwR8YUqfeGrkdfF1V4GPPN7DnP7ftqub9KcrTEZtr",
       "component": "",
       "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
     },
@@ -121,7 +121,7 @@
       "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
     },
     {
-      "input": "build-source:roc-CZsY7tYZwR3rj9kYbpaCfxki2yVAaRL8bBwMLvB2xkbA",
+      "input": "build-source:roc-7brgwR8YUqfeGrkdfF1V4GPPN7DnP7ftqub9KcrTEZtr",
       "component": "",
       "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
     },

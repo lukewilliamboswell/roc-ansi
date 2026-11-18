@@ -8,6 +8,7 @@ examples/**
 
 generated-docs/
 .roc-ansi-tmp/
+.roc-fuzz/
 # Rendered by the shared build-docs action, and its generated input.
 .docs-out/
 docs/generated/

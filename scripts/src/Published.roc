@@ -12,7 +12,7 @@ Published := [].{
 	## Needs `gh` to be authenticated, for example through `GH_TOKEN`.
 	release! : Str => Try({ tag : Str, assets : List(Str) }, _)
 	release! = |tag| {
-		wanted = if tag == "" [] else [OsStr.from_str(tag)]
+		wanted = if (tag == "") [] else [OsStr.from_str(tag)]
 		# Without a tag, gh selects the latest published release.
 		listing = Script.command("gh").capture_utf8!(
 			["release", "view"].concat(wanted).concat(["--repo", OsStr.from_str(Release.repository), "--json", "tagName,assets", "--jq", "{tag: .tagName, assets: [.assets[].name]}"]),

@@ -21,7 +21,7 @@ Html := [].{
 			NotFound
 		} else {
 			relative = path.drop_prefix("${Html.base_path}/")
-			segments = Str.split_on(if relative == "" or relative.ends_with("/") "${relative}index.html" else relative, "/")
+			segments = Str.split_on(if (relative == "" or relative.ends_with("/")) "${relative}index.html" else relative, "/")
 			if segments.all(|segment| segment != "" and !segment.starts_with(".") and !segment.contains("\\")) {
 				File(segments)
 			} else {
@@ -90,7 +90,7 @@ rename_package = |document| {
 		Ok({ before, after }) =>
 			match Str.split_first(after, "\"") {
 				Ok({ before: href, after: _ }) if after.drop_prefix(href).starts_with(closing) => {
-					link = if href == "" "." else href
+					link = if (href == "") "." else href
 					"${before}${opening}${link}\">${package_name}</a></h1>${after.drop_prefix(href).drop_prefix(closing)}"
 				}
 				_ => document
@@ -168,8 +168,8 @@ expect {
 	enhanced = Html.enhance(index_page, "main/index.html")?
 	enhanced.contains("<title>roc-ansi API documentation</title>")
 		and enhanced.contains("<a href=\".\">roc-ansi</a></h1>")
-			and enhanced.contains("<!--!x-->\n        <h1 class=\"pkg-full-name-heading\">roc-ansi</h1>")
-				and enhanced.contains("<a href=\"../\">roc-ansi manual</a> to get started.</p>\n\n<p>index</p>")
+		and enhanced.contains("<!--!x-->\n        <h1 class=\"pkg-full-name-heading\">roc-ansi</h1>")
+		and enhanced.contains("<a href=\"../\">roc-ansi manual</a> to get started.</p>\n\n<p>index</p>")
 }
 expect Html.route("/") == Redirect("/roc-ansi/") and Html.route("/roc-ansi") == Redirect("/roc-ansi/")
 expect Html.route("/roc-ansi/") == File(["index.html"])
