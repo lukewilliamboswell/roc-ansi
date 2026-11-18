@@ -14,6 +14,10 @@ roc-ansi lets a Roc program colour and style what it prints, move the cursor,
 read key presses and draw simple tables, by writing the ANSI escape sequences a
 terminal understands for you.
 
+Browse the https://lukewilliamboswell.github.io/roc-ansi/main/[API reference for main]
+for module types and functions, or choose your
+xref:getting-started.adoc#api-reference-for-every-version[released version's API reference].
+
 ifdef::backend-html5[]
 link:roc-ansi.pdf[Download this manual as a PDF] ·
 https://github.com/lukewilliamboswell/roc-ansi[View roc-ansi on GitHub].

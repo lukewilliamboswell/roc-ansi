@@ -6,6 +6,7 @@ escape codes by hand. It is a pure Roc package and works with any platform
 that can write to a terminal.
 
 **[Read the manual](https://lukewilliamboswell.github.io/roc-ansi/)** ·
+[API reference (main)](https://lukewilliamboswell.github.io/roc-ansi/main/) ·
 [Latest release](https://github.com/lukewilliamboswell/roc-ansi/releases/latest)
 
 ```roc
