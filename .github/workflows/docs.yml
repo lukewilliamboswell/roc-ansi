@@ -56,7 +56,7 @@ jobs:
 
       - id: docs
         name: Render the manual as a site and a PDF
-        uses: lukewilliamboswell/roc-automation/actions/build-docs@e12512e2605608588782edb044dd766137e34869 # verified manual badge evidence
+        uses: lukewilliamboswell/roc-automation/actions/build-docs@6c796f299012707d2e9bad23fd6449ed93f1f475 # verified manual badge evidence
         with:
           renderer-binary: ${{ steps.renderer.outputs.binary }}
           site-url: https://lukewilliamboswell.github.io/roc-ansi/
