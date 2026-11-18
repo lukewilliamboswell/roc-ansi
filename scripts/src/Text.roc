@@ -37,7 +37,7 @@ is_letter = |byte| (byte >= 'a' and byte <= 'z') or (byte >= 'A' and byte <= 'Z'
 compare_bytes = |left, right|
 	match (left, right) {
 		([a, .. as left_rest], [b, .. as right_rest]) =>
-			if a < b Before else if a > b After else compare_bytes(left_rest, right_rest)
+			if (a < b) Before else if (a > b) After else compare_bytes(left_rest, right_rest)
 		([], []) => Same
 		([], _) => Before
 		(_, []) => After

@@ -51,7 +51,7 @@ Release := [].{
 	## Pick the examples archive out of the asset names of the release `version`.
 	find_examples_archive : Str, List(Str) -> [Zip(Str), Missing]
 	find_examples_archive = |version, assets|
-		if assets.contains(Release.examples_archive(version)) Zip(Release.examples_archive(version)) else Missing
+		if (assets.contains(Release.examples_archive(version))) Zip(Release.examples_archive(version)) else Missing
 
 	## The documentation archive attached to the release `version`.
 	docs_archive : Str -> Str
@@ -142,7 +142,7 @@ numbers = |version| Str.split_on(version, ".").map(|part| U64.from_str(part).ok_
 compare_numbers = |left, right|
 	match (left, right) {
 		([a, .. as left_rest], [b, .. as right_rest]) =>
-			if a < b Before else if a > b After else compare_numbers(left_rest, right_rest)
+			if (a < b) Before else if (a > b) After else compare_numbers(left_rest, right_rest)
 		([], []) => Same
 		([], _) => Before
 		(_, []) => After

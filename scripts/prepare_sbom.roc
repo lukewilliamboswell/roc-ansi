@@ -1,7 +1,7 @@
 #!/usr/bin/env roc-stable
 app [main!] {
-	cli: platform "https://github.com/roc-lang/basic-cli/releases/download/0.25.0/CZsY7tYZwR3rj9kYbpaCfxki2yVAaRL8bBwMLvB2xkbA.tar.zst",
-	roc: "nightly-2026-10-09-258ab27",
+	cli: platform "https://github.com/roc-lang/basic-cli/releases/download/0.28.1/7brgwR8YUqfeGrkdfF1V4GPPN7DnP7ftqub9KcrTEZtr.tar.zst",
+	roc: "nightly-2026-11-18-a520eed",
 }
 
 import cli.OsStr
@@ -29,8 +29,8 @@ main! = |_args| {
 	if Text.lines(dependencies).len() != 1 or !dependencies.ends_with("[package]") {
 		return Script.fail!("package dependency closure changed: review sbom/package.json before release")
 	}
-	# This recipe promises first-party source only. Added members or changed
-	# source/dependency boundaries must receive a composition review.
+	# This recipe covers first-party modules and the reviewed Unicode subset.
+	# Added members or changed source/dependency boundaries need review.
 	members = Text.lines(Script.command("tar").capture_utf8!(["-tf", Path.to_os_str(bundle)], ".")?)
 	sources = Files.direct_roc_files!("package")?
 	if members.len() != sources.len() {
@@ -66,7 +66,8 @@ main! = |_args| {
 		size = Path.read_bytes!(source)?.len()
 		$members = $members.append({ name, sha256, size })
 	}
-	# Membership/HEAD checks above establish these are our reviewed UPL sources.
+	# Membership/HEAD checks above establish the reviewed source bytes.
+	# Unicode modules retain their upstream attribution and data license.
 	archive_components = ($members).map(
 		|member| {
 			id: "member-${member.name.replace_each(".", "-")}",
@@ -75,12 +76,12 @@ main! = |_args| {
 			identity: "urn:blueprint:archive-member:${member.name}:${member.sha256}",
 			download: "NOASSERTION",
 			sha256: member.sha256,
-			license: "UPL-1.0",
+			license: if (member.name.starts_with("Unicode")) "UPL-1.0 AND Unicode-3.0" else "UPL-1.0",
 			license_url: "",
-			modified: "",
+			modified: if (member.name.starts_with("Unicode")) "Adapted from roc-lang/unicode 4.3.1, source SHA-256 119846d77be7e87cff22396219a8d060833c4ee2c3b7e54ba94dc2fb7a37d168. Private names and November 18 compiler compatibility; segmentation rules and data unchanged." else "",
 			target: "source",
 			origin: "reviewed",
-			producer: "Person: Luke Boswell",
+			producer: if (member.name.starts_with("Unicode")) "Organization: Roc contributors" else "Person: Luke Boswell",
 		},
 	)
 	archive_relationships = ($members).map(

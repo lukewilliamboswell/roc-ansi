@@ -9,13 +9,13 @@ import cli.Stdout
 Script := [].{
 
 	## A program the scripts start, kept with its name for readable logs.
-	Command := { base : Cmd, program : OsStr }.{
+	Command := { base : Cmd.Command, program : OsStr }.{
 
 		## Print the command, then run it with inherited output.
 		run! : Command, List(OsStr) => Try({}, _)
 		run! = |self, args| {
 			Stdout.line!("+ ${Str.join_with([self.program].concat(args).map(OsStr.display), " ")}")?
-			self.base.args(args).exec_cmd!()
+			self.base.args(args).call!()
 		}
 
 		## Run in `cwd` with `stdin` as input and return captured standard output.
@@ -58,7 +58,7 @@ Script := [].{
 		with_empty_package_cache = |self, directory| Command.{ base: self.base.env("XDG_CACHE_HOME", Path.to_os_str(directory)), program: self.program }
 
 		## The underlying basic-cli command with `args` appended.
-		cmd : Command, List(OsStr) -> Cmd
+		cmd : Command, List(OsStr) -> Cmd.Command
 		cmd = |self, args| self.base.args(args)
 	}
 

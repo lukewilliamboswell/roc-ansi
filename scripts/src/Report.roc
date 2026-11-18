@@ -29,7 +29,7 @@ Report := [].{
 	line = |position, step| {
 		count = position.total.to_str()
 		name_len = Str.to_utf8(step.name).len()
-		dots = Str.repeat(".", if position.width > name_len position.width - name_len + 3 else 3)
+		dots = Str.repeat(".", if (position.width > name_len) position.width - name_len + 3 else 3)
 		prefix = " [${pad_left(position.index.to_str(), Str.to_utf8(count).len())}/${count}] ${step.name} ${dots} "
 		match step.outcome {
 			Pass => "${prefix}${word("PASS", "32", position.colour)} ${pad_left(Report.millis(step.ms), 11)}"
@@ -55,11 +55,11 @@ Report := [].{
 		)
 		failed = steps.count_if(|step| step.outcome == Fail)
 		passes = steps.count_if(|step| step.outcome == Pass)
-		slowest = List.sort_with(steps, |left, right| if left.ms > right.ms Before else if left.ms < right.ms After else Text.compare(left.name, right.name))
+		slowest = List.sort_with(steps, |left, right| if (left.ms > right.ms) Before else if (left.ms < right.ms) After else Text.compare(left.name, right.name))
 			.take_first(3)
 			.map(|step| "${step.name} ${Report.millis(step.ms)}")
 		Str.join_with(
-			(if skipped.is_empty() [] else ["Skipped"].concat(skipped).append(""))
+			(if (skipped.is_empty()) [] else ["Skipped"].concat(skipped).append(""))
 				.concat([
 					"Summary: ${passes.to_str()} passed, ${failed.to_str()} failed, ${skipped.len().to_str()} skipped in ${Report.millis(total_ms)}",
 					"Slowest: ${Str.join_with(slowest, ", ")}",
@@ -69,11 +69,11 @@ Report := [].{
 	}
 }
 
-word = |text, code, colour| if colour "\u(001b)[${code}m${text}\u(001b)[0m" else text
+word = |text, code, colour| if (colour) "\u(001b)[${code}m${text}\u(001b)[0m" else text
 
 pad_left = |text, width| {
 	len = Str.to_utf8(text).len()
-	if width > len "${Str.repeat(" ", width - len)}${text}" else text
+	if (width > len) "${Str.repeat(" ", width - len)}${text}" else text
 }
 
 # Walk the digits from the right, putting `_` before each complete group of three.

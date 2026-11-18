@@ -1,3 +1,4 @@
+import cli.Duration
 import cli.Cmd
 import cli.Env
 import cli.Monotonic
@@ -48,15 +49,16 @@ measure! = |roc, cases, build| {
 			Err(UnknownOperation(operation)) => return Script.fail!("${Path.display(ceilings)} [${case.name}]: tests/allocations/main.roc has no operation named ${operation}")
 		}
 		# The target reports its count by crashing with it, so a failing
-		# exit code is expected and the count is what is checked.
-		output = Cmd.new(Path.to_os_str(executable))
-			.args(["replay", Path.to_os_str(input)])
+		# exit code is expected. The supervisor stores its output in run.log.
+		report = Path.join(build, "report-${$index.to_str()}")
+		_ = Cmd.new(Path.to_os_str(executable))
+			.args(["replay", Path.to_os_str(input), "--report-dir=${Path.display(report)}"])
 			.stdout(Capture)
 			.stderr(Capture)
-			.timeout_ms(60_000)
+			.timeout(Duration.seconds(60))
 			.run!()
 			.map_err(|err| CommandRunFailed(Path.display(executable), err))?
-		printed = "${Str.from_utf8_lossy(output.stdout_bytes)}${Str.from_utf8_lossy(output.stderr_bytes)}"
+		printed = Path.read_utf8!(Path.join(report, "run.log"))?
 		count = match Ratchet.measured(printed) {
 			Ok(value) => value
 			Err(NoMeasurement) => return Script.fail!("${case.name}: the target reported no allocation count\n${printed}")
@@ -66,7 +68,7 @@ measure! = |roc, cases, build| {
 			Within(text) => (Pass, text)
 			Under(text) => (Pass, text)
 		}
-		step = { name: "${case.name}: ${numbers}", outcome, ms: Report.elapsed_ms(begun, Monotonic.now!()) }
+		step = { name: "${case.name}: ${numbers}", outcome, ms: Duration.to_millis(Monotonic.now!().since(begun)) }
 		Stdout.line!(Report.line({ index: $index, total: cases.len(), width: 0, colour: Bool.False }, step))?
 		$steps = $steps.append(step)
 	}

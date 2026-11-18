@@ -21,7 +21,7 @@ DocsArchive := [].{
 			return Script.fail!("not a release version: ${version}")
 		}
 		tarball = Path.display(archive).ends_with(".tar.gz")
-		listed = if tarball list_tarball!(archive)? else list_zip!(archive)?
+		listed = if (tarball) list_tarball!(archive)? else list_zip!(archive)?
 		entries = listed.entries
 		# The long listing starts each line with the entry type: `-` is a
 		# regular file and `d` a directory.

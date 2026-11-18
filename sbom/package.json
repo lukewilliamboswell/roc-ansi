@@ -3,7 +3,7 @@
   "components": [
     {
       "producer": "Person: Luke Boswell",
-      "license": "UPL-1.0",
+      "license": "UPL-1.0 AND Unicode-3.0",
       "license_url": "",
       "modified": "",
       "target": "source",
@@ -52,7 +52,7 @@
     {
       "scope": "shipped-source",
       "status": "complete",
-      "reason": "Archive members and their bytes are checked against the package source tree. This SBOM covers the Roc source bundle only.",
+      "reason": "Archive members and their bytes are checked against the package source tree, including the attributed Unicode grapheme subset. This SBOM covers the Roc source bundle only.",
       "contact": "https://github.com/lukewilliamboswell/roc-ansi/issues"
     },
     {
@@ -63,8 +63,8 @@
     },
     {
       "scope": "vendored-source",
-      "status": "verified-empty",
-      "reason": "The reviewed package consists solely of first-party modules; it contains no vendored source.",
+      "status": "complete",
+      "reason": "Five private Unicode*.roc modules adapt the grapheme subset of roc-lang/unicode 4.3.1 (source archive SHA-256 119846d77be7e87cff22396219a8d060833c4ee2c3b7e54ba94dc2fb7a37d168). Each is inventoried by exact shipped bytes and carries upstream attribution. Unicode 17 data and conformance fixtures use Unicode-3.0; Roc implementation uses UPL-1.0. Private names and compiler compatibility are modified; segmentation rules and data are unchanged.",
       "contact": "https://github.com/lukewilliamboswell/roc-ansi/issues"
     },
     {
@@ -111,7 +111,7 @@
       "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
     },
     {
-      "input": "roc-package:CZsY7tYZwR3rj9kYbpaCfxki2yVAaRL8bBwMLvB2xkbA",
+      "input": "roc-package:7brgwR8YUqfeGrkdfF1V4GPPN7DnP7ftqub9KcrTEZtr",
       "component": "",
       "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
     },
@@ -121,7 +121,7 @@
       "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
     },
     {
-      "input": "build-source:roc-CZsY7tYZwR3rj9kYbpaCfxki2yVAaRL8bBwMLvB2xkbA",
+      "input": "build-source:roc-7brgwR8YUqfeGrkdfF1V4GPPN7DnP7ftqub9KcrTEZtr",
       "component": "",
       "reason": "Development, checking or documentation tooling; no code from this input is included in the Roc source bundle."
     },

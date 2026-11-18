@@ -6,6 +6,7 @@ escape codes by hand. It is a pure Roc package and works with any platform
 that can write to a terminal.
 
 **[Read the manual](https://lukewilliamboswell.github.io/roc-ansi/)** ·
+[API reference (main)](https://lukewilliamboswell.github.io/roc-ansi/main/) ·
 [Latest release](https://github.com/lukewilliamboswell/roc-ansi/releases/latest)
 
 ```roc
@@ -40,4 +41,5 @@ which depend on that release.
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). roc-ansi is open source under the
-[Universal Permissive License 1.0](LICENSE).
+[Universal Permissive License 1.0](LICENSE), with
+[third-party notices](THIRD_PARTY_LICENSES.md) for Unicode code and data.

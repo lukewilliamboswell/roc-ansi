@@ -5,6 +5,7 @@
 import Color as ColorPkg
 import Control as ControlPkg
 import Style as StylePkg
+import UnicodeGrapheme
 
 ANSI := [].{
 	# ANSI
@@ -364,7 +365,55 @@ ANSI := [].{
 			Z => "z"
 		}
 
+	## Terminal text-area dimensions in character cells, not pixels.
 	ScreenSize : { width : U16, height : U16 }
+
+	## Request the text-area size using the xterm window-operation query.
+	## Write and flush this string without adding a newline. Not every terminal
+	## supports the query; use a read deadline and a fallback size.
+	screen_size_request : Str
+	screen_size_request = ANSI.to_str(Control(Screen(Size)))
+
+	## Parse one complete terminal size report, such as ESC[8;24;80t.
+	## Accepts ESC[ and the single-byte CSI (0x9B). Both dimensions must be
+	## decimal integers from 1 through 65535. Rejects incomplete replies,
+	## trailing input, pixel reports and malformed or out-of-range dimensions.
+	parse_screen_size : List(U8) -> Try(ScreenSize, [InvalidScreenSize])
+	parse_screen_size = |bytes| {
+		payload = match bytes {
+			[27, '[', '8', ';', .. as rest] | [155, '8', ';', .. as rest] => rest
+			_ => return Err(InvalidScreenSize)
+		}
+		text = Str.from_utf8(payload).map_err(|_| InvalidScreenSize)?
+		if !text.ends_with("t") {
+			return Err(InvalidScreenSize)
+		}
+		match Str.split_on(text.drop_suffix("t"), ";") {
+			[rows, columns] => {
+				height = screen_dimension(rows)?
+				width = screen_dimension(columns)?
+				Ok({ width, height })
+			}
+			_ => Err(InvalidScreenSize)
+		}
+	}
+
+	## Send a size request and read its response using your platform's I/O.
+	## `write!` must flush before returning; `read!` must enforce a deadline
+	## for the whole query, because unsupported terminals may never reply.
+	## Reads may split the response at any byte. The result's `input` contains
+	## all bytes before and after the report, in order, for your input handler.
+	## An empty read returns NoResponse. Invalid reports and a 4096-byte input
+	## limit stop the query. Read/response errors retain all received bytes;
+	## write errors occur before any input is read. Terminal mode is unchanged.
+	## See the [terminal-size guide](https://lukewilliamboswell.github.io/roc-ansi/terminal-size.html)
+	## for terminal support, callback contracts and fallback handling.
+	query_screen_size! : { write! : Str => Try({}, write_err), read! : () => Try(List(U8), read_err) } => Try({ size : ScreenSize, input : List(U8) }, [WriteFailed(write_err), ReadFailed(read_err, List(U8)), NoResponse(List(U8)), InvalidResponse(List(U8)), InputLimitExceeded(List(U8))])
+	query_screen_size! = |{ write!, read! }| {
+		write!(ANSI.screen_size_request).map_err(|err| WriteFailed(err))?
+		read_screen_size!(read!, [])
+	}
+
 	CursorPosition : { row : U16, col : U16 }
 	Pixel : { char : Str, fg : ColorPkg.Color, bg : ColorPkg.Color, styles : List(StylePkg.Style) }
 	DrawFn : CursorPosition, CursorPosition -> Try(Pixel, {})
@@ -476,24 +525,19 @@ ANSI := [].{
 			}
 	}
 
+	## Draw one extended grapheme cluster per logical cell. Combining marks and
+	## emoji sequences stay intact. This does not calculate terminal display
+	## widths: wide characters may occupy more than one physical column.
 	draw_text : Str, { r : U16, c : U16, fg : ColorPkg.Color, bg : ColorPkg.Color, styles : List(StylePkg.Style) } -> DrawFn
 	draw_text = |text, { r, c, fg, bg, styles }| {
+		characters = UnicodeGrapheme.slices(text)
 		|_, pixel| {
-			bytes = Str.to_utf8(text)
-			len = U64.to_u16_wrap(bytes.len())
-
-			if pixel.row == r and pixel.col >= c and pixel.col < (c + len) {
-				match bytes.get(U16.to_u64(pixel.col - c)) {
-					Ok(byte) =>
-						match Str.from_utf8([byte]) {
-							Ok(char) => Ok({ char, fg, bg, styles })
-							Err(_) => Err({})
-						}
-
-					Err(_) => Err({})
-				}
-			} else {
-				Err({})
+			if pixel.row != r or pixel.col < c {
+				return Err({})
+			}
+			match characters.get(U16.to_u64(pixel.col - c)) {
+				Ok(char) => Ok({ char, fg, bg, styles })
+				Err(_) => Err({})
 			}
 		}
 	}
@@ -594,6 +638,113 @@ number_to_str = |number|
 		N8 => "8"
 		N9 => "9"
 	}
+
+screen_dimension = |text| {
+	if text.is_empty() or !Str.to_utf8(text).all(|byte| byte >= '0' and byte <= '9') {
+		return Err(InvalidScreenSize)
+	}
+	value = U16.from_str(text).map_err(|_| InvalidScreenSize)?
+	if (value == 0) Err(InvalidScreenSize) else Ok(value)
+}
+
+read_screen_size! = |read!, buffered| {
+	chunk = read!().map_err(|err| ReadFailed(err, buffered))?
+	if chunk.is_empty() {
+		return Err(NoResponse(buffered))
+	}
+	bytes = buffered.concat(chunk)
+	if bytes.len() > 4096 {
+		return Err(InputLimitExceeded(bytes))
+	}
+	match find_screen_size(bytes) {
+		Found(result) => Ok(result)
+		Invalid => Err(InvalidResponse(bytes))
+		Pending => read_screen_size!(read!, bytes)
+	}
+}
+
+# Search only for size reports; preserve every other byte for the caller.
+find_screen_size = |bytes| {
+	var $index = 0
+	for byte in bytes {
+		rest = bytes.drop_first($index)
+		prefix_len = if byte == 27 and rest.take_first(4) == [27, '[', '8', ';'] {
+			4
+		} else if byte == 155 and rest.take_first(3) == [155, '8', ';'] {
+			3
+		} else {
+			0
+		}
+		if prefix_len != 0 {
+			var $length = prefix_len
+			for next in rest.drop_first(prefix_len) {
+				$length = $length + 1
+				if next == 't' {
+					return match ANSI.parse_screen_size(rest.take_first($length)) {
+						Ok(size) => Found({ size, input: bytes.take_first($index).concat(rest.drop_first($length)) })
+						Err(_) => Invalid
+					}
+				}
+				if next != ';' and (next < '0' or next > '9') {
+					return Invalid
+				}
+			}
+			return Pending
+		}
+		$index = $index + 1
+	}
+	Pending
+}
+
+# Regression for #93: precomposed accents, combining marks and emoji stay intact.
+expect {
+	draw = ANSI.draw_text("ée\u(0301)👩‍💻x", { r: 0, c: 0, fg: Default, bg: Default, styles: [] })
+	[0, 1, 2, 3].map(|col| draw({ row: 0, col: 0 }, { row: 0, col }).map_ok(|pixel| pixel.char)) == [Ok("é"), Ok("e\u(0301)"), Ok("👩‍💻"), Ok("x")]
+}
+expect ANSI.draw_text("", { r: 0, c: 0, fg: Default, bg: Default, styles: [] })({ row: 0, col: 0 }, { row: 0, col: 0 }) == Err({})
+expect ANSI.draw_text("é", { r: 65535, c: 65535, fg: Default, bg: Default, styles: [] })({ row: 0, col: 0 }, { row: 65535, col: 65535 }).map_ok(|pixel| pixel.char) == Ok("é")
+
+expect ANSI.screen_size_request == "\u(001b)[18t"
+expect ANSI.parse_screen_size(Str.to_utf8("\u(001b)[8;24;80t")) == Ok({ width: 80, height: 24 })
+expect ANSI.parse_screen_size([155].concat(Str.to_utf8("8;24;80t"))) == Ok({ width: 80, height: 24 })
+expect ANSI.parse_screen_size(Str.to_utf8("\u(001b)[8;1;65535t")) == Ok({ width: 65535, height: 1 })
+
+## Incomplete, malformed, pixel-size and out-of-range reports are rejected.
+expect [
+	"",
+	"\u(001b)[8;24;80",
+	"\u(001b)[8;24t",
+	"\u(001b)[8;24;80;1t",
+	"\u(001b)[4;24;80t",
+	"\u(001b)[8;0;80t",
+	"\u(001b)[8;24;0t",
+	"\u(001b)[8;65536;80t",
+	"\u(001b)[8;24;65536t",
+	"\u(001b)[8;-1;80t",
+	"\u(001b)[8;24;+80t",
+	"\u(001b)[8;24;8_0t",
+	"\u(001b)[8; 24;80t",
+	"\u(001b)[8;;80t",
+	"\u(001b)[8;24;t",
+	"\u(001b)[8;24;80tx",
+].all(|text| ANSI.parse_screen_size(Str.to_utf8(text)) == Err(InvalidScreenSize))
+
+expect ANSI.parse_screen_size([27, '[', '8', ';', 255, ';', '8', '0', 't']) == Err(InvalidScreenSize)
+expect find_screen_size(Str.to_utf8("a\u(001b)[Ab\u(001b)[8;24;80tc")) == Found({ size: { width: 80, height: 24 }, input: Str.to_utf8("a\u(001b)[Abc") })
+expect find_screen_size([155].concat(Str.to_utf8("8;24;80t"))) == Found({ size: { width: 80, height: 24 }, input: [] })
+expect find_screen_size(Str.to_utf8("\u(001b)[8;0;80t")) == Invalid
+expect find_screen_size(Str.to_utf8("\u(001b)[8;24;x")) == Invalid
+expect find_screen_size(Str.to_utf8("x\u(001b)[Ay")) == Pending
+
+## Every proper prefix remains pending, including a split inside CSI.
+screen_size_prefixes_pending = |bytes| {
+	if bytes.is_empty() {
+		return find_screen_size(bytes) == Pending
+	}
+	find_screen_size(bytes) == Pending and screen_size_prefixes_pending(bytes.drop_last(1))
+}
+expect screen_size_prefixes_pending(Str.to_utf8("\u(001b)[8;24;80"))
+expect screen_size_prefixes_pending([155].concat(Str.to_utf8("8;24;80")))
 
 ## Cursor-position escape bytes parse row and column numbers.
 expect ANSI.parse_cursor([27, 91, 51, 51, 59, 49, 82]) == { row: 33, col: 1 }

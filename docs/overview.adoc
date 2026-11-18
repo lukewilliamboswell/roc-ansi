@@ -16,7 +16,7 @@ does, with any platform that can write to a terminal.
 | Module | What it is for
 
 | `ANSI`
-| The entry point: colour and style text, turn any escape into a string, parse raw key presses, and draw to a screen buffer
+| The entry point: colour and style text, turn any escape into a string, parse raw key presses, query terminal dimensions, and draw to a screen buffer
 
 | `Color`, `C16`, `C256`, `Rgb`
 | The four ways to name a colour: the terminal default, the 16 named colours, the 256-colour palette, and 24-bit RGB
@@ -49,6 +49,10 @@ xref:examples.adoc#learn-from-the-examples[Learn from the examples].
 
 * It does not put the terminal into raw mode or read from standard input. Your
   platform does that; roc-ansi parses the bytes it hands you.
+* `ANSI.draw_text` keeps extended grapheme clusters intact, including combining
+  marks and joined emoji. Each cluster occupies one logical drawing cell; the
+  renderer does not calculate the physical column width of wide glyphs or
+  wrap text. `Layout.trunc_or_pad` and `Layout.auto_sizes` still count bytes.
 * It does not detect what a terminal supports. A program that must work
   everywhere should keep to the 16 named colours.
 

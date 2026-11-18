@@ -1,6 +1,6 @@
 app [target] {
 	ansi: "../../package/main.roc",
-	fuzz: platform "https://github.com/lukewilliamboswell/roc-fuzz/releases/download/0.4.3/41NK5FShyGC9Z8HNpUdUeXMWwLmLNfFxsfmLvdPL4Fxb.tar.zst",
+	fuzz: platform "https://github.com/lukewilliamboswell/roc-fuzz/releases/download/0.6.2/3kyiehxxzwAsjM23uCQGJ3Hx7dAAdzSGtK3k9Jq7Egtu.tar.zst",
 }
 
 import fuzz.Fuzz
@@ -39,16 +39,17 @@ test! : List(U8) => U8
 test! = |bytes| {
 	count = U8.to_u64(bytes.get(1) ?? 0)
 	measured = match bytes.get(0) ?? 0 {
-		0 => Fuzz.measure_allocs!(|{}| insert(document, count))
+		0 => Fuzz.measure!("insert", || insert(document, count))
 		_ => {
 			# Deleting needs something to delete, which is set up uncounted.
 			longer = insert(document, count)
-			Fuzz.measure_allocs!(|{}| delete(longer, count))
+			Fuzz.measure!("delete", || delete(longer, count))
 		}
 	}
 	# The count leaves through the only channel a target has. The harness
 	# expects this crash and reads the number out of it.
-	crash "ALLOCATIONS ${measured.allocations.to_str()} for a document of ${PieceTable.to_list(measured.value).len().to_str()} values"
+	# Keep counting reallocations as allocations, as the ceilings require.
+	crash "ALLOCATIONS ${(measured.stats.allocs + measured.stats.reallocs).to_str()} for a document of ${PieceTable.to_list(measured.value).len().to_str()} values"
 }
 
-target = Fuzz.from_bytes!({ name: "allocations", test! })
+target = Fuzz.from_bytes!({ name: "allocations", examples: [], test! })
