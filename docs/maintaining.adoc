@@ -107,8 +107,8 @@ and are not recorded in the lock.
 ----
 roc bump --old <latest release bundle URL> package/main.roc
 ----
-. Write the notes in `docs/releases/<version>.adoc`, add them to the top of
-  `docs/releases.adoc`, and merge that pull request. Write them for someone
+. Write the notes in `docs/releases/<version>.adoc` and merge that pull
+  request. Write them for someone
   deciding whether and how to upgrade. Use `+{package-url}+` wherever the
   release's bundle URL belongs.
 . Dispatch the *Release* workflow from `main` with that version.

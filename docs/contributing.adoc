@@ -72,6 +72,8 @@ blueprint tasks          # list every task
   from `Blueprint.roc`.
 . Tests, checks and formats the scripts with `roc-stable`.
 . Formats, checks and tests the package with `roc`.
+. Exercises terminal-size query I/O, split replies and failure handling.
+. Checks `ANSI.draw_text` against the 766 official Unicode 17 grapheme cases.
 . Builds each fuzz target and replays its committed corpus.
 . Counts allocations and compares them with `tests/allocations.json`.
 . Builds the API documentation site.
@@ -111,6 +113,14 @@ before treating a failure as yours.
 | Script logic
 | `expect` in the modules under `scripts/src/`
 | Keep effects out of the module, and add it to the list in `check_scripts!`.
+
+| Unicode rendering
+| `tests/unicode/main.roc` and `tests/unicode/grapheme-breaks.json`
+| Keep the official conformance cases and regression tests in `package/ANSI.roc`.
+
+| Terminal query I/O
+| `tests/terminal-size/main.roc`
+| Exercise the public helper with deterministic write/read callbacks.
 |===
 
 == Change an example

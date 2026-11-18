@@ -1,0 +1,40 @@
+= roc-ansi 0.14.0
+
+Query a terminal's text-area dimensions with `ANSI.query_screen_size!` and your
+platform's write/read callbacks. The helper sends the request, handles replies
+split across reads, validates dimensions and returns unrelated input bytes
+for your input handler. Supply a read deadline because terminal support varies.
+See https://lukewilliamboswell.github.io/roc-ansi/terminal-size.html#get-the-terminal-size[Get the terminal size] for the
+I/O contract, terminal support and fallback handling.
+
+For an existing event loop, `ANSI.screen_size_request` supplies the request
+and `ANSI.parse_screen_size` parses a complete response into `ANSI.ScreenSize`.
+Both 7-bit and single-byte CSI replies are accepted; dimensions must be
+positive decimal values through 65535. Existing package APIs are unchanged.
+
+== Multibyte text rendering
+
+`ANSI.draw_text` now draws extended grapheme clusters instead of individual
+UTF-8 bytes, fixing missing accented characters and keeping combining marks
+and joined emoji intact. Each cluster occupies one logical cell; physical
+column widths of wide glyphs and text wrapping are not calculated.
+
+The source bundle includes an attributed Unicode 17 grapheme-segmentation
+subset adapted from roc-lang/unicode 4.3.1, under UPL-1.0 and Unicode-3.0.
+Its bytes, provenance and modifications are recorded in the source SBOM.
+There are no external package dependencies.
+
+== Compiler compatibility
+
+The five published examples use basic-cli 0.28.1 and work with Roc nightly
+`nightly-2026-11-18-a520eed`. This fixes the entrypoint type errors reported
+by this compiler with basic-cli 0.27.0. Existing example output is unchanged.
+
+== Use this release
+
+[source,roc]
+----
+app [main!] {
+    ansi: "{package-url}",
+}
+----

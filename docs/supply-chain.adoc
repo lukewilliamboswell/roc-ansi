@@ -20,9 +20,12 @@ is this repository's `main` at the release commit. The inventory, archive-member
 list, evidence envelope and `.sigstore.json` bundles are not release assets.
 
 The source inventory is independent of a CPU target. It covers the shipped
-first-party modules and their declared UPL-1.0 license. Archive membership and
-bytes are checked against the committed package source. Every bundled module
-carries the copyright and license notice; the release also supplies `LICENSE`.
+first-party UPL-1.0 modules and the attributed Unicode grapheme subset under
+UPL-1.0 and Unicode-3.0. Archive membership and bytes are checked against the
+committed package source. Vendored members record their upstream version and
+modifications, with exact hashes of the shipped bytes. Bundled modules carry
+license notices; the generated Unicode table includes its complete data
+license. Root `THIRD_PARTY_LICENSES.md` identifies the original source bundle.
 The recipe verifies that Roc reports no external package dependencies and
 refuses that claim if the dependency closure changes.
 

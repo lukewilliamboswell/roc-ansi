@@ -34,6 +34,10 @@ main! = |_args| {
 	check_compiler_pins!()?
 	check_scripts!(roc_stable)?
 	check_package!(roc)?
+	Script.section!("Terminal-size query I/O")?
+	roc.run!(["run", "tests/terminal-size/main.roc", "--no-cache"])?
+	Script.section!("Unicode rendering conformance")?
+	roc.run!(["run", "tests/unicode/main.roc", "--no-cache"])?
 	check_fuzz_targets!(roc)?
 	Script.section!("Allocation ceilings")?
 	Allocations.check!(roc)?

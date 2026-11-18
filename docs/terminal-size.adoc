@@ -1,0 +1,96 @@
+= Get the terminal size
+
+`ANSI.query_screen_size!` requests the terminal's text-area dimensions and
+returns an `ANSI.ScreenSize`: `{ width, height }` in character cells. It sends
+the request, joins replies split across reads, validates the dimensions and
+preserves unrelated input, such as key presses.
+
+== Supply terminal I/O
+
+Inside an effectful function such as `main!`, supply two callbacks from your
+platform's terminal layer. The names below stand for your own I/O functions:
+
+[source,roc]
+----
+import ansi.ANSI
+
+result = ANSI.query_screen_size!({
+    write!: terminal_write_and_flush!,
+    read!: terminal_read_with_deadline!,
+})
+----
+
+`write!` takes a `Str`, writes it without a newline, flushes it, and returns
+`Try({}, write_error)`. `read!` takes no arguments and returns
+`Try(List(U8), read_error)`. It must read bytes without waiting for Enter and
+enforce one deadline for the entire query. Each blocking read must end when
+that deadline expires; checking the clock before an unbounded read is not
+enough. Do not reset the deadline after each chunk.
+
+Configure raw or noncanonical input through your platform before querying,
+and restore the previous mode afterwards, including on failure. The helper
+does not change terminal mode or choose a timeout. A blocking reader such as
+basic-cli's `Stdin.bytes!` alone cannot enforce the required deadline.
+
+On success, `result` is `Ok({ size, input })`. Use `size` as the `screen` field
+for `ANSI.draw_screen` or `ANSI.update_cursor`. Pass `input` to your ordinary
+input handler before reading again: it contains all bytes read before and
+after the size report, in their original order. Bytes not yet read remain
+with the platform. Query again when your platform reports a resize.
+
+== Handle terminals that do not answer
+
+This uses the xterm window-operation query, not a universally supported ANSI
+feature. A terminal emulator and any intermediary must support or forward it;
+`TERM` alone does not establish support. xterm's `allowWindowOps` configuration
+can disable window operations. The
+https://invisible-island.net/xterm/ctlseqs/ctlseqs.html[xterm control-sequence reference]
+defines the query and reply.
+
+Only query an interactive terminal. Redirected streams may have no terminal,
+and unsupported or restricted terminals may send nothing. On a deadline,
+use a configured fallback size or the platform's native terminal-size API
+when available. A late reply may still arrive in the input stream.
+
+The helper returns these errors rather than inventing dimensions:
+
+[cols="2,3",options="header"]
+|===
+| Error | Meaning
+
+| `WriteFailed(error)`
+| The write or flush failed; no input was read.
+
+| `ReadFailed(error, input)`
+| The reader failed, including a deadline reported by your callback.
+
+| `NoResponse(input)`
+| The reader returned an empty chunk. Return an error for a temporary lack of input, or wait within the deadline.
+
+| `InvalidResponse(input)`
+| A size report was malformed, zero-sized or outside the `U16` range.
+
+| `InputLimitExceeded(input)`
+| More than 4096 bytes were read before the query completed.
+|===
+
+Every error carrying `input` returns all bytes received so far, including any
+partial report. Keep those bytes for your input handler or recovery path.
+
+== Use an existing event loop
+
+If your application already separates terminal responses from key presses,
+write `ANSI.screen_size_request` and pass the complete report's bytes to
+`ANSI.parse_screen_size`:
+
+[source,roc]
+----
+ANSI.parse_screen_size(Str.to_utf8("\u(001b)[8;24;80t"))
+# Ok({ width: 80, height: 24 })
+----
+
+The request is `ESC[18t`; the reply is `ESC[8;<rows>;<columns>t`. The parser
+also accepts the single-byte CSI prefix `0x9B`. It accepts positive decimal
+dimensions through 65535 and rejects pixel-size reports, incomplete reports,
+extra fields and trailing input. It does not consume a surrounding input
+stream; use `query_screen_size!` when you want the package to handle framing.
