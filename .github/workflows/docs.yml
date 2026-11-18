@@ -42,7 +42,7 @@ jobs:
       # The first program in the manual names the latest release's bundle URL.
       - name: Provision and measure the locked documentation renderer
         id: renderer
-        uses: lukewilliamboswell/roc-automation/actions/blueprint-tool@e12512e2605608588782edb044dd766137e34869 # verified manual badge evidence
+        uses: lukewilliamboswell/roc-automation/actions/blueprint-tool@6c796f299012707d2e9bad23fd6449ed93f1f475 # verified manual badge evidence
         with:
           task: docs-path
           label: roc-docs tools-0.10.1
