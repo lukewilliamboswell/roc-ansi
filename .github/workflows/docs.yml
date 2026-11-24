@@ -34,10 +34,7 @@ jobs:
         uses: ./.github/actions/setup-blueprint
 
       - name: Install the latest Roc nightly
-        uses: roc-lang/setup-roc@30af91a173612e462a5df47f3b697c53c211f48c
-        with:
-          version: nightly
-          download-method: asset-api
+        uses: lukewilliamboswell/roc-automation/actions/setup-roc-nightly@dd30a5dd576973b6e224db70d96e3e12c96bcc95
 
       # The first program in the manual names the latest release's bundle URL.
       - name: Provision and measure the locked documentation renderer
