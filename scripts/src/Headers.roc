@@ -69,25 +69,25 @@ field = |entry|
 
 example = "app [main!] {\n\tansi: \"../package/main.roc\",\n\tpf: platform \"https://example.com/cli.tar.zst\",\n}\n\nmain! = |_| { ansi: \"../package/main.roc\" }\n"
 
-expect Headers.has_roc_pin("app [main!] { ansi: \"../package/main.roc\", roc: \"nightly-2026-11-23-b5c77fc\" }\n")
-expect Headers.has_roc_pin("#!/usr/bin/env roc-stable\napp [main!] {\n\tcli: platform \"https://example.com/cli.tar.zst\",\n\troc : \"nightly-2026-11-23-b5c77fc\",\n}\n")
-expect Headers.has_roc_pin("## Docs\npackage [ANSI] { roc: \"nightly-2026-11-23-b5c77fc\" }\n")
+expect Headers.has_roc_pin("app [main!] { ansi: \"../package/main.roc\", roc: \"nightly-2026-11-24-ff5e544\" }\n")
+expect Headers.has_roc_pin("#!/usr/bin/env roc-stable\napp [main!] {\n\tcli: platform \"https://example.com/cli.tar.zst\",\n\troc : \"nightly-2026-11-24-ff5e544\",\n}\n")
+expect Headers.has_roc_pin("## Docs\npackage [ANSI] { roc: \"nightly-2026-11-24-ff5e544\" }\n")
 expect !Headers.has_roc_pin("package\n\t[\n\t\tANSI,\n\t]\n\t{}\n")
 expect !Headers.has_roc_pin("app [main!] { ansi: \"../package/main.roc\" }\n\nmain! = |_| { roc: \"not a header\" }\n")
 expect !Headers.has_roc_pin("Files := [].{\n\tpin = { roc: \"nightly\" }\n}\n")
 expect !Headers.has_roc_pin("app [main!] { heroc: \"https://example.com/roc: x.tar.zst\" }\n")
-expect Headers.roc_pin("#!/usr/bin/env roc-stable\napp [main!] {\n\tcli: platform \"https://example.com/cli.tar.zst\",\n\troc: \"nightly-2026-11-23-b5c77fc\",\n}\n") == Ok("nightly-2026-11-23-b5c77fc")
+expect Headers.roc_pin("#!/usr/bin/env roc-stable\napp [main!] {\n\tcli: platform \"https://example.com/cli.tar.zst\",\n\troc: \"nightly-2026-11-24-ff5e544\",\n}\n") == Ok("nightly-2026-11-24-ff5e544")
 expect Headers.roc_pin(example) == Err(MissingDependency("roc"))
 expect Headers.is_app(example) and Headers.is_app("#!/usr/bin/env roc-stable\napp [main!] {}\n")
 expect !Headers.is_app("package [ANSI] {}\n") and !Headers.is_app("Files := [].{\n\tapp = 1\n}\n")
-stable_declaration = "Fetch(\"roc-stable\", Recipes.roc_nightly(\"nightly-2026-11-23-b5c77fc\"))"
-expect Headers.stable_tag(stable_declaration) == Ok("nightly-2026-11-23-b5c77fc")
-expect Headers.stable_tag("Programs([\n\tFetch(\n\t\t\"roc-stable\",\n\t\tRecipes.roc_nightly(\"nightly-2026-11-23-b5c77fc\"),\n\t),\n])") == Ok("nightly-2026-11-23-b5c77fc")
+stable_declaration = "Fetch(\"roc-stable\", Recipes.roc_nightly(\"nightly-2026-11-24-ff5e544\"))"
+expect Headers.stable_tag(stable_declaration) == Ok("nightly-2026-11-24-ff5e544")
+expect Headers.stable_tag("Programs([\n\tFetch(\n\t\t\"roc-stable\",\n\t\tRecipes.roc_nightly(\"nightly-2026-11-24-ff5e544\"),\n\t),\n])") == Ok("nightly-2026-11-24-ff5e544")
 expect Headers.stable_tag("# `roc-stable` is the release named below\n") == Err(NoStableCompiler)
 expect Headers.stable_tag("Fetch(\"roc-stable\", Recipes.roc_nightly(\"\"))") == Err(NoStableCompiler)
 expect Headers.stable_tag("${stable_declaration}\n${stable_declaration}") == Err(NoStableCompiler)
 expect Headers.stable_tag("# ${stable_declaration}\n") == Err(NoStableCompiler)
-expect Headers.stable_tag("# ${stable_declaration}\n${stable_declaration}") == Ok("nightly-2026-11-23-b5c77fc")
+expect Headers.stable_tag("# ${stable_declaration}\n${stable_declaration}") == Ok("nightly-2026-11-24-ff5e544")
 expect Headers.dependency(example, "ansi") == Ok("../package/main.roc")
 expect Headers.dependency(example, "pf") == Ok("https://example.com/cli.tar.zst")
 expect Headers.dependency(example, "weaver") == Err(MissingDependency("weaver"))
