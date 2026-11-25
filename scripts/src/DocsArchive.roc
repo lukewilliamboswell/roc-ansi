@@ -88,7 +88,7 @@ restore_release! = |gh, release, output| {
 	}
 	Env.with_temp_dir!(
 		|temporary| {
-			_ = gh.capture!(["release", "download", OsStr.from_str(version), "--repo", OsStr.from_str(Release.repository), "--pattern", OsStr.from_str(asset_name), "--dir", Path.to_os_str(temporary)], ".", [])?
+			download!(gh, version, asset_name, temporary)?
 			archive = Path.join(temporary, asset_name)
 			if asset.digest != "" and asset.digest != "sha256:${sha256!(archive)?}" {
 				return Script.fail!("documentation digest mismatch for ${version}")
@@ -97,6 +97,16 @@ restore_release! = |gh, release, output| {
 		},
 	)?
 	Script.info!("RESTORED", "release documentation for ${version}")
+}
+
+# Keep the hosted command's result explicit at the temporary-directory boundary.
+download! : Script.Command, Str, Str, Path => Try({}, [DocsDownloadFailed(Str)])
+download! = |gh, version, asset_name, temporary| {
+	args = ["release", "download", OsStr.from_str(version), "--repo", OsStr.from_str(Release.repository), "--pattern", OsStr.from_str(asset_name), "--dir", Path.to_os_str(temporary)]
+	match gh.cmd(args).call!() {
+		Ok({}) => Ok({})
+		Err(err) => Err(DocsDownloadFailed(Str.inspect(err)))
+	}
 }
 
 # The entry names of a zip, and the long listing lines that describe them.
