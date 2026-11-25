@@ -12,7 +12,7 @@
 # `prepare-sbom`, `install-snippet` and `docs-path` tasks here.
 # The released SBOM utility is a native executable. Blueprint embeds its
 # configuration compiler independently of these environment inputs.
-app [config] { pf: platform "https://github.com/lukewilliamboswell/roc-blueprint/releases/download/0.12.0/GSb71LxYHqLohZz8jMfawWEwQcyev9ZdVC26sfsDwfq8.tar.zst" }
+app [config] { pf: platform "https://github.com/lukewilliamboswell/roc-blueprint/releases/download/0.15.0-rc.1/FwWWY6PczB7QsUoWKgaLTuBGGajLjfA4MhaLD36sJxrN.tar.zst" }
 
 import pf.Recipes
 import pf.Config
@@ -26,7 +26,7 @@ docs_renderer = |system| match system {
 
 sbom_binary : System -> Config.Download
 sbom_binary = |system| match system {
-	"x86_64-linux" | "aarch64-linux" | "aarch64-darwin" => File("https://github.com/lukewilliamboswell/roc-blueprint/releases/download/0.12.0/blueprint-sbom-${system.to_str()}")
+	"x86_64-linux" | "aarch64-linux" | "aarch64-darwin" => File("https://github.com/lukewilliamboswell/roc-blueprint/releases/download/0.15.0-rc.1/blueprint-sbom-${system.to_str()}")
 	_ => Unavailable
 }
 

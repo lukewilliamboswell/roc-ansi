@@ -4,8 +4,8 @@ description: Use the shared verified installer and artifact cache for this pure 
 runs:
   using: composite
   steps:
-    - name: Install stable Blueprint and restore downloaded artifacts
-      uses: lukewilliamboswell/roc-automation/actions/setup-blueprint@dd30a5dd576973b6e224db70d96e3e12c96bcc95 # verified manual badge evidence
+    - name: Install the pinned Blueprint and restore downloaded artifacts
+      uses: lukewilliamboswell/roc-automation/actions/setup-blueprint@2b0ffc9c556f465759ca81055bb819c7e15624eb
       with:
         install-nix: 'false'
         cache: 'true'
